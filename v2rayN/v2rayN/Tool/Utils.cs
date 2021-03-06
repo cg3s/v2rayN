@@ -19,12 +19,13 @@ using ZXing.Common;
 using ZXing.QrCode;
 using System.Security.Principal;
 using v2rayN.Base;
+using Newtonsoft.Json.Linq;
+using System.Web;
 
 namespace v2rayN
 {
     class Utils
     {
-
 
         #region 资源Json操作
 
@@ -145,6 +146,19 @@ namespace v2rayN
                 result = -1;
             }
             return result;
+        }
+
+        public static JObject ParseJson(string strJson)
+        {
+            try
+            {
+                JObject obj = JObject.Parse(strJson);
+                return obj;
+            }
+            catch
+            {
+                return null;
+            }
         }
         #endregion
 
@@ -356,6 +370,14 @@ namespace v2rayN
             result = list;
         }
 
+        public static string UrlEncode(string url)
+        {
+            return HttpUtility.UrlEncode(url);
+        }
+        public static string UrlDecode(string url)
+        {
+            return HttpUtility.UrlDecode(url);
+        }
         #endregion
 
 
@@ -788,6 +810,10 @@ namespace v2rayN
             }
         }
 
+        public static void AddSubItem(ListViewItem i, string name, string text)
+        {
+            i.SubItems.Add(new ListViewItem.ListViewSubItem() { Name = name, Text = text });
+        }
         #endregion
 
         #region TempPath
