@@ -1,10 +1,8 @@
-﻿using System;
+﻿using Splat;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using v2rayN.Base;
 using v2rayN.Mode;
@@ -31,7 +29,7 @@ namespace v2rayN.Handler
             }
         }
 
-        public void CheckUpdateGuiN(Config config, Action<bool, string> update)
+        public void CheckUpdateGuiN(Config config, Action<bool, string> update, bool preRelease)
         {
             _config = config;
             _updateFunc = update;
@@ -50,14 +48,14 @@ namespace v2rayN.Handler
 
                         try
                         {
-                            string fileName = Utils.GetPath(Utils.GetDownloadFileName(url));
+                            string fileName = Utils.GetTempPath(Utils.GetDownloadFileName(url));
                             fileName = Utils.UrlEncode(fileName);
                             Process process = new Process
                             {
                                 StartInfo = new ProcessStartInfo
                                 {
                                     FileName = "v2rayUpgrade.exe",
-                                    Arguments = "\"" + fileName + "\"",
+                                    Arguments = $"\"{fileName}\"",
                                     WorkingDirectory = Utils.StartupPath()
                                 }
                             };
@@ -93,15 +91,16 @@ namespace v2rayN.Handler
                 }
                 else
                 {
+                    Locator.Current.GetService<NoticeHandler>()?.Enqueue(args.Msg);
                     _updateFunc(false, args.Msg);
                 }
             };
             _updateFunc(false, string.Format(ResUI.MsgStartUpdating, "v2rayN"));
-            CheckUpdateAsync(ECoreType.v2rayN);
+            CheckUpdateAsync(ECoreType.v2rayN, preRelease);
         }
 
 
-        public void CheckUpdateCore(ECoreType type, Config config, Action<bool, string> update)
+        public void CheckUpdateCore(ECoreType type, Config config, Action<bool, string> update, bool preRelease)
         {
             _config = config;
             _updateFunc = update;
@@ -148,22 +147,24 @@ namespace v2rayN.Handler
                 }
                 else
                 {
+                    Locator.Current.GetService<NoticeHandler>()?.Enqueue(args.Msg);
                     _updateFunc(false, args.Msg);
                 }
             };
             _updateFunc(false, string.Format(ResUI.MsgStartUpdating, "Core"));
-            CheckUpdateAsync(type);
+            CheckUpdateAsync(type, preRelease);
         }
 
 
-        public void UpdateSubscriptionProcess(Config config, bool blProxy, Action<bool, string> update)
+        public void UpdateSubscriptionProcess(Config config, string subId, bool blProxy, Action<bool, string> update)
         {
             _config = config;
             _updateFunc = update;
 
             _updateFunc(false, ResUI.MsgUpdateSubscriptionStart);
+            var subItem = LazyConfig.Instance.SubItems();
 
-            if (config.subItem == null || config.subItem.Count <= 0)
+            if (subItem == null || subItem.Count <= 0)
             {
                 _updateFunc(false, ResUI.MsgNoValidSubscription);
                 return;
@@ -181,16 +182,20 @@ namespace v2rayN.Handler
                     Thread.Sleep(3000);
                 }
 
-                foreach (var item in config.subItem)
+                foreach (var item in subItem)
                 {
                     if (item.enabled == false)
                     {
                         continue;
                     }
+                    if (!Utils.IsNullOrEmpty(subId) && item.id != subId)
+                    {
+                        continue;
+                    }
+
                     string id = item.id.TrimEx();
                     string url = item.url.TrimEx();
                     string userAgent = item.userAgent.TrimEx();
-                    string groupId = item.groupId.TrimEx();
                     string hashCode = $"{item.remarks}->";
                     if (Utils.IsNullOrEmpty(id) || Utils.IsNullOrEmpty(url))
                     {
@@ -203,6 +208,9 @@ namespace v2rayN.Handler
                     {
                         _updateFunc(false, $"{hashCode}{args.GetException().Message}");
                     };
+
+                    //idn to idc
+                    url = Utils.GetPunycode(url);
 
                     _updateFunc(false, $"{hashCode}{ResUI.MsgStartGettingSubscriptions}");
                     var result = await downloadHandle.DownloadStringAsync(url, blProxy, userAgent);
@@ -223,7 +231,12 @@ namespace v2rayN.Handler
                             _updateFunc(false, $"{hashCode}{result}");
                         }
 
-                        int ret = ConfigHandler.AddBatchServers(ref config, result, id, groupId);
+                        int ret = ConfigHandler.AddBatchServers(ref config, result, id, true);
+                        if (ret <= 0)
+                        {
+                            Utils.SaveLog("FailedImportSubscription");
+                            Utils.SaveLog(result);
+                        }
                         _updateFunc(false,
                             ret > 0
                                 ? $"{hashCode}{ResUI.MsgUpdateSubscriptionEnd}"
@@ -262,15 +275,16 @@ namespace v2rayN.Handler
 
                         try
                         {
-                            string fileName = Utils.GetPath(Utils.GetDownloadFileName(url));
+                            string fileName = Utils.GetTempPath(Utils.GetDownloadFileName(url));
                             if (File.Exists(fileName))
                             {
-                                string targetPath = Utils.GetPath($"{geoName}.dat");
-                                if (File.Exists(targetPath))
+                                Global.coreTypes.ForEach(it =>
                                 {
-                                    File.Delete(targetPath);
-                                }
-                                File.Move(fileName, targetPath);
+                                    string targetPath = Utils.GetBinPath($"{geoName}.dat", (ECoreType)Enum.Parse(typeof(ECoreType), it));
+                                    File.Copy(fileName, targetPath, true);
+                                });
+
+                                File.Delete(fileName);
                                 //_updateFunc(true, "");
                             }
                         }
@@ -305,17 +319,17 @@ namespace v2rayN.Handler
 
         #region private
 
-        private async void CheckUpdateAsync(ECoreType type)
+        private async void CheckUpdateAsync(ECoreType type, bool preRelease)
         {
             try
             {
                 var coreInfo = LazyConfig.Instance.GetCoreInfo(type);
-                string url = coreInfo.coreLatestUrl;
+                string url = coreInfo.coreReleaseApiUrl;
 
-                var result = await (new DownloadHandle()).UrlRedirectAsync(url, true);
+                var result = await (new DownloadHandle()).DownloadStringAsync(url, true, "");
                 if (!Utils.IsNullOrEmpty(result))
                 {
-                    responseHandler(type, result);
+                    responseHandler(type, result, preRelease);
                 }
                 else
                 {
@@ -343,7 +357,7 @@ namespace v2rayN.Handler
                 foreach (string name in coreInfo.coreExes)
                 {
                     string vName = $"{name}.exe";
-                    vName = Utils.GetPath(vName);
+                    vName = Utils.GetBinPath(vName, coreInfo.coreType);
                     if (File.Exists(vName))
                     {
                         filePath = vName;
@@ -353,14 +367,14 @@ namespace v2rayN.Handler
 
                 if (!File.Exists(filePath))
                 {
-                    string msg = string.Format(ResUI.NotFoundCore, @"");
+                    string msg = string.Format(ResUI.NotFoundCore, @"", "", "");
                     //ShowMsg(true, msg);
                     return "";
                 }
 
                 Process p = new Process();
                 p.StartInfo.FileName = filePath;
-                p.StartInfo.Arguments = "-version";
+                p.StartInfo.Arguments = coreInfo.versionArg;
                 p.StartInfo.WorkingDirectory = Utils.StartupPath();
                 p.StartInfo.UseShellExecute = false;
                 p.StartInfo.RedirectStandardOutput = true;
@@ -369,7 +383,20 @@ namespace v2rayN.Handler
                 p.Start();
                 p.WaitForExit(5000);
                 string echo = p.StandardOutput.ReadToEnd();
-                string version = Regex.Match(echo, $"{coreInfo.match} ([0-9.]+) \\(").Groups[1].Value;
+                string version = string.Empty;
+                switch (type)
+                {
+                    case ECoreType.v2fly:
+                    case ECoreType.SagerNet:
+                    case ECoreType.Xray:
+                    case ECoreType.v2fly_v5:
+                        version = Regex.Match(echo, $"{coreInfo.match} ([0-9.]+) \\(").Groups[1].Value;
+                        break;
+                    case ECoreType.clash:
+                    case ECoreType.clash_meta:
+                        version = Regex.Match(echo, $"v[0-9.]+").Groups[0].Value;
+                        break;
+                }
                 return version;
             }
             catch (Exception ex)
@@ -379,11 +406,20 @@ namespace v2rayN.Handler
                 return "";
             }
         }
-        private void responseHandler(ECoreType type, string redirectUrl)
+        private void responseHandler(ECoreType type, string gitHubReleaseApi, bool preRelease)
         {
             try
             {
-                string version = redirectUrl.Substring(redirectUrl.LastIndexOf("/", StringComparison.Ordinal) + 1);
+                var gitHubReleases = Utils.FromJson<List<GitHubRelease>>(gitHubReleaseApi);
+                string version;
+                if (preRelease)
+                {
+                    version = gitHubReleases!.First().TagName;
+                }
+                else
+                {
+                    version = gitHubReleases!.First(r => r.Prerelease == false).TagName;
+                }
                 var coreInfo = LazyConfig.Instance.GetCoreInfo(type);
 
                 string curVersion;
@@ -392,7 +428,9 @@ namespace v2rayN.Handler
                 switch (type)
                 {
                     case ECoreType.v2fly:
+                    case ECoreType.SagerNet:
                     case ECoreType.Xray:
+                    case ECoreType.v2fly_v5:
                         {
                             curVersion = "v" + getCoreVersion(type);
                             message = string.Format(ResUI.IsLatestCore, curVersion);
@@ -403,7 +441,7 @@ namespace v2rayN.Handler
                     case ECoreType.clash:
                     case ECoreType.clash_meta:
                         {
-                            curVersion = "";//getCoreVersion(type);
+                            curVersion = getCoreVersion(type);
                             message = string.Format(ResUI.IsLatestCore, curVersion);
                             if (Environment.Is64BitProcess)
                             {
@@ -424,6 +462,17 @@ namespace v2rayN.Handler
                         }
                     default:
                         throw new ArgumentException("Type");
+                }
+
+                if (type == ECoreType.v2rayN)
+                {
+                    decimal.TryParse(curVersion, out decimal decCur);
+                    decimal.TryParse(version, out decimal dec);
+                    if (decCur >= dec)
+                    {
+                        AbsoluteCompleted?.Invoke(this, new ResultEventArgs(false, message));
+                        return;
+                    }
                 }
 
                 if (curVersion == version)

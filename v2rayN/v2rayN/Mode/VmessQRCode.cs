@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace v2rayN.Mode
+﻿namespace v2rayN.Mode
 {
     /// <summary>
     /// https://github.com/2dust/v2rayN/wiki/
@@ -65,5 +63,10 @@ namespace v2rayN.Mode
         /// TLS alpn
         /// </summary>
         public string alpn { get; set; } = string.Empty;
+        /// <summary>
+        /// TLS fingerprint
+        /// </summary>
+        public string fp { get; set; } = string.Empty;
+
     }
 }

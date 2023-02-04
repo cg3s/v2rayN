@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json;
 
 namespace v2rayN.Mode
 {
@@ -175,14 +175,9 @@ namespace v2rayN.Mode
     }
     public class Sniffing
     {
-        /// <summary>
-        /// 
-        /// </summary>
         public bool enabled { get; set; }
-        /// <summary>
-        /// 
-        /// </summary>
         public List<string> destOverride { get; set; }
+        public bool routeOnly { get; set; }
     }
 
     public class Outbounds
@@ -224,6 +219,16 @@ namespace v2rayN.Mode
         /// 
         /// </summary>
         public Response response { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string domainStrategy { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public int? userLevel { get; set; }
     }
 
     public class VnextItem
@@ -412,6 +417,12 @@ namespace v2rayN.Mode
         {
             get; set;
         }
+
+        /// <summary>
+        /// "chrome" | "firefox" | "safari" | "randomized"
+        /// </summary>
+        public string fingerprint { get; set; }
+
     }
 
     public class TcpSettings
@@ -496,6 +507,12 @@ namespace v2rayN.Mode
         /// 
         /// </summary>
         public string Host { get; set; }
+
+        /// <summary>
+        /// 用户代理
+        /// </summary>
+        [JsonProperty("User-Agent")]
+        public string UserAgent { get; set; }
     }
 
     public class HttpSettings
@@ -531,14 +548,12 @@ namespace v2rayN.Mode
 
     public class GrpcSettings
     {
-        /// <summary>
-        /// 
-        /// </summary>
         public string serviceName { get; set; }
-        /// <summary>
-        /// 
-        /// </summary>
         public bool multiMode { get; set; }
+        public int idle_timeout { get; set; }
+        public int health_check_timeout { get; set; }
+        public bool permit_without_stream { get; set; }
+        public int initial_windows_size { get; set; }
     }
 
     public class AccountsItem
