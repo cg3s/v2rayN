@@ -30,8 +30,9 @@ namespace v2rayN
         {
             Global.ExePathKey = Utils.GetMD5(Utils.GetExePath());
 
+            var rebootas = (e.Args ?? new string[] { }).Any(t => t == Global.RebootAs);
             ProgramStarted = new EventWaitHandle(false, EventResetMode.AutoReset, Global.ExePathKey, out bool bCreatedNew);
-            if (!bCreatedNew)
+            if (!rebootas && !bCreatedNew)
             {
                 ProgramStarted.Set();
                 Current.Shutdown();
@@ -42,16 +43,15 @@ namespace v2rayN
             Global.processJob = new Job();
 
             Logging.Setup();
+            Init();
+            Logging.LoggingEnabled(_config.guiItem.enableLog);
             Utils.SaveLog($"v2rayN start up | {Utils.GetVersion()} | {Utils.GetExePath()}");
             Logging.ClearLogs();
-
-            Init();
 
             Thread.CurrentThread.CurrentUICulture = new(_config.uiItem.currentLanguage);
 
             base.OnStartup(e);
         }
-
 
         private void Init()
         {
@@ -62,7 +62,12 @@ namespace v2rayN
                 Environment.Exit(0);
                 return;
             }
+            //if (RuntimeInformation.ProcessArchitecture != Architecture.X86 && RuntimeInformation.ProcessArchitecture != Architecture.X64)
+            //{
+            //    _config.guiItem.enableStatistics = false;
+            //}
         }
+
         private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
             Utils.SaveLog("App_DispatcherUnhandledException", e.Exception);
@@ -77,7 +82,7 @@ namespace v2rayN
             }
         }
 
-        private void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
+        private void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
         {
             Utils.SaveLog("TaskScheduler_UnobservedTaskException", e.Exception);
         }

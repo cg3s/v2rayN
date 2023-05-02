@@ -1,7 +1,38 @@
-﻿using System.Windows.Forms;
+﻿using System.Windows.Input;
 
 namespace v2rayN.Mode
 {
+    [Serializable]
+    public class CoreBasicItem
+    {
+        /// <summary>
+        /// 允许日志
+        /// </summary>
+        public bool logEnabled { get; set; }
+
+        /// <summary>
+        /// 日志等级
+        /// </summary>
+        public string loglevel { get; set; }
+
+        /// <summary>
+        /// 允许Mux多路复用
+        /// </summary>
+        public bool muxEnabled { get; set; }
+
+        /// <summary>
+        /// 是否允许不安全连接
+        /// </summary>
+        public bool defAllowInsecure { get; set; }
+
+        public string defFingerprint { get; set; }
+
+        /// <summary>
+        /// 默认用户代理
+        /// </summary>
+        public string defUserAgent { get; set; }
+    }
+
     [Serializable]
     public class InItem
     {
@@ -21,7 +52,6 @@ namespace v2rayN.Mode
         public string user { get; set; }
 
         public string pass { get; set; }
-
     }
 
     [Serializable]
@@ -52,6 +82,32 @@ namespace v2rayN.Mode
     }
 
     [Serializable]
+    public class GUIItem
+    {
+        public bool autoRun { get; set; }
+
+        public bool enableStatistics { get; set; }
+
+        public int statisticsFreshRate { get; set; }
+
+        public bool keepOlderDedupl { get; set; }
+
+        public bool ignoreGeoUpdateCore { get; set; } = true;
+
+        public int autoUpdateInterval { get; set; } = 10;
+
+        public bool checkPreReleaseUpdate { get; set; } = false;
+
+        public bool enableSecurityProtocolTls13 { get; set; }
+
+        public int trayMenuServersLimit { get; set; } = 20;
+
+        public bool enableHWA { get; set; } = false;
+
+        public bool enableLog { get; set; } = true;
+    }
+
+    [Serializable]
     public class UIItem
     {
         public bool enableAutoAdjustMainLvColWidth { get; set; }
@@ -67,15 +123,16 @@ namespace v2rayN.Mode
         public bool enableDragDropSort { get; set; }
         public bool doubleClick2Activate { get; set; }
         public bool autoHideStartup { get; set; } = true;
-        public Dictionary<string, int> mainLvColWidth { get; set; }
+        public string mainMsgFilter { get; set; }
+        public bool showTrayTip { get; set; }
+        public List<ColumnItem> mainColumnItem { get; set; }
     }
 
     [Serializable]
     public class ConstItem
     {
-        public string speedTestUrl { get; set; }
-        public string speedPingTestUrl { get; set; }
         public string defIEProxyExceptions { get; set; }
+        public string subConvertUrl { get; set; } = string.Empty;
     }
 
     [Serializable]
@@ -89,8 +146,7 @@ namespace v2rayN.Mode
 
         public bool Shift { get; set; }
 
-        public Keys? KeyCode { get; set; }
-
+        public Key? KeyCode { get; set; }
     }
 
     [Serializable]
@@ -106,12 +162,47 @@ namespace v2rayN.Mode
     {
         public bool enableTun { get; set; }
         public bool showWindow { get; set; }
+        public bool enabledLog { get; set; }
         public bool strictRoute { get; set; }
         public string stack { get; set; }
         public int mtu { get; set; }
         public string customTemplate { get; set; }
+        public bool bypassMode { get; set; } = true;
         public List<string> directIP { get; set; }
         public List<string> directProcess { get; set; }
+        public string directDNS { get; set; }
+        public List<string> proxyIP { get; set; }
+        public List<string> proxyProcess { get; set; }
+        public string proxyDNS { get; set; }
+    }
 
+    [Serializable]
+    public class SpeedTestItem
+    {
+        public int speedTestTimeout { get; set; }
+        public string speedTestUrl { get; set; }
+        public string speedPingTestUrl { get; set; }
+    }
+
+    [Serializable]
+    public class RoutingBasicItem
+    {
+        /// <summary>
+        /// 域名解析策略
+        /// </summary>
+        public string domainStrategy { get; set; }
+        public string domainStrategy4Singbox { get; set; }
+
+        public string domainMatcher { get; set; }
+        public string routingIndexId { get; set; }
+        public bool enableRoutingAdvanced { get; set; }
+    }
+
+    [Serializable]
+    public class ColumnItem
+    {
+        public string Name { get; set; }
+        public int Width { get; set; }
+        public int Index { get; set; }
     }
 }

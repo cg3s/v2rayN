@@ -3,23 +3,23 @@ using System.Runtime.InteropServices;
 
 namespace v2rayN.Handler
 {
-    class ProxySetting
+    internal class ProxySetting
     {
         public static bool UnsetProxy()
         {
             return SetProxy(null, null, 1);
         }
 
-        public static bool SetProxy(string strProxy, string exceptions, int type)
+        public static bool SetProxy(string? strProxy, string? exceptions, int type)
         {
-            InternetPerConnOptionList list = new InternetPerConnOptionList();
+            InternetPerConnOptionList list = new();
 
             int optionCount = 1;
             if (type == 1)
             {
                 optionCount = 1;
             }
-            else if (type == 2 || type == 4)
+            else if (type is 2 or 4)
             {
                 optionCount = Utils.IsNullOrEmpty(exceptions) ? 2 : 3;
             }
@@ -62,7 +62,6 @@ namespace v2rayN.Handler
             list.dwOptionCount = options.Length;
             list.dwOptionError = 0;
 
-
             int optSize = Marshal.SizeOf(typeof(InternetConnectionOption));
             // make a pointer out of all that ...
             IntPtr optionsPtr = Marshal.AllocCoTaskMem(optSize * options.Length);
@@ -71,12 +70,12 @@ namespace v2rayN.Handler
             {
                 if (Environment.Is64BitOperatingSystem)
                 {
-                    IntPtr opt = new IntPtr(optionsPtr.ToInt64() + (i * optSize));
+                    IntPtr opt = new(optionsPtr.ToInt64() + (i * optSize));
                     Marshal.StructureToPtr(options[i], opt, false);
                 }
                 else
                 {
-                    IntPtr opt = new IntPtr(optionsPtr.ToInt32() + (i * optSize));
+                    IntPtr opt = new(optionsPtr.ToInt32() + (i * optSize));
                     Marshal.StructureToPtr(options[i], opt, false);
                 }
             }
@@ -84,7 +83,7 @@ namespace v2rayN.Handler
             list.options = optionsPtr;
 
             // and then make a pointer out of the whole list
-            IntPtr ipcoListPtr = Marshal.AllocCoTaskMem((int)list.dwSize);
+            IntPtr ipcoListPtr = Marshal.AllocCoTaskMem(list.dwSize);
             Marshal.StructureToPtr(list, ipcoListPtr, false);
 
             // and finally, call the API method!
@@ -106,8 +105,8 @@ namespace v2rayN.Handler
             return (returnvalue < 0);
         }
 
-
         #region WinInet structures
+
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
         public struct InternetPerConnOptionList
         {
@@ -115,6 +114,7 @@ namespace v2rayN.Handler
             public IntPtr szConnection;         // connection name to set/query options
             public int dwOptionCount;        // number of options to set/query
             public int dwOptionError;           // on error, which option failed
+
             //[MarshalAs(UnmanagedType.)]
             public IntPtr options;
         };
@@ -122,9 +122,10 @@ namespace v2rayN.Handler
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
         public struct InternetConnectionOption
         {
-            static readonly int Size;
+            private static readonly int Size;
             public PerConnOption m_Option;
             public InternetConnectionOptionValue m_Value;
+
             static InternetConnectionOption()
             {
                 Size = Marshal.SizeOf(typeof(InternetConnectionOption));
@@ -137,15 +138,19 @@ namespace v2rayN.Handler
                 // Fields
                 [FieldOffset(0)]
                 public System.Runtime.InteropServices.ComTypes.FILETIME m_FileTime;
+
                 [FieldOffset(0)]
                 public int m_Int;
+
                 [FieldOffset(0)]
                 public IntPtr m_StringPtr;
             }
         }
-        #endregion
+
+        #endregion WinInet structures
 
         #region WinInet enums
+
         //
         // options manifests for Internet{Query|Set}Option
         //
@@ -159,11 +164,10 @@ namespace v2rayN.Handler
         //
         public enum PerConnOption
         {
-            INTERNET_PER_CONN_FLAGS = 1, // Sets or retrieves the connection type. The Value member will contain one or more of the values from PerConnFlags 
-            INTERNET_PER_CONN_PROXY_SERVER = 2, // Sets or retrieves a string containing the proxy servers.  
-            INTERNET_PER_CONN_PROXY_BYPASS = 3, // Sets or retrieves a string containing the URLs that do not use the proxy server.  
-            INTERNET_PER_CONN_AUTOCONFIG_URL = 4//, // Sets or retrieves a string containing the URL to the automatic configuration script.  
-
+            INTERNET_PER_CONN_FLAGS = 1, // Sets or retrieves the connection type. The Value member will contain one or more of the values from PerConnFlags
+            INTERNET_PER_CONN_PROXY_SERVER = 2, // Sets or retrieves a string containing the proxy servers.
+            INTERNET_PER_CONN_PROXY_BYPASS = 3, // Sets or retrieves a string containing the URLs that do not use the proxy server.
+            INTERNET_PER_CONN_AUTOCONFIG_URL = 4//, // Sets or retrieves a string containing the URL to the automatic configuration script.
         }
 
         //
@@ -177,7 +181,8 @@ namespace v2rayN.Handler
             PROXY_TYPE_AUTO_PROXY_URL = 0x00000004,  // autoproxy URL
             PROXY_TYPE_AUTO_DETECT = 0x00000008   // use autoproxy detection
         }
-        #endregion
+
+        #endregion WinInet enums
 
         internal static class NativeMethods
         {
@@ -189,26 +194,23 @@ namespace v2rayN.Handler
         //判断是否使用代理
         public static bool UsedProxy()
         {
-            RegistryKey rk = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Internet Settings", true);
-            if (rk.GetValue("ProxyEnable").ToString() == "1")
+            using RegistryKey? rk = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Internet Settings", true);
+            if (rk?.GetValue("ProxyEnable")?.ToString() == "1")
             {
-                rk.Close();
                 return true;
             }
             else
             {
-                rk.Close();
                 return false;
             }
         }
-        //获得代理的IP和端口
-        public static string GetProxyProxyServer()
-        {
-            RegistryKey rk = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Internet Settings", true);
-            string ProxyServer = rk.GetValue("ProxyServer").ToString();
-            rk.Close();
-            return ProxyServer;
 
+        //获得代理的IP和端口
+        public static string? GetProxyProxyServer()
+        {
+            using RegistryKey? rk = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Internet Settings", true);
+            string ProxyServer = rk.GetValue("ProxyServer").ToString();
+            return ProxyServer;
         }
     }
 }

@@ -17,16 +17,9 @@ public class PacHandler
     private static bool _isRunning;
     private static bool _needRestart = true;
 
-
     public static void Start(string configPath, int httpPort, int pacPort)
     {
-        if (configPath.Equals(_configPath)
-            && httpPort.Equals(_httpPort)
-            && pacPort.Equals(_pacPort)
-            && _isRunning)
-        {
-            _needRestart = false;
-        }
+        _needRestart = (configPath != _configPath || httpPort != _httpPort || pacPort != _pacPort || !_isRunning);
 
         _configPath = configPath;
         _httpPort = httpPort;
@@ -89,9 +82,7 @@ public class PacHandler
                 {
                 }
             }
-
         }, TaskCreationOptions.LongRunning);
-
     }
 
     public static void Stop()

@@ -1,3 +1,4 @@
+using Microsoft.Win32;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using ReactiveUI.Validation.Helpers;
@@ -5,7 +6,6 @@ using Splat;
 using System.IO;
 using System.Reactive;
 using System.Windows;
-using System.Windows.Forms;
 using v2rayN.Base;
 using v2rayN.Handler;
 using v2rayN.Mode;
@@ -21,7 +21,6 @@ namespace v2rayN.ViewModels
 
         [Reactive]
         public ProfileItem SelectedSource { get; set; }
-
 
         public ReactiveCommand<Unit, Unit> BrowseServerCmd { get; }
         public ReactiveCommand<Unit, Unit> EditServerCmd { get; }
@@ -106,12 +105,12 @@ namespace v2rayN.ViewModels
         {
             UI.Show(ResUI.CustomServerTips);
 
-            OpenFileDialog fileDialog = new OpenFileDialog
+            OpenFileDialog fileDialog = new()
             {
                 Multiselect = false,
                 Filter = "Config|*.json|YAML|*.yaml;*.yml|All|*.*"
             };
-            if (fileDialog.ShowDialog() != DialogResult.OK)
+            if (fileDialog.ShowDialog() != true)
             {
                 return;
             }
@@ -121,10 +120,7 @@ namespace v2rayN.ViewModels
                 return;
             }
             var item = LazyConfig.Instance.GetProfileItem(SelectedSource.indexId);
-            if (item is null)
-            {
-                item = SelectedSource;
-            }
+            item ??= SelectedSource;
             item.address = fileName;
             if (ConfigHandler.AddCustomServer(ref _config, item, false) == 0)
             {

@@ -1,7 +1,9 @@
 ﻿using ReactiveUI;
 using System.ComponentModel;
 using System.Reactive.Disposables;
+using System.Windows;
 using System.Windows.Input;
+using v2rayN.Mode;
 using v2rayN.ViewModels;
 
 namespace v2rayN.Views
@@ -11,10 +13,12 @@ namespace v2rayN.Views
         public SubSettingWindow()
         {
             InitializeComponent();
+            this.Owner = Application.Current.MainWindow;
 
             ViewModel = new SubSettingViewModel(this);
             this.Closing += SubSettingWindow_Closing;
             lstSubscription.MouseDoubleClick += LstSubscription_MouseDoubleClick;
+            lstSubscription.SelectionChanged += LstSubscription_SelectionChanged;
 
             this.WhenActivated(disposables =>
             {
@@ -25,7 +29,6 @@ namespace v2rayN.Views
                 this.BindCommand(ViewModel, vm => vm.SubDeleteCmd, v => v.menuSubDelete).DisposeWith(disposables);
                 this.BindCommand(ViewModel, vm => vm.SubEditCmd, v => v.menuSubEdit).DisposeWith(disposables);
                 this.BindCommand(ViewModel, vm => vm.SubShareCmd, v => v.menuSubShare).DisposeWith(disposables);
-
             });
         }
 
@@ -40,6 +43,11 @@ namespace v2rayN.Views
         private void LstSubscription_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             ViewModel?.EditSub(false);
+        }
+
+        private void LstSubscription_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            ViewModel.SelectedSources = lstSubscription.SelectedItems.Cast<SubItem>().ToList();
         }
 
         private void menuClose_Click(object sender, System.Windows.RoutedEventArgs e)

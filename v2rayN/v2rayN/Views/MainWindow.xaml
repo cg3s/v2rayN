@@ -10,13 +10,13 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:reactiveui="http://reactiveui.net"
     xmlns:resx="clr-namespace:v2rayN.Resx"
-    xmlns:tb="http://www.hardcodet.net/taskbar"
+    xmlns:tb="clr-namespace:H.NotifyIcon;assembly=H.NotifyIcon.Wpf"
     xmlns:vms="clr-namespace:v2rayN.ViewModels"
     Title="v2rayN"
     Width="900"
     Height="700"
-    MinWidth="800"
-    MinHeight="600"
+    MinWidth="900"
+    MinHeight="700"
     x:TypeArguments="vms:MainWindowViewModel"
     Background="{DynamicResource MaterialDesignPaper}"
     FontFamily="{x:Static conv:MaterialDesignFonts.MyFont}"
@@ -53,7 +53,10 @@
                             <MenuItem Padding="8,0">
                                 <MenuItem.Header>
                                     <StackPanel Orientation="Horizontal">
-                                        <materialDesign:PackIcon Margin="0,0,8,0" Kind="Server" />
+                                        <materialDesign:PackIcon
+                                            Margin="0,0,8,0"
+                                            VerticalAlignment="Center"
+                                            Kind="Server" />
                                         <TextBlock Text="{x:Static resx:ResUI.menuServers}" />
                                     </StackPanel>
                                 </MenuItem.Header>
@@ -91,7 +94,6 @@
                                     x:Name="menuAddServerViaScan"
                                     Height="{StaticResource MenuItemHeight}"
                                     Header="{x:Static resx:ResUI.menuAddServerViaScan}" />
-
                             </MenuItem>
                         </Menu>
                         <Separator />
@@ -99,7 +101,10 @@
                             <MenuItem Padding="8,0">
                                 <MenuItem.Header>
                                     <StackPanel Orientation="Horizontal">
-                                        <materialDesign:PackIcon Margin="0,0,8,0" Kind="BookClockOutline" />
+                                        <materialDesign:PackIcon
+                                            Margin="0,0,8,0"
+                                            VerticalAlignment="Center"
+                                            Kind="BookClockOutline" />
                                         <TextBlock Text="{x:Static resx:ResUI.menuSubscription}" />
                                     </StackPanel>
                                 </MenuItem.Header>
@@ -131,7 +136,10 @@
                             <MenuItem Padding="8,0">
                                 <MenuItem.Header>
                                     <StackPanel Orientation="Horizontal">
-                                        <materialDesign:PackIcon Margin="0,0,8,0" Kind="SettingsOutline" />
+                                        <materialDesign:PackIcon
+                                            Margin="0,0,8,0"
+                                            VerticalAlignment="Center"
+                                            Kind="SettingsOutline" />
                                         <TextBlock Text="{x:Static resx:ResUI.menuSetting}" />
                                     </StackPanel>
                                 </MenuItem.Header>
@@ -144,10 +152,18 @@
                                     Height="{StaticResource MenuItemHeight}"
                                     Header="{x:Static resx:ResUI.menuRoutingSetting}" />
                                 <MenuItem
+                                    x:Name="menuDNSSetting"
+                                    Height="{StaticResource MenuItemHeight}"
+                                    Header="{x:Static resx:ResUI.menuDNSSetting}" />
+                                <MenuItem
                                     x:Name="menuGlobalHotkeySetting"
                                     Height="{StaticResource MenuItemHeight}"
                                     Header="{x:Static resx:ResUI.menuGlobalHotkeySetting}" />
                                 <Separator Margin="-40,5" />
+                                <MenuItem
+                                    x:Name="menuRebootAsAdmin"
+                                    Height="{StaticResource MenuItemHeight}"
+                                    Header="{x:Static resx:ResUI.menuRebootAsAdmin}" />
                                 <MenuItem
                                     x:Name="menuSettingsSetUWP"
                                     Height="{StaticResource MenuItemHeight}"
@@ -169,7 +185,10 @@
                             <MenuItem x:Name="menuReload" Padding="8,0">
                                 <MenuItem.Header>
                                     <StackPanel Orientation="Horizontal">
-                                        <materialDesign:PackIcon Margin="0,0,8,0" Kind="Reload" />
+                                        <materialDesign:PackIcon
+                                            Margin="0,0,8,0"
+                                            VerticalAlignment="Center"
+                                            Kind="Reload" />
                                         <TextBlock Text="{x:Static resx:ResUI.menuReload}" />
                                     </StackPanel>
                                 </MenuItem.Header>
@@ -180,7 +199,10 @@
                             <MenuItem Padding="8,0">
                                 <MenuItem.Header>
                                     <StackPanel Orientation="Horizontal">
-                                        <materialDesign:PackIcon Margin="0,0,8,0" Kind="Update" />
+                                        <materialDesign:PackIcon
+                                            Margin="0,0,8,0"
+                                            VerticalAlignment="Center"
+                                            Kind="Update" />
                                         <TextBlock Text="{x:Static resx:ResUI.menuCheckUpdate}" />
                                     </StackPanel>
                                 </MenuItem.Header>
@@ -211,6 +233,11 @@
                                     Header="Clash.Meta Core" />
                                 <Separator Margin="-40,5" />
                                 <MenuItem
+                                    x:Name="menuCheckUpdateSingBoxCore"
+                                    Height="{StaticResource MenuItemHeight}"
+                                    Header="Sing-box Core" />
+                                <Separator Margin="-40,5" />
+                                <MenuItem
                                     x:Name="menuCheckUpdateGeo"
                                     Height="{StaticResource MenuItemHeight}"
                                     Header="Geo files" />
@@ -221,7 +248,10 @@
                             <MenuItem x:Name="menuHelp" Padding="8,0">
                                 <MenuItem.Header>
                                     <StackPanel Orientation="Horizontal">
-                                        <materialDesign:PackIcon Margin="0,0,8,0" Kind="HelpCircleOutline" />
+                                        <materialDesign:PackIcon
+                                            Margin="0,0,8,0"
+                                            VerticalAlignment="Center"
+                                            Kind="HelpCircleOutline" />
                                         <TextBlock Text="{x:Static resx:ResUI.menuHelp}" />
                                     </StackPanel>
                                 </MenuItem.Header>
@@ -235,7 +265,10 @@
                                 Click="menuPromotion_Click">
                                 <MenuItem.Header>
                                     <StackPanel Orientation="Horizontal">
-                                        <materialDesign:PackIcon Margin="0,0,8,0" Kind="VolumeHigh" />
+                                        <materialDesign:PackIcon
+                                            Margin="0,0,8,0"
+                                            VerticalAlignment="Center"
+                                            Kind="VolumeHigh" />
                                         <TextBlock Text="{x:Static resx:ResUI.menuPromotion}" />
                                     </StackPanel>
                                 </MenuItem.Header>
@@ -249,7 +282,10 @@
                                 Click="menuClose_Click">
                                 <MenuItem.Header>
                                     <StackPanel Orientation="Horizontal">
-                                        <materialDesign:PackIcon Margin="0,0,8,0" Kind="Minimize" />
+                                        <materialDesign:PackIcon
+                                            Margin="0,0,8,0"
+                                            VerticalAlignment="Center"
+                                            Kind="Minimize" />
                                         <TextBlock Text="{x:Static resx:ResUI.menuClose}" />
                                     </StackPanel>
                                 </MenuItem.Header>
@@ -259,6 +295,7 @@
                         <materialDesign:PopupBox
                             Padding="8,0"
                             HorizontalAlignment="Right"
+                            StaysOpen="True"
                             Style="{StaticResource MaterialDesignToolForegroundPopupBox}">
                             <StackPanel Margin="8">
                                 <Grid>
@@ -327,43 +364,48 @@
                                         Margin="8"
                                         materialDesign:HintAssist.Hint="Language"
                                         Style="{StaticResource DefComboBox}" />
-
                                 </Grid>
                             </StackPanel>
                         </materialDesign:PopupBox>
                     </ToolBar>
                 </ToolBarTray>
-                <ToolBarTray DockPanel.Dock="Top">
-                    <ToolBar
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        ClipToBounds="True"
-                        Style="{StaticResource MaterialDesignToolBar}">
-                        <ListBox x:Name="lstGroup" Style="{StaticResource MaterialDesignChoiceChipPrimaryOutlineListBox}">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding remarks}" />
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-                        <Button
-                            x:Name="btnAddSub"
-                            Width="30"
-                            Height="30"
-                            Margin="8,0"
-                            Style="{StaticResource MaterialDesignFloatingActionMiniLightButton}">
-                            <materialDesign:PackIcon Kind="Plus" />
-                        </Button>
-                        <Separator />
-                        <TextBox
-                            x:Name="txtServerFilter"
-                            Width="200"
-                            Margin="8,0"
-                            materialDesign:HintAssist.Hint="{x:Static resx:ResUI.MsgServerTitle}"
-                            materialDesign:TextFieldAssist.HasClearButton="True"
-                            Style="{StaticResource DefTextBox}" />
-                    </ToolBar>
-                </ToolBarTray>
+                <WrapPanel Margin="2" DockPanel.Dock="Top">
+                    <ListBox
+                        x:Name="lstGroup"
+                        FontSize="{DynamicResource StdFontSize}"
+                        ItemContainerStyle="{StaticResource MyChipListBoxItem}"
+                        Style="{StaticResource MaterialDesignChoiceChipPrimaryOutlineListBox}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding remarks}" />
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <Button
+                        x:Name="btnAddSub"
+                        Width="30"
+                        Height="30"
+                        Margin="4,0"
+                        Style="{StaticResource MaterialDesignFloatingActionMiniLightButton}">
+                        <materialDesign:PackIcon VerticalAlignment="Center" Kind="Plus" />
+                    </Button>
+                    <Button
+                        x:Name="btnAutofitColumnWidth"
+                        Width="30"
+                        Height="30"
+                        Margin="4,0"
+                        Style="{StaticResource MaterialDesignFloatingActionMiniLightButton}">
+                        <materialDesign:PackIcon VerticalAlignment="Center" Kind="ArrowSplitVertical" />
+                    </Button>
+                    <TextBox
+                        x:Name="txtServerFilter"
+                        Width="200"
+                        Margin="4,0"
+                        VerticalContentAlignment="Center"
+                        materialDesign:HintAssist.Hint="{x:Static resx:ResUI.MsgServerTitle}"
+                        materialDesign:TextFieldAssist.HasClearButton="True"
+                        Style="{StaticResource DefTextBox}" />
+                </WrapPanel>
 
                 <materialDesign:ColorZone
                     Height="50"
@@ -464,6 +506,7 @@
                         GridLinesVisibility="All"
                         HeadersVisibility="All"
                         IsReadOnly="True"
+                        RowHeaderWidth="40"
                         Style="{StaticResource DefDataGrid}">
                         <DataGrid.InputBindings>
                             <KeyBinding Command="ApplicationCommands.NotACommand" Gesture="Ctrl+C" />
@@ -541,22 +584,24 @@
                                         </MenuItem.Header>
                                     </MenuItem>
                                 </MenuItem>
-                                <MenuItem
-                                    x:Name="menuMoveTop"
-                                    Height="{StaticResource MenuItemHeight}"
-                                    Header="{x:Static resx:ResUI.menuMoveTop}" />
-                                <MenuItem
-                                    x:Name="menuMoveUp"
-                                    Height="{StaticResource MenuItemHeight}"
-                                    Header="{x:Static resx:ResUI.menuMoveUp}" />
-                                <MenuItem
-                                    x:Name="menuMoveDown"
-                                    Height="{StaticResource MenuItemHeight}"
-                                    Header="{x:Static resx:ResUI.menuMoveDown}" />
-                                <MenuItem
-                                    x:Name="menuMoveBottom"
-                                    Height="{StaticResource MenuItemHeight}"
-                                    Header="{x:Static resx:ResUI.menuMoveBottom}" />
+                                <MenuItem Header="{x:Static resx:ResUI.menuMoveTo}">
+                                    <MenuItem
+                                        x:Name="menuMoveTop"
+                                        Height="{StaticResource MenuItemHeight}"
+                                        Header="{x:Static resx:ResUI.menuMoveTop}" />
+                                    <MenuItem
+                                        x:Name="menuMoveUp"
+                                        Height="{StaticResource MenuItemHeight}"
+                                        Header="{x:Static resx:ResUI.menuMoveUp}" />
+                                    <MenuItem
+                                        x:Name="menuMoveDown"
+                                        Height="{StaticResource MenuItemHeight}"
+                                        Header="{x:Static resx:ResUI.menuMoveDown}" />
+                                    <MenuItem
+                                        x:Name="menuMoveBottom"
+                                        Height="{StaticResource MenuItemHeight}"
+                                        Header="{x:Static resx:ResUI.menuMoveBottom}" />
+                                </MenuItem>
                                 <MenuItem
                                     x:Name="menuSelectAll"
                                     Height="{StaticResource MenuItemHeight}"
@@ -567,10 +612,6 @@
                                     x:Name="menuExport2ClientConfig"
                                     Height="{StaticResource MenuItemHeight}"
                                     Header="{x:Static resx:ResUI.menuExport2ClientConfig}" />
-                                <MenuItem
-                                    x:Name="menuExport2ServerConfig"
-                                    Height="{StaticResource MenuItemHeight}"
-                                    Header="{x:Static resx:ResUI.menuExport2ServerConfig}" />
                                 <MenuItem
                                     x:Name="menuExport2ShareUrl"
                                     Height="{StaticResource MenuItemHeight}"
@@ -584,60 +625,67 @@
                         <DataGrid.Resources>
                             <Style BasedOn="{StaticResource MaterialDesignDataGridRow}" TargetType="DataGridRow">
                                 <EventSetter Event="MouseDoubleClick" Handler="LstProfiles_MouseDoubleClick" />
-
                             </Style>
                             <Style BasedOn="{StaticResource MaterialDesignDataGridColumnHeader}" TargetType="DataGridColumnHeader">
                                 <EventSetter Event="Click" Handler="LstProfiles_ColumnHeader_Click" />
                             </Style>
+
+                            <Style BasedOn="{StaticResource MaterialDesignDataGridCell}" TargetType="DataGridCell">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding isActive}" Value="True">
+                                        <Setter Property="Background" Value="{DynamicResource PrimaryHueLightBrush}" />
+                                        <Setter Property="Foreground" Value="Black" />
+                                        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryHueLightBrush}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
                         </DataGrid.Resources>
                         <DataGrid.Columns>
-                            <DataGridTemplateColumn Width="50">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <Border
-                                            Width="auto"
-                                            Height="auto"
-                                            Background="{DynamicResource PrimaryHueLightBrush}"
-                                            Visibility="{Binding Path=isActive, Converter={StaticResource BoolToVisConverter}}" />
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
 
-                            <materialDesign:DataGridTextColumn
+                            <base:MyDGTextColumn
                                 Width="80"
                                 Binding="{Binding configType}"
+                                ExName="configType"
                                 Header="{x:Static resx:ResUI.LvServiceType}" />
-                            <DataGridTextColumn
+                            <base:MyDGTextColumn
                                 Width="150"
                                 Binding="{Binding remarks}"
-                                Header="{x:Static resx:ResUI.LvAlias}" />
-                            <DataGridTextColumn
+                                ExName="remarks"
+                                Header="{x:Static resx:ResUI.LvRemarks}" />
+                            <base:MyDGTextColumn
                                 Width="120"
                                 Binding="{Binding address}"
+                                ExName="address"
                                 Header="{x:Static resx:ResUI.LvAddress}" />
-                            <DataGridTextColumn
+                            <base:MyDGTextColumn
                                 Width="60"
                                 Binding="{Binding port}"
+                                ExName="port"
                                 Header="{x:Static resx:ResUI.LvPort}" />
-                            <DataGridTextColumn
+                            <base:MyDGTextColumn
                                 Width="100"
                                 Binding="{Binding security}"
+                                ExName="security"
                                 Header="{x:Static resx:ResUI.LvEncryptionMethod}" />
-                            <DataGridTextColumn
+                            <base:MyDGTextColumn
                                 Width="100"
                                 Binding="{Binding network}"
+                                ExName="network"
                                 Header="{x:Static resx:ResUI.LvTransportProtocol}" />
-                            <DataGridTextColumn
+                            <base:MyDGTextColumn
                                 Width="100"
                                 Binding="{Binding streamSecurity}"
+                                ExName="streamSecurity"
                                 Header="{x:Static resx:ResUI.LvTLS}" />
-                            <DataGridTextColumn
+                            <base:MyDGTextColumn
                                 Width="100"
                                 Binding="{Binding subRemarks}"
+                                ExName="subRemarks"
                                 Header="{x:Static resx:ResUI.LvSubscription}" />
-                            <DataGridTextColumn
+                            <base:MyDGTextColumn
                                 Width="100"
                                 Binding="{Binding delayVal}"
+                                ExName="delayVal"
                                 Header="{x:Static resx:ResUI.LvTestDelay}">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="{x:Type TextBlock}">
@@ -645,45 +693,48 @@
                                         <Setter Property="Foreground" Value="{Binding delay, Converter={StaticResource DelayColorConverter}}" />
                                     </Style>
                                 </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
-                            <DataGridTextColumn
+                            </base:MyDGTextColumn>
+                            <base:MyDGTextColumn
                                 Width="100"
                                 Binding="{Binding speedVal}"
+                                ExName="speedVal"
                                 Header="{x:Static resx:ResUI.LvTestSpeed}">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="{x:Type TextBlock}">
                                         <Setter Property="HorizontalAlignment" Value="Right" />
                                     </Style>
                                 </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
+                            </base:MyDGTextColumn>
 
-                            <DataGridTextColumn
+                            <base:MyDGTextColumn
                                 x:Name="colTodayUp"
                                 Width="100"
                                 Binding="{Binding todayUp}"
+                                ExName="todayUp"
                                 Header="{x:Static resx:ResUI.LvTodayUploadDataAmount}" />
-                            <DataGridTextColumn
+                            <base:MyDGTextColumn
                                 x:Name="colTodayDown"
                                 Width="100"
                                 Binding="{Binding todayDown}"
+                                ExName="todayDown"
                                 Header="{x:Static resx:ResUI.LvTodayDownloadDataAmount}" />
-                            <DataGridTextColumn
+                            <base:MyDGTextColumn
                                 x:Name="colTotalUp"
                                 Width="100"
                                 Binding="{Binding totalUp}"
+                                ExName="totalUp"
                                 Header="{x:Static resx:ResUI.LvTotalUploadDataAmount}" />
-                            <DataGridTextColumn
+                            <base:MyDGTextColumn
                                 x:Name="colTotalDown"
                                 Width="100"
                                 Binding="{Binding totalDown}"
+                                ExName="totalDown"
                                 Header="{x:Static resx:ResUI.LvTotalDownloadDataAmount}" />
-
                         </DataGrid.Columns>
                     </DataGrid>
                     <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" />
                     <local:MsgView Grid.Row="2" />
                 </Grid>
-
             </DockPanel>
             <tb:TaskbarIcon
                 x:Name="tbNotify"
@@ -697,6 +748,7 @@
                                     <materialDesign:PackIcon
                                         x:Name="menuSystemProxyClear2"
                                         Margin="0,0,8,0"
+                                        VerticalAlignment="Center"
                                         Kind="Check" />
                                     <TextBlock Text="{x:Static resx:ResUI.menuSystemProxyClear}" />
                                 </StackPanel>
@@ -708,6 +760,7 @@
                                     <materialDesign:PackIcon
                                         x:Name="menuSystemProxySet2"
                                         Margin="0,0,8,0"
+                                        VerticalAlignment="Center"
                                         Kind="Check" />
                                     <TextBlock Text="{x:Static resx:ResUI.menuSystemProxySet}" />
                                 </StackPanel>
@@ -719,6 +772,7 @@
                                     <materialDesign:PackIcon
                                         x:Name="menuSystemProxyNothing2"
                                         Margin="0,0,8,0"
+                                        VerticalAlignment="Center"
                                         Kind="Check" />
                                     <TextBlock Text="{x:Static resx:ResUI.menuSystemProxyNothing}" />
                                 </StackPanel>
@@ -730,12 +784,13 @@
                                     <materialDesign:PackIcon
                                         x:Name="menuSystemProxyPac2"
                                         Margin="0,0,8,0"
+                                        VerticalAlignment="Center"
                                         Kind="Check" />
                                     <TextBlock Text="{x:Static resx:ResUI.menuSystemProxyPac}" />
                                 </StackPanel>
                             </MenuItem.Header>
                         </MenuItem>
-                        <Separator />
+                        <Separator x:Name="sepRoutings" />
                         <MenuItem x:Name="menuRoutings" Height="Auto">
                             <MenuItem.Header>
                                 <DockPanel>
@@ -787,9 +842,25 @@
                             Header="{x:Static resx:ResUI.menuExit}" />
                     </ContextMenu>
                 </tb:TaskbarIcon.ContextMenu>
+                <tb:TaskbarIcon.TrayToolTip>
+                    <Border
+                        x:Name="borTrayToolTip"
+                        Width="Auto"
+                        Height="Auto"
+                        Background="{DynamicResource MaterialDesignLightBackground}"
+                        BorderBrush="{DynamicResource MaterialDesignDarkBackground}"
+                        BorderThickness="0"
+                        CornerRadius="4">
+                        <TextBlock
+                            Margin="8"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Foreground="{DynamicResource MaterialDesignDarkBackground}"
+                            Text="{Binding Mode=OneWay, Path=ToolTipText}" />
+                    </Border>
+                </tb:TaskbarIcon.TrayToolTip>
             </tb:TaskbarIcon>
             <materialDesign:Snackbar x:Name="MainSnackbar" MessageQueue="{materialDesign:MessageQueue}" />
         </Grid>
-
     </materialDesign:DialogHost>
 </reactiveui:ReactiveWindow>

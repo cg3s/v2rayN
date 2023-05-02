@@ -16,6 +16,7 @@ namespace v2rayN.ViewModels
         private Window _view;
 
         #region Core
+
         [Reactive] public int localPort { get; set; }
         [Reactive] public bool udpEnabled { get; set; }
         [Reactive] public bool sniffingEnabled { get; set; }
@@ -30,14 +31,11 @@ namespace v2rayN.ViewModels
         [Reactive] public bool defAllowInsecure { get; set; }
         [Reactive] public string defFingerprint { get; set; }
         [Reactive] public string defUserAgent { get; set; }
-        #endregion
 
-        #region Core DNS
-        [Reactive] public string domainStrategy4Freedom { get; set; }
-        [Reactive] public string remoteDNS { get; set; }
-        #endregion
+        #endregion Core
 
         #region Core KCP
+
         //[Reactive] public int Kcpmtu { get; set; }
         //[Reactive] public int Kcptti { get; set; }
         //[Reactive] public int KcpuplinkCapacity { get; set; }
@@ -45,9 +43,11 @@ namespace v2rayN.ViewModels
         //[Reactive] public int KcpreadBufferSize { get; set; }
         //[Reactive] public int KcpwriteBufferSize { get; set; }
         //[Reactive] public bool Kcpcongestion { get; set; }
-        #endregion
+
+        #endregion Core KCP
 
         #region UI
+
         [Reactive] public bool AutoRun { get; set; }
         [Reactive] public bool EnableStatistics { get; set; }
         [Reactive] public int StatisticsFreshRate { get; set; }
@@ -60,28 +60,43 @@ namespace v2rayN.ViewModels
         [Reactive] public bool EnableDragDropSort { get; set; }
         [Reactive] public bool DoubleClick2Activate { get; set; }
         [Reactive] public int autoUpdateInterval { get; set; }
-        [Reactive] public int autoUpdateSubInterval { get; set; }
         [Reactive] public int trayMenuServersLimit { get; set; }
         [Reactive] public string currentFontFamily { get; set; }
+        [Reactive] public int SpeedTestTimeout { get; set; }
+        [Reactive] public string SpeedTestUrl { get; set; }
+        [Reactive] public bool EnableHWA { get; set; }
+        [Reactive] public string SubConvertUrl { get; set; }
 
-        #endregion
+        #endregion UI
 
         #region System proxy
+
         [Reactive] public string systemProxyAdvancedProtocol { get; set; }
         [Reactive] public string systemProxyExceptions { get; set; }
-        #endregion
+
+        #endregion System proxy
 
         #region Tun mode
+
         [Reactive] public bool TunShowWindow { get; set; }
+        [Reactive] public bool TunEnabledLog { get; set; }
         [Reactive] public bool TunStrictRoute { get; set; }
         [Reactive] public string TunStack { get; set; }
         [Reactive] public int TunMtu { get; set; }
         [Reactive] public string TunCustomTemplate { get; set; }
+        [Reactive] public bool TunBypassMode { get; set; }
+        [Reactive] public bool TunBypassMode2 { get; set; }
         [Reactive] public string TunDirectIP { get; set; }
         [Reactive] public string TunDirectProcess { get; set; }
-        #endregion
+        [Reactive] public string TunDirectDNS { get; set; }
+        [Reactive] public string TunProxyIP { get; set; }
+        [Reactive] public string TunProxyProcess { get; set; }
+        [Reactive] public string TunProxyDNS { get; set; }
+
+        #endregion Tun mode
 
         #region CoreType
+
         [Reactive] public string CoreType1 { get; set; }
         [Reactive] public string CoreType2 { get; set; }
         [Reactive] public string CoreType3 { get; set; }
@@ -89,10 +104,9 @@ namespace v2rayN.ViewModels
         [Reactive] public string CoreType5 { get; set; }
         [Reactive] public string CoreType6 { get; set; }
 
-        #endregion
+        #endregion CoreType
 
         public ReactiveCommand<Unit, Unit> SaveCmd { get; }
-
 
         public OptionSettingViewModel(Window view)
         {
@@ -101,6 +115,7 @@ namespace v2rayN.ViewModels
             _view = view;
 
             #region Core
+
             var inbound = _config.inbound[0];
             localPort = inbound.localPort;
             udpEnabled = inbound.udpEnabled;
@@ -110,20 +125,17 @@ namespace v2rayN.ViewModels
             newPort4LAN = inbound.newPort4LAN;
             user = inbound.user;
             pass = inbound.pass;
-            muxEnabled = _config.muxEnabled;
-            logEnabled = _config.logEnabled;
-            loglevel = _config.loglevel;
-            defAllowInsecure = _config.defAllowInsecure;
-            defFingerprint = _config.defFingerprint;
-            defUserAgent = _config.defUserAgent;
-            #endregion
+            muxEnabled = _config.coreBasicItem.muxEnabled;
+            logEnabled = _config.coreBasicItem.logEnabled;
+            loglevel = _config.coreBasicItem.loglevel;
+            defAllowInsecure = _config.coreBasicItem.defAllowInsecure;
+            defFingerprint = _config.coreBasicItem.defFingerprint;
+            defUserAgent = _config.coreBasicItem.defUserAgent;
 
-            #region Core DNS
-            domainStrategy4Freedom = _config.domainStrategy4Freedom;
-            remoteDNS = _config.remoteDNS;
-            #endregion
+            #endregion Core
 
             #region Core KCP
+
             //Kcpmtu = _config.kcpItem.mtu;
             //Kcptti = _config.kcpItem.tti;
             //KcpuplinkCapacity = _config.kcpItem.uplinkCapacity;
@@ -131,43 +143,59 @@ namespace v2rayN.ViewModels
             //KcpreadBufferSize = _config.kcpItem.readBufferSize;
             //KcpwriteBufferSize = _config.kcpItem.writeBufferSize;
             //Kcpcongestion = _config.kcpItem.congestion;
-            #endregion
+
+            #endregion Core KCP
 
             #region UI
-            AutoRun = _config.autoRun;
-            EnableStatistics = _config.enableStatistics;
-            StatisticsFreshRate = _config.statisticsFreshRate;
-            KeepOlderDedupl = _config.keepOlderDedupl;
-            IgnoreGeoUpdateCore = _config.ignoreGeoUpdateCore;
+
+            AutoRun = _config.guiItem.autoRun;
+            EnableStatistics = _config.guiItem.enableStatistics;
+            StatisticsFreshRate = _config.guiItem.statisticsFreshRate;
+            KeepOlderDedupl = _config.guiItem.keepOlderDedupl;
+            IgnoreGeoUpdateCore = _config.guiItem.ignoreGeoUpdateCore;
             EnableAutoAdjustMainLvColWidth = _config.uiItem.enableAutoAdjustMainLvColWidth;
-            EnableSecurityProtocolTls13 = _config.enableSecurityProtocolTls13;
+            EnableSecurityProtocolTls13 = _config.guiItem.enableSecurityProtocolTls13;
             AutoHideStartup = _config.uiItem.autoHideStartup;
-            EnableCheckPreReleaseUpdate = _config.checkPreReleaseUpdate;
+            EnableCheckPreReleaseUpdate = _config.guiItem.checkPreReleaseUpdate;
             EnableDragDropSort = _config.uiItem.enableDragDropSort;
             DoubleClick2Activate = _config.uiItem.doubleClick2Activate;
-            autoUpdateInterval = _config.autoUpdateInterval;
-            autoUpdateSubInterval = _config.autoUpdateSubInterval;
-            trayMenuServersLimit = _config.trayMenuServersLimit;
+            autoUpdateInterval = _config.guiItem.autoUpdateInterval;
+            trayMenuServersLimit = _config.guiItem.trayMenuServersLimit;
             currentFontFamily = _config.uiItem.currentFontFamily;
+            SpeedTestTimeout = _config.speedTestItem.speedTestTimeout;
+            SpeedTestUrl = _config.speedTestItem.speedTestUrl;
+            EnableHWA = _config.guiItem.enableHWA;
+            SubConvertUrl = _config.constItem.subConvertUrl;
 
-            #endregion
+            #endregion UI
 
             #region System proxy
+
             systemProxyAdvancedProtocol = _config.systemProxyAdvancedProtocol;
             systemProxyExceptions = _config.systemProxyExceptions;
-            #endregion
+
+            #endregion System proxy
 
             #region Tun mode
 
             TunShowWindow = _config.tunModeItem.showWindow;
+            TunEnabledLog = _config.tunModeItem.enabledLog;
             TunStrictRoute = _config.tunModeItem.strictRoute;
             TunStack = _config.tunModeItem.stack;
             TunMtu = _config.tunModeItem.mtu;
             TunCustomTemplate = _config.tunModeItem.customTemplate;
+            TunBypassMode = _config.tunModeItem.bypassMode;
             TunDirectIP = Utils.List2String(_config.tunModeItem.directIP, true);
             TunDirectProcess = Utils.List2String(_config.tunModeItem.directProcess, true);
+            TunDirectDNS = _config.tunModeItem.directDNS;
+            TunProxyIP = Utils.List2String(_config.tunModeItem.proxyIP, true);
+            TunProxyProcess = Utils.List2String(_config.tunModeItem.proxyProcess, true);
+            TunProxyDNS = _config.tunModeItem.proxyDNS;
+            this.WhenAnyValue(
+              x => x.TunBypassMode)
+              .Subscribe(c => TunBypassMode2 = !TunBypassMode);
 
-            #endregion
+            #endregion Tun mode
 
             InitCoreType();
 
@@ -207,25 +235,29 @@ namespace v2rayN.ViewModels
                     case 1:
                         CoreType1 = type;
                         break;
+
                     case 2:
                         CoreType2 = type;
                         break;
+
                     case 3:
                         CoreType3 = type;
                         break;
+
                     case 4:
                         CoreType4 = type;
                         break;
+
                     case 5:
                         CoreType5 = type;
                         break;
+
                     case 6:
                         CoreType6 = type;
                         break;
                 }
             });
         }
-
 
         private void SaveSetting()
         {
@@ -234,19 +266,6 @@ namespace v2rayN.ViewModels
             {
                 UI.Show(ResUI.FillLocalListeningPort);
                 return;
-            }
-
-            var obj = Utils.ParseJson(remoteDNS);
-            if (obj != null && obj.ContainsKey("servers"))
-            {
-            }
-            else
-            {
-                if (remoteDNS.Contains("{") || remoteDNS.Contains("}"))
-                {
-                    UI.Show(ResUI.FillCorrectDNSText);
-                    return;
-                }
             }
 
             //if (Utils.IsNullOrEmpty(Kcpmtu.ToString()) || !Utils.IsNumberic(Kcpmtu.ToString())
@@ -261,7 +280,7 @@ namespace v2rayN.ViewModels
             //}
 
             //Core
-            _config.inbound[0].localPort = Utils.ToInt(localPort);
+            _config.inbound[0].localPort = localPort;
             _config.inbound[0].udpEnabled = udpEnabled;
             _config.inbound[0].sniffingEnabled = sniffingEnabled;
             _config.inbound[0].routeOnly = routeOnly;
@@ -273,18 +292,12 @@ namespace v2rayN.ViewModels
             {
                 _config.inbound.RemoveAt(1);
             }
-            _config.logEnabled = logEnabled;
-            _config.loglevel = loglevel;
-            _config.muxEnabled = muxEnabled;
-            _config.defAllowInsecure = defAllowInsecure;
-            _config.defFingerprint = defFingerprint;
-            _config.defUserAgent = defUserAgent;
-
-
-            //DNS
-            _config.remoteDNS = remoteDNS;
-            _config.domainStrategy4Freedom = domainStrategy4Freedom;
-
+            _config.coreBasicItem.logEnabled = logEnabled;
+            _config.coreBasicItem.loglevel = loglevel;
+            _config.coreBasicItem.muxEnabled = muxEnabled;
+            _config.coreBasicItem.defAllowInsecure = defAllowInsecure;
+            _config.coreBasicItem.defFingerprint = defFingerprint;
+            _config.coreBasicItem.defUserAgent = defUserAgent;
 
             //Kcp
             //_config.kcpItem.mtu = Kcpmtu;
@@ -295,28 +308,30 @@ namespace v2rayN.ViewModels
             //_config.kcpItem.writeBufferSize = KcpwriteBufferSize;
             //_config.kcpItem.congestion = Kcpcongestion;
 
-
             //UI
             Utils.SetAutoRun(AutoRun);
-            _config.autoRun = AutoRun;
-            _config.enableStatistics = EnableStatistics;
-            _config.statisticsFreshRate = StatisticsFreshRate;
-            if (_config.statisticsFreshRate > 100 || _config.statisticsFreshRate < 1)
+            _config.guiItem.autoRun = AutoRun;
+            _config.guiItem.enableStatistics = EnableStatistics;
+            _config.guiItem.statisticsFreshRate = StatisticsFreshRate;
+            if (_config.guiItem.statisticsFreshRate > 100 || _config.guiItem.statisticsFreshRate < 1)
             {
-                _config.statisticsFreshRate = 1;
+                _config.guiItem.statisticsFreshRate = 1;
             }
-            _config.keepOlderDedupl = KeepOlderDedupl;
-            _config.ignoreGeoUpdateCore = IgnoreGeoUpdateCore;
+            _config.guiItem.keepOlderDedupl = KeepOlderDedupl;
+            _config.guiItem.ignoreGeoUpdateCore = IgnoreGeoUpdateCore;
             _config.uiItem.enableAutoAdjustMainLvColWidth = EnableAutoAdjustMainLvColWidth;
-            _config.enableSecurityProtocolTls13 = EnableSecurityProtocolTls13;
+            _config.guiItem.enableSecurityProtocolTls13 = EnableSecurityProtocolTls13;
             _config.uiItem.autoHideStartup = AutoHideStartup;
-            _config.autoUpdateInterval = autoUpdateInterval;
-            _config.autoUpdateSubInterval = autoUpdateSubInterval;
-            _config.checkPreReleaseUpdate = EnableCheckPreReleaseUpdate;
+            _config.guiItem.autoUpdateInterval = autoUpdateInterval;
+            _config.guiItem.checkPreReleaseUpdate = EnableCheckPreReleaseUpdate;
             _config.uiItem.enableDragDropSort = EnableDragDropSort;
             _config.uiItem.doubleClick2Activate = DoubleClick2Activate;
-            _config.trayMenuServersLimit = trayMenuServersLimit;
+            _config.guiItem.trayMenuServersLimit = trayMenuServersLimit;
             _config.uiItem.currentFontFamily = currentFontFamily;
+            _config.speedTestItem.speedTestTimeout = SpeedTestTimeout;
+            _config.speedTestItem.speedTestUrl = SpeedTestUrl;
+            _config.guiItem.enableHWA = EnableHWA;
+            _config.constItem.subConvertUrl = SubConvertUrl;
 
             //systemProxy
             _config.systemProxyExceptions = systemProxyExceptions;
@@ -324,14 +339,20 @@ namespace v2rayN.ViewModels
 
             //tun mode
             _config.tunModeItem.showWindow = TunShowWindow;
+            _config.tunModeItem.enabledLog = TunEnabledLog;
             _config.tunModeItem.strictRoute = TunStrictRoute;
             _config.tunModeItem.stack = TunStack;
             _config.tunModeItem.mtu = TunMtu;
             _config.tunModeItem.customTemplate = TunCustomTemplate;
-            _config.tunModeItem.directIP = Utils.String2List(TunDirectIP);
-            _config.tunModeItem.directProcess = Utils.String2List(TunDirectProcess);
+            _config.tunModeItem.bypassMode = TunBypassMode;
+            _config.tunModeItem.directIP = Utils.String2List(Utils.Convert2Comma(TunDirectIP));
+            _config.tunModeItem.directProcess = Utils.String2List(Utils.Convert2Comma(TunDirectProcess));
+            _config.tunModeItem.directDNS = Utils.ToJson(Utils.ParseJson(TunDirectDNS));
+            _config.tunModeItem.proxyIP = Utils.String2List(Utils.Convert2Comma(TunProxyIP));
+            _config.tunModeItem.proxyProcess = Utils.String2List(Utils.Convert2Comma(TunProxyProcess));
+            _config.tunModeItem.proxyDNS = Utils.ToJson(Utils.ParseJson(TunProxyDNS));
 
-            //coreType 
+            //coreType
             SaveCoreType();
 
             if (ConfigHandler.SaveConfig(ref _config) == 0)
@@ -343,8 +364,8 @@ namespace v2rayN.ViewModels
             {
                 UI.ShowWarning(ResUI.OperationFailed);
             }
-
         }
+
         private int SaveCoreType()
         {
             for (int k = 1; k <= _config.coreTypeItem.Count; k++)
@@ -356,18 +377,23 @@ namespace v2rayN.ViewModels
                     case 1:
                         type = CoreType1;
                         break;
+
                     case 2:
                         type = CoreType2;
                         break;
+
                     case 3:
                         type = CoreType3;
                         break;
+
                     case 4:
                         type = CoreType4;
                         break;
+
                     case 5:
                         type = CoreType5;
                         break;
+
                     case 6:
                         type = CoreType6;
                         break;

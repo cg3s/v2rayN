@@ -16,6 +16,7 @@
     Background="{DynamicResource MaterialDesignPaper}"
     FontFamily="{x:Static conv:MaterialDesignFonts.MyFont}"
     ResizeMode="NoResize"
+    ShowInTaskbar="False"
     TextElement.FontFamily="{x:Static conv:MaterialDesignFonts.MyFont}"
     TextElement.Foreground="{DynamicResource MaterialDesignBody}"
     TextOptions.TextFormattingMode="Display"
@@ -31,28 +32,40 @@
                 Style="{StaticResource MaterialDesignToolBar}">
                 <Button x:Name="menuRuleAdd">
                     <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Margin="0,0,8,0" Kind="Plus" />
+                        <materialDesign:PackIcon
+                            Margin="0,0,8,0"
+                            VerticalAlignment="Center"
+                            Kind="Plus" />
                         <TextBlock Style="{StaticResource ToolbarTextBlock}" Text="{x:Static resx:ResUI.menuRuleAdd}" />
                     </StackPanel>
                 </Button>
                 <Separator />
                 <Button x:Name="menuImportRulesFromFile">
                     <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Margin="0,0,8,0" Kind="Import" />
+                        <materialDesign:PackIcon
+                            Margin="0,0,8,0"
+                            VerticalAlignment="Center"
+                            Kind="Import" />
                         <TextBlock Style="{StaticResource ToolbarTextBlock}" Text="{x:Static resx:ResUI.menuImportRulesFromFile}" />
                     </StackPanel>
                 </Button>
                 <Separator />
                 <Button x:Name="menuImportRulesFromClipboard">
                     <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Margin="0,0,8,0" Kind="Import" />
+                        <materialDesign:PackIcon
+                            Margin="0,0,8,0"
+                            VerticalAlignment="Center"
+                            Kind="Import" />
                         <TextBlock Style="{StaticResource ToolbarTextBlock}" Text="{x:Static resx:ResUI.menuImportRulesFromClipboard}" />
                     </StackPanel>
                 </Button>
                 <Separator />
                 <Button x:Name="menuImportRulesFromUrl">
                     <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Margin="0,0,8,0" Kind="Import" />
+                        <materialDesign:PackIcon
+                            Margin="0,0,8,0"
+                            VerticalAlignment="Center"
+                            Kind="Import" />
                         <TextBlock Style="{StaticResource ToolbarTextBlock}" Text="{x:Static resx:ResUI.menuImportRulesFromUrl}" />
                     </StackPanel>
                 </Button>
@@ -60,7 +73,7 @@
         </ToolBarTray>
 
         <Grid
-            Margin="16"
+            Margin="8"
             HorizontalAlignment="Center"
             DockPanel.Dock="Bottom">
             <Grid.ColumnDefinitions>
@@ -87,6 +100,7 @@
 
         <Grid Margin="8" DockPanel.Dock="Top">
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -124,13 +138,26 @@
                 VerticalAlignment="Center"
                 Style="{StaticResource ToolbarTextBlock}"
                 Text="{x:Static resx:ResUI.TbdomainStrategy}" />
-            <ComboBox
-                x:Name="cmbdomainStrategy"
+            <StackPanel
                 Grid.Row="1"
                 Grid.Column="1"
-                Width="200"
-                Margin="4"
-                Style="{StaticResource DefComboBox}" />
+                Orientation="Horizontal">
+                <ComboBox
+                    x:Name="cmbdomainStrategy"
+                    Width="200"
+                    Margin="4"
+                    Style="{StaticResource DefComboBox}" />
+                <TextBlock
+                    Margin="4"
+                    VerticalAlignment="Center"
+                    Style="{StaticResource ToolbarTextBlock}"
+                    Text="{x:Static resx:ResUI.TbdomainStrategy4Singbox}" />
+                <ComboBox
+                    x:Name="cmbdomainStrategy4Singbox"
+                    Width="200"
+                    Margin="4"
+                    Style="{StaticResource DefComboBox}" />
+            </StackPanel>
 
             <TextBlock
                 Grid.Row="2"
@@ -177,6 +204,22 @@
                 Content="{x:Static resx:ResUI.TbBrowse}"
                 Style="{StaticResource DefButton}" />
 
+            <TextBlock
+                Grid.Row="4"
+                Grid.Column="0"
+                Margin="4"
+                VerticalAlignment="Center"
+                Style="{StaticResource ToolbarTextBlock}"
+                Text="{x:Static resx:ResUI.LvSort}" />
+            <TextBox
+                x:Name="txtSort"
+                Grid.Row="4"
+                Grid.Column="1"
+                Width="200"
+                Margin="4"
+                HorizontalAlignment="Left"
+                AcceptsReturn="True"
+                Style="{StaticResource DefTextBox}" />
         </Grid>
 
         <TabControl x:Name="tabAdvanced">
@@ -260,11 +303,9 @@
                             Width="80"
                             Binding="{Binding enabled}"
                             Header="enabled" />
-
                     </DataGrid.Columns>
                 </DataGrid>
             </TabItem>
         </TabControl>
     </DockPanel>
-
 </reactiveui:ReactiveWindow>

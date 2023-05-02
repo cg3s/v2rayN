@@ -1,28 +1,15 @@
 {
-  "dns": {
-    "servers": [    
-      {
-        "tag": "local",
-        "address": "223.5.5.5",
-        "detour": "direct"
-      },
-      {
-        "tag": "block",
-        "address": "rcode://success"
-      }
-    ],
-    "rules": [
-      {
-        "geosite": "category-ads-all",
-        "server": "block",
-        "disable_cache": true
-      }
-    ],
-    "strategy": "ipv4_only"
+  "log": {
+    "disabled": $log_disabled$,
+    "level": "debug",
+    $log_output$
+    "timestamp": true
   },
+  "dns": $dns_object$ ,
   "inbounds": [
     {
       "type": "tun",
+      "tag": "tun-in",
       "interface_name": "singbox_tun",
       "inet4_address": "172.19.0.1/30",
 
@@ -30,7 +17,6 @@
       "auto_route": true,
       "strict_route": $strict_route$,
       "stack": "$stack$",
-      "endpoint_independent_nat": true,
       "sniff": true
     }
   ],
@@ -102,6 +88,9 @@
       }
       $ruleDirectIPs$
       $ruleDirectProcess$
+      $ruleProxyIPs$
+      $ruleProxyProcess$
+      $ruleFinally$
     ]
   }
 }

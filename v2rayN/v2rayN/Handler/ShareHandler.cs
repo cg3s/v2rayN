@@ -7,9 +7,8 @@ using v2rayN.Resx;
 
 namespace v2rayN.Handler
 {
-    class ShareHandler
+    internal class ShareHandler
     {
-
         #region GetShareUrl
 
         /// <summary>
@@ -17,32 +16,22 @@ namespace v2rayN.Handler
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public static string GetShareUrl(ProfileItem item)
+        public static string? GetShareUrl(ProfileItem item)
         {
             try
             {
-                string url = string.Empty;
+                string? url = string.Empty;
 
-                switch (item.configType)
+                url = item.configType switch
                 {
-                    case EConfigType.VMess:
-                        url = ShareVmess(item);
-                        break;
-                    case EConfigType.Shadowsocks:
-                        url = ShareShadowsocks(item);
-                        break;
-                    case EConfigType.Socks:
-                        url = ShareSocks(item);
-                        break;
-                    case EConfigType.Trojan:
-                        url = ShareTrojan(item);
-                        break;
-                    case EConfigType.VLESS:
-                        url = ShareVLESS(item);
-                        break;
-                    default:
-                        break;
-                }
+                    EConfigType.VMess => ShareVmess(item),
+                    EConfigType.Shadowsocks => ShareShadowsocks(item),
+                    EConfigType.Socks => ShareSocks(item),
+                    EConfigType.Trojan => ShareTrojan(item),
+                    EConfigType.VLESS => ShareVLESS(item),
+                    _ => null,
+                };
+
                 return url;
             }
             catch (Exception ex)
@@ -56,10 +45,10 @@ namespace v2rayN.Handler
         {
             string url = string.Empty;
 
-            VmessQRCode vmessQRCode = new VmessQRCode
+            VmessQRCode vmessQRCode = new()
             {
                 v = item.configVersion.ToString(),
-                ps = item.remarks.TrimEx(), //备注也许很长 ;
+                ps = item.remarks.TrimEx(),
                 add = item.address,
                 port = item.port.ToString(),
                 id = item.id,
@@ -172,12 +161,13 @@ namespace v2rayN.Handler
             url = $"{Global.vlessProtocol}{url}{query}{remark}";
             return url;
         }
+
         private static string GetIpv6(string address)
         {
             return Utils.IsIpv6(address) ? $"[{address}]" : address;
         }
 
-        private static int GetStdTransport(ProfileItem item, string securityDef, ref Dictionary<string, string> dicQuery)
+        private static int GetStdTransport(ProfileItem item, string? securityDef, ref Dictionary<string, string> dicQuery)
         {
             if (!Utils.IsNullOrEmpty(item.flow))
             {
@@ -207,6 +197,18 @@ namespace v2rayN.Handler
             {
                 dicQuery.Add("fp", Utils.UrlEncode(item.fingerprint));
             }
+            if (!Utils.IsNullOrEmpty(item.publicKey))
+            {
+                dicQuery.Add("pbk", Utils.UrlEncode(item.publicKey));
+            }
+            if (!Utils.IsNullOrEmpty(item.shortId))
+            {
+                dicQuery.Add("sid", Utils.UrlEncode(item.shortId));
+            }
+            if (!Utils.IsNullOrEmpty(item.spiderX))
+            {
+                dicQuery.Add("spx", Utils.UrlEncode(item.spiderX));
+            }
 
             dicQuery.Add("type", !Utils.IsNullOrEmpty(item.network) ? item.network : "tcp");
 
@@ -219,6 +221,7 @@ namespace v2rayN.Handler
                         dicQuery.Add("host", Utils.UrlEncode(item.requestHost));
                     }
                     break;
+
                 case "kcp":
                     dicQuery.Add("headerType", !Utils.IsNullOrEmpty(item.headerType) ? item.headerType : "none");
                     if (!Utils.IsNullOrEmpty(item.path))
@@ -256,11 +259,12 @@ namespace v2rayN.Handler
                     dicQuery.Add("quicSecurity", Utils.UrlEncode(item.requestHost));
                     dicQuery.Add("key", Utils.UrlEncode(item.path));
                     break;
+
                 case "grpc":
                     if (!Utils.IsNullOrEmpty(item.path))
                     {
                         dicQuery.Add("serviceName", Utils.UrlEncode(item.path));
-                        if (item.headerType == Global.GrpcgunMode || item.headerType == Global.GrpcmultiMode)
+                        if (item.headerType is Global.GrpcgunMode or Global.GrpcmultiMode)
                         {
                             dicQuery.Add("mode", Utils.UrlEncode(item.headerType));
                         }
@@ -270,25 +274,24 @@ namespace v2rayN.Handler
             return 0;
         }
 
-        #endregion
+        #endregion GetShareUrl
 
-        #region  ImportShareUrl 
-
+        #region ImportShareUrl
 
         /// <summary>
         /// 从剪贴板导入URL
         /// </summary>
-        /// <param name="fileName"></param>
         /// <param name="msg"></param>
         /// <returns></returns>
-        public static ProfileItem ImportFromClipboardConfig(string clipboardData, out string msg)
+        public static ProfileItem? ImportFromClipboardConfig(string clipboardData, out string msg)
         {
             msg = string.Empty;
-            ProfileItem profileItem = new ProfileItem();
+
+            ProfileItem profileItem = new();
 
             try
             {
-                //载入配置文件 
+                //载入配置文件
                 string result = clipboardData.TrimEx();// Utils.GetClipboardData();
                 if (Utils.IsNullOrEmpty(result))
                 {
@@ -307,7 +310,6 @@ namespace v2rayN.Handler
                     {
                         profileItem = ResolveVmess(result, out msg);
                     }
-
                 }
                 else if (result.StartsWith(Global.ssProtocol))
                 {
@@ -350,7 +352,6 @@ namespace v2rayN.Handler
                 else if (result.StartsWith(Global.vlessProtocol))
                 {
                     profileItem = ResolveStdVLESS(result);
-
                 }
                 else
                 {
@@ -368,7 +369,7 @@ namespace v2rayN.Handler
             return profileItem;
         }
 
-        private static ProfileItem ResolveVmess(string result, out string msg)
+        private static ProfileItem? ResolveVmess(string result, out string msg)
         {
             msg = string.Empty;
             var profileItem = new ProfileItem
@@ -376,11 +377,11 @@ namespace v2rayN.Handler
                 configType = EConfigType.VMess
             };
 
-            result = result.Substring(Global.vmessProtocol.Length);
+            result = result[Global.vmessProtocol.Length..];
             result = Utils.Base64Decode(result);
 
             //转成Json
-            VmessQRCode vmessQRCode = Utils.FromJson<VmessQRCode>(result);
+            VmessQRCode? vmessQRCode = Utils.FromJson<VmessQRCode>(result);
             if (vmessQRCode == null)
             {
                 msg = ResUI.FailedConversionConfiguration;
@@ -418,17 +419,17 @@ namespace v2rayN.Handler
             return profileItem;
         }
 
-        private static ProfileItem ResolveVmess4Kitsunebi(string result)
+        private static ProfileItem? ResolveVmess4Kitsunebi(string result)
         {
-            ProfileItem profileItem = new ProfileItem
+            ProfileItem profileItem = new()
             {
                 configType = EConfigType.VMess
             };
-            result = result.Substring(Global.vmessProtocol.Length);
+            result = result[Global.vmessProtocol.Length..];
             int indexSplit = result.IndexOf("?");
             if (indexSplit > 0)
             {
-                result = result.Substring(0, indexSplit);
+                result = result[..indexSplit];
             }
             result = Utils.Base64Decode(result);
 
@@ -439,7 +440,7 @@ namespace v2rayN.Handler
             }
             string[] arr21 = arr1[0].Split(':');
             string[] arr22 = arr1[1].Split(':');
-            if (arr21.Length != 2 || arr21.Length != 2)
+            if (arr21.Length != 2 || arr22.Length != 2)
             {
                 return null;
             }
@@ -456,15 +457,15 @@ namespace v2rayN.Handler
             return profileItem;
         }
 
-        private static ProfileItem ResolveStdVmess(string result)
+        private static ProfileItem? ResolveStdVmess(string result)
         {
-            ProfileItem i = new ProfileItem
+            ProfileItem i = new()
             {
                 configType = EConfigType.VMess,
                 security = "auto"
             };
 
-            Uri u = new Uri(result);
+            Uri u = new(result);
 
             i.address = u.IdnHost;
             i.port = u.Port;
@@ -483,8 +484,8 @@ namespace v2rayN.Handler
             switch (i.streamSecurity)
             {
                 case "tls":
-                    // TODO tls config
                     break;
+
                 default:
                     if (!string.IsNullOrWhiteSpace(i.streamSecurity))
                         return null;
@@ -497,12 +498,10 @@ namespace v2rayN.Handler
                 case "tcp":
                     string t1 = q["type"] ?? "none";
                     i.headerType = t1;
-                    // TODO http option
-
                     break;
+
                 case "kcp":
                     i.headerType = q["type"] ?? "none";
-                    // TODO kcp seed
                     break;
 
                 case "ws":
@@ -537,7 +536,7 @@ namespace v2rayN.Handler
             return i;
         }
 
-        private static ProfileItem ResolveSip002(string result)
+        private static ProfileItem? ResolveSip002(string result)
         {
             Uri parsedUrl;
             try
@@ -548,7 +547,7 @@ namespace v2rayN.Handler
             {
                 return null;
             }
-            ProfileItem server = new ProfileItem
+            ProfileItem server = new()
             {
                 remarks = parsedUrl.GetComponents(UriComponents.Fragment, UriFormat.Unescaped),
                 address = parsedUrl.IdnHost,
@@ -556,7 +555,7 @@ namespace v2rayN.Handler
             };
             string rawUserInfo = parsedUrl.GetComponents(UriComponents.UserInfo, UriFormat.UriEscaped);
             //2022-blake3
-            if (rawUserInfo.Contains(":"))
+            if (rawUserInfo.Contains(':'))
             {
                 string[] userInfoParts = rawUserInfo.Split(new[] { ':' }, 2);
                 if (userInfoParts.Length != 2)
@@ -600,16 +599,16 @@ namespace v2rayN.Handler
             return server;
         }
 
-        private static readonly Regex UrlFinder = new Regex(@"ss://(?<base64>[A-Za-z0-9+-/=_]+)(?:#(?<tag>\S+))?", RegexOptions.IgnoreCase);
-        private static readonly Regex DetailsParser = new Regex(@"^((?<method>.+?):(?<password>.*)@(?<hostname>.+?):(?<port>\d+?))$", RegexOptions.IgnoreCase);
+        private static readonly Regex UrlFinder = new(@"ss://(?<base64>[A-Za-z0-9+-/=_]+)(?:#(?<tag>\S+))?", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex DetailsParser = new(@"^((?<method>.+?):(?<password>.*)@(?<hostname>.+?):(?<port>\d+?))$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-        private static ProfileItem ResolveSSLegacy(string result)
+        private static ProfileItem? ResolveSSLegacy(string result)
         {
             var match = UrlFinder.Match(result);
             if (!match.Success)
                 return null;
 
-            ProfileItem server = new ProfileItem();
+            ProfileItem server = new();
             var base64 = match.Groups["base64"].Value.TrimEnd('/');
             var tag = match.Groups["tag"].Value;
             if (!Utils.IsNullOrEmpty(tag))
@@ -634,17 +633,16 @@ namespace v2rayN.Handler
             return server;
         }
 
+        private static readonly Regex StdVmessUserInfo = new(
+            @"^(?<network>[a-z]+)(\+(?<streamSecurity>[a-z]+))?:(?<id>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$", RegexOptions.Compiled);
 
-        private static readonly Regex StdVmessUserInfo = new Regex(
-            @"^(?<network>[a-z]+)(\+(?<streamSecurity>[a-z]+))?:(?<id>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$");
-
-        private static ProfileItem ResolveSocks(string result)
+        private static ProfileItem? ResolveSocks(string result)
         {
-            ProfileItem profileItem = new ProfileItem
+            ProfileItem profileItem = new()
             {
                 configType = EConfigType.Socks
             };
-            result = result.Substring(Global.socksProtocol.Length);
+            result = result[Global.socksProtocol.Length..];
             //remark
             int indexRemark = result.IndexOf("#");
             if (indexRemark > 0)
@@ -654,7 +652,7 @@ namespace v2rayN.Handler
                     profileItem.remarks = Utils.UrlDecode(result.Substring(indexRemark + 1, result.Length - indexRemark - 1));
                 }
                 catch { }
-                result = result.Substring(0, indexRemark);
+                result = result[..indexRemark];
             }
             //part decode
             int indexS = result.IndexOf("@");
@@ -678,15 +676,15 @@ namespace v2rayN.Handler
             {
                 return null;
             }
-            profileItem.address = arr1[1].Substring(0, indexPort);
-            profileItem.port = Utils.ToInt(arr1[1].Substring(indexPort + 1, arr1[1].Length - (indexPort + 1)));
+            profileItem.address = arr1[1][..indexPort];
+            profileItem.port = Utils.ToInt(arr1[1][(indexPort + 1)..]);
             profileItem.security = arr21[0];
             profileItem.id = arr21[1];
 
             return profileItem;
         }
 
-        private static ProfileItem ResolveSocksNew(string result)
+        private static ProfileItem? ResolveSocksNew(string result)
         {
             Uri parsedUrl;
             try
@@ -697,7 +695,7 @@ namespace v2rayN.Handler
             {
                 return null;
             }
-            ProfileItem server = new ProfileItem
+            ProfileItem server = new()
             {
                 remarks = parsedUrl.GetComponents(UriComponents.Fragment, UriFormat.Unescaped),
                 address = parsedUrl.IdnHost,
@@ -719,12 +717,12 @@ namespace v2rayN.Handler
 
         private static ProfileItem ResolveTrojan(string result)
         {
-            ProfileItem item = new ProfileItem
+            ProfileItem item = new()
             {
                 configType = EConfigType.Trojan
             };
 
-            Uri url = new Uri(result);
+            Uri url = new(result);
 
             item.address = url.IdnHost;
             item.port = url.Port;
@@ -736,15 +734,16 @@ namespace v2rayN.Handler
 
             return item;
         }
+
         private static ProfileItem ResolveStdVLESS(string result)
         {
-            ProfileItem item = new ProfileItem
+            ProfileItem item = new()
             {
                 configType = EConfigType.VLESS,
                 security = "none"
             };
 
-            Uri url = new Uri(result);
+            Uri url = new(result);
 
             item.address = url.IdnHost;
             item.port = url.Port;
@@ -766,6 +765,10 @@ namespace v2rayN.Handler
             item.sni = query["sni"] ?? "";
             item.alpn = Utils.UrlDecode(query["alpn"] ?? "");
             item.fingerprint = Utils.UrlDecode(query["fp"] ?? "");
+            item.publicKey = Utils.UrlDecode(query["pbk"] ?? "");
+            item.shortId = Utils.UrlDecode(query["sid"] ?? "");
+            item.spiderX = Utils.UrlDecode(query["spx"] ?? "");
+
             item.network = query["type"] ?? "tcp";
             switch (item.network)
             {
@@ -774,6 +777,7 @@ namespace v2rayN.Handler
                     item.requestHost = Utils.UrlDecode(query["host"] ?? "");
 
                     break;
+
                 case "kcp":
                     item.headerType = query["headerType"] ?? "none";
                     item.path = Utils.UrlDecode(query["seed"] ?? "");
@@ -796,16 +800,18 @@ namespace v2rayN.Handler
                     item.requestHost = query["quicSecurity"] ?? "none";
                     item.path = Utils.UrlDecode(query["key"] ?? "");
                     break;
+
                 case "grpc":
                     item.path = Utils.UrlDecode(query["serviceName"] ?? "");
                     item.headerType = Utils.UrlDecode(query["mode"] ?? Global.GrpcgunMode);
                     break;
+
                 default:
                     break;
             }
             return 0;
         }
 
-        #endregion
+        #endregion ImportShareUrl
     }
 }

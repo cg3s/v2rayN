@@ -3,45 +3,67 @@ using System.Reactive.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Threading;
 using v2rayN.Base;
+using v2rayN.Handler;
+using v2rayN.Mode;
 
 namespace v2rayN.Views
 {
     public partial class MsgView
     {
+        private static Config _config;
+
+        private string lastMsgFilter;
+        private bool lastMsgFilterNotAvailable;
+
         public MsgView()
         {
             InitializeComponent();
+            _config = LazyConfig.Instance.GetConfig();
             MessageBus.Current.Listen<string>("MsgView").Subscribe(x => DelegateAppendText(x));
             Global.PresetMsgFilters.ForEach(it =>
             {
                 cmbMsgFilter.Items.Add(it);
             });
+            if (!_config.uiItem.mainMsgFilter.IsNullOrEmpty())
+            {
+                cmbMsgFilter.Text = _config.uiItem.mainMsgFilter;
+            }
         }
 
-        void DelegateAppendText(string msg)
+        private void DelegateAppendText(string msg)
         {
-            Dispatcher.BeginInvoke(new Action<string>(AppendText), DispatcherPriority.Send, msg);
+            Dispatcher.BeginInvoke(AppendText, DispatcherPriority.Send, msg);
         }
 
         public void AppendText(string msg)
         {
-            if (msg.Equals(Global.CommandClearMsg))
+            if (msg == Global.CommandClearMsg)
             {
                 ClearMsg();
                 return;
             }
-            if (!togAutoRefresh.IsChecked.Value)
+            if (togAutoRefresh.IsChecked == false)
             {
                 return;
             }
+
             var MsgFilter = cmbMsgFilter.Text.TrimEx();
-            if (!Utils.IsNullOrEmpty(MsgFilter))
+            if (MsgFilter != lastMsgFilter) lastMsgFilterNotAvailable = false;
+            if (!string.IsNullOrEmpty(MsgFilter) && !lastMsgFilterNotAvailable)
             {
-                if (!Regex.IsMatch(msg, MsgFilter))
+                try
                 {
-                    return;
+                    if (!Regex.IsMatch(msg, MsgFilter)) // 如果不是正则表达式会异常
+                    {
+                        return;
+                    }
+                }
+                catch (Exception)
+                {
+                    lastMsgFilterNotAvailable = true;
                 }
             }
+            lastMsgFilter = MsgFilter;
 
             ShowMsg(msg);
         }
@@ -88,5 +110,9 @@ namespace v2rayN.Views
             ClearMsg();
         }
 
+        private void cmbMsgFilter_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            _config.uiItem.mainMsgFilter = cmbMsgFilter.Text.TrimEx();
+        }
     }
 }

@@ -3,17 +3,18 @@ using System.IO;
 using System.Reactive.Linq;
 using v2rayN.Handler;
 using v2rayN.Mode;
+using v2rayN.Resx;
 
 namespace v2rayN.Base
 {
     public sealed class TunHandler
     {
-        private static readonly Lazy<TunHandler> _instance = new Lazy<TunHandler>(() => new());
+        private static readonly Lazy<TunHandler> _instance = new(() => new());
         public static TunHandler Instance => _instance.Value;
         private string _tunConfigName = "tunConfig.json";
         private static Config _config;
         private CoreInfo coreInfo;
-        private Process _process;
+        private Process? _process;
         private static int _socksPort;
         private static bool _needRestart = true;
         private static bool _isRunning = false;
@@ -44,7 +45,7 @@ namespace v2rayN.Base
         {
             var socksPort = LazyConfig.Instance.GetLocalPort(Global.InboundSocks);
 
-            if (socksPort.Equals(_socksPort)
+            if (socksPort == _socksPort
                 && _process != null
                 && !_process.HasExited)
             {
@@ -60,6 +61,7 @@ namespace v2rayN.Base
                 {
                     return;
                 }
+                CoreStartTest();
                 CoreStart();
             }
         }
@@ -100,13 +102,94 @@ namespace v2rayN.Base
             configStr = configStr.Replace("$strict_route$", $"{_config.tunModeItem.strictRoute.ToString().ToLower()}");
             configStr = configStr.Replace("$stack$", $"{_config.tunModeItem.stack}");
 
+            //logs
+            configStr = configStr.Replace("$log_disabled$", $"{(!_config.tunModeItem.enabledLog).ToString().ToLower()}");
+            if (_config.tunModeItem.showWindow)
+            {
+                configStr = configStr.Replace("$log_output$", $"");
+            }
+            else
+            {
+                var dtNow = DateTime.Now;
+                var log_output = $"\"output\": \"{Utils.GetLogPath($"singbox_{dtNow:yyyy-MM-dd}.txt")}\", ";
+                configStr = configStr.Replace("$log_output$", $"{log_output.Replace(@"\", @"\\")}");
+            }
 
             //port
             configStr = configStr.Replace("$socksPort$", $"{_socksPort}");
 
+            //dns
+            string dnsObject = String.Empty;
+            if (_config.tunModeItem.bypassMode)
+            {
+                dnsObject = _config.tunModeItem.directDNS;
+            }
+            else
+            {
+                dnsObject = _config.tunModeItem.proxyDNS;
+            }
+            if (dnsObject.IsNullOrEmpty() || Utils.ParseJson(dnsObject)?.ContainsKey("servers") == false)
+            {
+                dnsObject = Utils.GetEmbedText(Global.TunSingboxDNSFileName);
+            }
+            configStr = configStr.Replace("$dns_object$", dnsObject);
+
             //exe
-            List<string> lstDnsExe = new List<string>();
-            List<string> lstDirectExe = new List<string>();
+            routingDirectExe(out List<string> lstDnsExe, out List<string> lstDirectExe);
+            string strDns = string.Join("\",\"", lstDnsExe.ToArray());
+            configStr = configStr.Replace("$dnsProcessName$", $"\"{strDns}\"");
+
+            string strDirect = string.Join("\",\"", lstDirectExe.ToArray());
+            configStr = configStr.Replace("$directProcessName$", $"\"{strDirect}\"");
+
+            if (_config.tunModeItem.bypassMode)
+            {
+                //direct ips
+                if (_config.tunModeItem.directIP != null && _config.tunModeItem.directIP.Count > 0)
+                {
+                    var ips = new { outbound = "direct", ip_cidr = _config.tunModeItem.directIP };
+                    configStr = configStr.Replace("$ruleDirectIPs$", "," + Utils.ToJson(ips));
+                }
+                //direct process
+                if (_config.tunModeItem.directProcess != null && _config.tunModeItem.directProcess.Count > 0)
+                {
+                    var process = new { outbound = "direct", process_name = _config.tunModeItem.directProcess };
+                    configStr = configStr.Replace("$ruleDirectProcess$", "," + Utils.ToJson(process));
+                }
+            }
+            else
+            {
+                //proxy ips
+                if (_config.tunModeItem.proxyIP != null && _config.tunModeItem.proxyIP.Count > 0)
+                {
+                    var ips = new { outbound = "proxy", ip_cidr = _config.tunModeItem.proxyIP };
+                    configStr = configStr.Replace("$ruleProxyIPs$", "," + Utils.ToJson(ips));
+                }
+                //proxy process
+                if (_config.tunModeItem.proxyProcess != null && _config.tunModeItem.proxyProcess.Count > 0)
+                {
+                    var process = new { outbound = "proxy", process_name = _config.tunModeItem.proxyProcess };
+                    configStr = configStr.Replace("$ruleProxyProcess$", "," + Utils.ToJson(process));
+                }
+
+                var final = new { outbound = "direct", inbound = "tun-in" };
+                configStr = configStr.Replace("$ruleFinally$", "," + Utils.ToJson(final));
+            }
+            configStr = configStr.Replace("$ruleDirectIPs$", "");
+            configStr = configStr.Replace("$ruleDirectProcess$", "");
+            configStr = configStr.Replace("$ruleProxyIPs$", "");
+            configStr = configStr.Replace("$ruleProxyProcess$", "");
+            configStr = configStr.Replace("$ruleFinally$", "");
+
+            File.WriteAllText(Utils.GetConfigPath(_tunConfigName), configStr);
+
+            return true;
+        }
+
+        private void routingDirectExe(out List<string> lstDnsExe, out List<string> lstDirectExe)
+        {
+            lstDnsExe = new();
+            lstDirectExe = new();
             var coreInfos = LazyConfig.Instance.GetCoreInfos();
             foreach (var it in coreInfos)
             {
@@ -118,48 +201,15 @@ namespace v2rayN.Base
                 {
                     if (!lstDnsExe.Contains(it2) && it.coreType != ECoreType.sing_box)
                     {
-                        lstDnsExe.Add(it2);
                         lstDnsExe.Add($"{it2}.exe");
                     }
 
                     if (!lstDirectExe.Contains(it2))
                     {
-                        lstDirectExe.Add(it2);
                         lstDirectExe.Add($"{it2}.exe");
                     }
                 }
             }
-            string strDns = string.Join("\",\"", lstDnsExe.ToArray());
-            configStr = configStr.Replace("$dnsProcessName$", $"\"{strDns}\"");
-
-            string strDirect = string.Join("\",\"", lstDirectExe.ToArray());
-            configStr = configStr.Replace("$directProcessName$", $"\"{strDirect}\"");
-
-
-            //ips
-            if (_config.tunModeItem.directIP != null && _config.tunModeItem.directIP.Count > 0)
-            {
-                var ips = new { outbound = "direct", ip_cidr = _config.tunModeItem.directIP };
-                configStr = configStr.Replace("$ruleDirectIPs$", "," + Utils.ToJson(ips));
-            }
-            else
-            {
-                configStr = configStr.Replace("$ruleDirectIPs$", "");
-            }
-            //process
-            if (_config.tunModeItem.directProcess != null && _config.tunModeItem.directProcess.Count > 0)
-            {
-                var process = new { outbound = "direct", process_name = _config.tunModeItem.directProcess };
-                configStr = configStr.Replace("$ruleDirectProcess$", "," + Utils.ToJson(process));
-            }
-            else
-            {
-                configStr = configStr.Replace("$ruleDirectProcess$", "");
-            }
-
-            File.WriteAllText(Utils.GetConfigPath(_tunConfigName), configStr);
-
-            return true;
         }
 
         private void CoreStop()
@@ -172,6 +222,7 @@ namespace v2rayN.Base
                     KillProcess(_process);
                     _process.Dispose();
                     _process = null;
+                    _needRestart = true;
                 }
             }
             catch (Exception ex)
@@ -195,7 +246,8 @@ namespace v2rayN.Base
             }
             if (Utils.IsNullOrEmpty(fileName))
             {
-
+                string msg = string.Format(ResUI.NotFoundCore, Utils.GetBinPath("", coreInfo.coreType), string.Join(", ", coreInfo.coreExes.ToArray()), coreInfo.coreUrl);
+                Utils.SaveLog(msg);
             }
             return fileName;
         }
@@ -205,12 +257,12 @@ namespace v2rayN.Base
             try
             {
                 string fileName = CoreFindexe();
-                if (fileName == "")
+                if (Utils.IsNullOrEmpty(fileName))
                 {
                     return;
                 }
                 var showWindow = _config.tunModeItem.showWindow;
-                Process p = new Process
+                Process p = new()
                 {
                     StartInfo = new ProcessStartInfo
                     {
@@ -261,6 +313,48 @@ namespace v2rayN.Base
             catch (Exception ex)
             {
                 Utils.SaveLog(ex.Message, ex);
+            }
+        }
+
+        private int CoreStartTest()
+        {
+            Utils.SaveLog("Tun mode configuration file test start");
+            try
+            {
+                string fileName = CoreFindexe();
+                if (fileName == "")
+                {
+                    return -1;
+                }
+                Process p = new Process
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = fileName,
+                        Arguments = $"run -c \"{Utils.GetConfigPath(_tunConfigName)}\"",
+                        WorkingDirectory = Utils.GetConfigPath(),
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        RedirectStandardError = true,
+                        Verb = "runas",
+                    }
+                };
+                p.Start();
+                if (p.WaitForExit(2000))
+                {
+                    throw new Exception(p.StandardError.ReadToEnd());
+                }
+                KillProcess(p);
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                Utils.SaveLog(ex.Message, ex);
+                return -1;
+            }
+            finally
+            {
+                Utils.SaveLog("Tun mode configuration file test end");
             }
         }
     }

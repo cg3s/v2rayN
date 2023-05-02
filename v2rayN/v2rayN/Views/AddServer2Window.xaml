@@ -18,6 +18,7 @@
     Background="{DynamicResource MaterialDesignPaper}"
     FontFamily="{x:Static conv:MaterialDesignFonts.MyFont}"
     ResizeMode="NoResize"
+    ShowInTaskbar="False"
     TextElement.FontFamily="{x:Static conv:MaterialDesignFonts.MyFont}"
     TextElement.Foreground="{DynamicResource MaterialDesignBody}"
     TextOptions.TextFormattingMode="Display"
@@ -136,12 +137,18 @@
                     VerticalAlignment="Center"
                     Style="{StaticResource ToolbarTextBlock}"
                     Text="{x:Static resx:ResUI.TbDisplayLog}" />
-                <ToggleButton
-                    x:Name="togDisplayLog"
+                <StackPanel
                     Grid.Row="4"
                     Grid.Column="1"
                     Margin="4"
-                    HorizontalAlignment="Left" />
+                    Orientation="Horizontal">
+                    <ToggleButton x:Name="togDisplayLog" HorizontalAlignment="Left" />
+                    <TextBlock
+                        Margin="8,0"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource ToolbarTextBlock}"
+                        Text="{x:Static resx:ResUI.TipDisplayLog}" />
+                </StackPanel>
 
                 <TextBlock
                     Grid.Row="5"
@@ -170,12 +177,11 @@
                         Text="{x:Static resx:ResUI.TipPreSocksPort}"
                         TextWrapping="Wrap" />
                 </StackPanel>
-
             </Grid>
 
             <Grid
                 Grid.Row="1"
-                Margin="16"
+                Margin="8"
                 HorizontalAlignment="Center">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="200" />
@@ -196,9 +202,6 @@
                     IsCancel="true"
                     Style="{StaticResource DefButton}" />
             </Grid>
-
-
-
         </Grid>
     </ScrollViewer>
 </reactiveui:ReactiveWindow>

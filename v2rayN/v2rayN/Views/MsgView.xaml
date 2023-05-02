@@ -29,7 +29,8 @@
                 materialDesign:HintAssist.Hint="{x:Static resx:ResUI.MsgFilterTitle}"
                 materialDesign:TextFieldAssist.HasClearButton="True"
                 IsEditable="True"
-                Style="{StaticResource DefComboBox}" />
+                Style="{StaticResource DefComboBox}"
+                TextBoxBase.TextChanged="cmbMsgFilter_TextChanged" />
             <TextBlock
                 Margin="8,0"
                 VerticalAlignment="Center"
@@ -44,9 +45,11 @@
         <TextBox
             Name="txtMsg"
             BorderThickness="0"
-            FontSize="{DynamicResource StdFontSize}"
+            FontSize="{DynamicResource StdFontSizeMsg}"
             HorizontalScrollBarVisibility="Auto"
             IsReadOnly="True"
+            IsReadOnlyCaretVisible="True"
+            TextAlignment="Left"
             TextWrapping="Wrap"
             VerticalScrollBarVisibility="Visible">
             <TextBox.ContextMenu>
@@ -71,11 +74,8 @@
                         Height="{StaticResource MenuItemHeight}"
                         Click="menuMsgViewClear_Click"
                         Header="{x:Static resx:ResUI.menuMsgViewClear}" />
-
                 </ContextMenu>
             </TextBox.ContextMenu>
         </TextBox>
-
-
     </DockPanel>
 </UserControl>

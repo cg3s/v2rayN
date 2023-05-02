@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
+		<GenerateSatelliteAssembliesForCore>true</GenerateSatelliteAssembliesForCore>
 		<OutputType>WinExe</OutputType>
 		<TargetFramework>net6.0-windows</TargetFramework>
 		<Nullable>enable</Nullable>
@@ -9,31 +10,35 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<ApplicationIcon>v2rayN.ico</ApplicationIcon>
 		<Copyright>Copyright © 2017-2023 (GPLv3)</Copyright>
-		<FileVersion>6.8</FileVersion>
-		<UseWindowsForms>False</UseWindowsForms>
-		<StartupObject></StartupObject>
+		<FileVersion>6.23</FileVersion>
 	</PropertyGroup>
 
-	<ItemGroup>		
+	<ItemGroup>
+		<PackageReference Include="Downloader" Version="3.0.4" />		
 		<PackageReference Include="MaterialDesignThemes" Version="4.7.1" />
-		<PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="1.1.0" />		 
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
-		<PackageReference Include="NHotkey" Version="2.1.0" />
-		<PackageReference Include="NHotkey.Wpf" Version="2.1.0" />
+		<PackageReference Include="H.NotifyIcon.Wpf" Version="2.0.108" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="QRCoder.Xaml" Version="1.4.3" />
 		<PackageReference Include="ReactiveUI.Fody" Version="18.4.20" />
 		<PackageReference Include="sqlite-net-pcl" Version="1.8.116" />
 		<PackageReference Include="TaskScheduler" Version="2.10.1" /> 
-		<PackageReference Include="ZXing.Net.Bindings.Windows.Compatibility" Version="0.16.10" />
+		<PackageReference Include="ZXing.Net.Bindings.Windows.Compatibility" Version="0.16.12" />
+		<PackageReference Include="ReactiveUI.Fody" Version="18.4.1" />
 		<PackageReference Include="ReactiveUI.Validation" Version="3.0.22" />
 		<PackageReference Include="ReactiveUI.WPF" Version="18.4.1" />
-		<PackageReference Include="Splat.NLog" Version="14.6.1" />
+		<PackageReference Include="Splat.NLog" Version="14.6.8" />
 		<PackageReference Include="System.Reactive" Version="5.0.0" />
 	</ItemGroup>
 	
 	<ItemGroup>       
         <AdditionalFiles Include="app.manifest" />       
+        <EmbeddedResource Include="Sample\SingboxSampleClientConfig">
+          <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+        </EmbeddedResource>       
         <EmbeddedResource Include="Sample\tun_singbox">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</EmbeddedResource>
+		<EmbeddedResource Include="Sample\tun_singbox_dns">
 			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
 		</EmbeddedResource>
 		<EmbeddedResource Include="Sample\custom_routing_black">
@@ -63,9 +68,18 @@
         <EmbeddedResource Include="Sample\SampleInbound">
           <CopyToOutputDirectory>Never</CopyToOutputDirectory>
         </EmbeddedResource>  
-        <EmbeddedResource Include="Sample\SampleServerConfig">
+        <EmbeddedResource Include="Sample\tun_singbox_rules">
+          <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+        </EmbeddedResource>  
+        <EmbeddedResource Include="Sample\tun_singbox_inbound">
           <CopyToOutputDirectory>Never</CopyToOutputDirectory>
         </EmbeddedResource>
+		<EmbeddedResource Include="Sample\dns_v2ray_normal">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</EmbeddedResource>
+		<EmbeddedResource Include="Sample\dns_singbox_normal">
+          <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+        </EmbeddedResource>  
         <EmbeddedResource Include="v2rayN.ico">
           <CopyToOutputDirectory>Never</CopyToOutputDirectory>
         </EmbeddedResource>
@@ -99,6 +113,9 @@
 	    <Generator>PublicResXFileCodeGenerator</Generator>
 	  </EmbeddedResource>
 	  <EmbeddedResource Update="Resx\ResUI.fa-Ir.resx">
+	    <Generator>PublicResXFileCodeGenerator</Generator>
+	  </EmbeddedResource>
+	  <EmbeddedResource Update="Resx\ResUI.ru.resx">
 	    <Generator>PublicResXFileCodeGenerator</Generator>
 	  </EmbeddedResource>
 	</ItemGroup>

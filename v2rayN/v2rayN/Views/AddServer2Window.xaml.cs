@@ -11,6 +11,7 @@ namespace v2rayN.Views
         public AddServer2Window(ProfileItem profileItem)
         {
             InitializeComponent();
+            this.Owner = Application.Current.MainWindow;
             this.Loaded += Window_Loaded;
             ViewModel = new AddServer2ViewModel(profileItem, this);
 
@@ -33,15 +34,14 @@ namespace v2rayN.Views
                 this.BindCommand(ViewModel, vm => vm.BrowseServerCmd, v => v.btnBrowse).DisposeWith(disposables);
                 this.BindCommand(ViewModel, vm => vm.EditServerCmd, v => v.btnEdit).DisposeWith(disposables);
                 this.BindCommand(ViewModel, vm => vm.SaveServerCmd, v => v.btnSave).DisposeWith(disposables);
-
             });
         }
-
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             txtRemarks.Focus();
         }
+
         private void btnCancel_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             if (ViewModel?.IsModified == true)
@@ -53,8 +53,5 @@ namespace v2rayN.Views
                 this.Close();
             }
         }
-
     }
 }
-
-
