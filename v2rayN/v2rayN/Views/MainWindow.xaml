@@ -258,7 +258,7 @@
                             </MenuItem>
                         </Menu>
                         <Separator />
-                        <Menu Margin="0,1" Style="{StaticResource ToolbarMenu}">
+                        <!--<Menu Margin="0,1" Style="{StaticResource ToolbarMenu}">
                             <MenuItem
                                 x:Name="menuPromotion"
                                 Padding="8,0"
@@ -274,7 +274,7 @@
                                 </MenuItem.Header>
                             </MenuItem>
                         </Menu>
-                        <Separator />
+                        <Separator />-->
                         <Menu Margin="0,1" Style="{StaticResource ToolbarMenu}">
                             <MenuItem
                                 x:Name="menuClose"
