@@ -238,6 +238,9 @@ namespace v2rayN.ViewModels
         public int CurrentFontSize { get; set; }
 
         [Reactive]
+        public bool FollowSystemTheme { get; set; }
+
+        [Reactive]
         public string CurrentLanguage { get; set; }
 
         #endregion UI
@@ -1617,18 +1620,6 @@ namespace v2rayN.ViewModels
             }
         }
 
-        private void TunModeSwitch()
-        {
-            if (EnableTun)
-            {
-                TunHandler.Instance.Start();
-            }
-            else
-            {
-                TunHandler.Instance.Stop();
-            }
-        }
-
         #endregion System proxy and Routings
 
         #region UI
@@ -1659,7 +1650,14 @@ namespace v2rayN.ViewModels
 
         private void RestoreUI()
         {
-            ModifyTheme(_config.uiItem.colorModeDark);
+            if (FollowSystemTheme)
+            {
+                ModifyTheme(!Utils.IsLightTheme());
+            }
+            else
+            {
+                ModifyTheme(_config.uiItem.colorModeDark);
+            }
 
             if (!_config.uiItem.colorPrimaryName.IsNullOrEmpty())
             {
@@ -1680,6 +1678,7 @@ namespace v2rayN.ViewModels
         private void BindingUI()
         {
             ColorModeDark = _config.uiItem.colorModeDark;
+            FollowSystemTheme = _config.uiItem.followSystemTheme;
             _swatches.AddRange(new SwatchesProvider().Swatches);
             if (!_config.uiItem.colorPrimaryName.IsNullOrEmpty())
             {
@@ -1701,6 +1700,21 @@ namespace v2rayN.ViewModels
                               ConfigHandler.SaveConfig(ref _config);
                           }
                       });
+
+            this.WhenAnyValue(x => x.FollowSystemTheme,
+                y => y == true)
+                    .Subscribe(c =>
+                    {
+                        if (_config.uiItem.followSystemTheme != FollowSystemTheme)
+                        {
+                            _config.uiItem.followSystemTheme = FollowSystemTheme;
+                            ConfigHandler.SaveConfig(ref _config);
+                            if (FollowSystemTheme)
+                            {
+                                ModifyTheme(!Utils.IsLightTheme());
+                            }
+                        }
+                    });
 
             this.WhenAnyValue(
               x => x.SelectedSwatch,

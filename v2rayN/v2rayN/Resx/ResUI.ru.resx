@@ -505,6 +505,9 @@
   <data name="TbSettingsColorMode" xml:space="preserve">
     <value>Тёмный режим</value>
   </data>
+  <data name="TbSettingsFollowSystemTheme" xml:space="preserve">
+    <value>следить за системной темой</value>
+  </data>
   <data name="TbSettingsLanguage" xml:space="preserve">
     <value>Язык (требуется перезапуск)</value>
   </data>
@@ -701,7 +704,7 @@
     <value>txtPreSocksPort</value>
   </data>
   <data name="TipPreSocksPort" xml:space="preserve">
-    <value>* После установки этого значения служба socks будет запущена с использованием Sing-box для обеспечения таких функций, как отображение скорости</value>
+    <value>* После установки этого значения служба socks будет запущена с использованием sing-box для обеспечения таких функций, как отображение скорости</value>
   </data>
   <data name="TbBrowse" xml:space="preserve">
     <value>Просмотр</value>

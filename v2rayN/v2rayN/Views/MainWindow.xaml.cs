@@ -2,6 +2,7 @@
 using Splat;
 using System.ComponentModel;
 using System.Reactive.Disposables;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -183,6 +184,7 @@ namespace v2rayN.Views
 
                 //UI
                 this.Bind(ViewModel, vm => vm.ColorModeDark, v => v.togDarkMode.IsChecked).DisposeWith(disposables);
+                this.Bind(ViewModel, vm => vm.FollowSystemTheme, v => v.followSystemTheme.IsChecked).DisposeWith(disposables);
                 this.OneWayBind(ViewModel, vm => vm.Swatches, v => v.cmbSwatches.ItemsSource).DisposeWith(disposables);
                 this.Bind(ViewModel, vm => vm.SelectedSwatch, v => v.cmbSwatches.SelectedItem).DisposeWith(disposables);
                 this.Bind(ViewModel, vm => vm.CurrentFontSize, v => v.cmbCurrentFontSize.Text).DisposeWith(disposables);
@@ -206,6 +208,25 @@ namespace v2rayN.Views
             {
                 RenderOptions.ProcessRenderMode = RenderMode.SoftwareOnly;
             }
+
+            var helper = new WindowInteropHelper(this);
+            var hwndSource = HwndSource.FromHwnd(helper.EnsureHandle());
+            hwndSource.AddHook((IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled) =>
+            {
+                if (_config.uiItem.followSystemTheme)
+                {
+                    const int WM_SETTINGCHANGE = 0x001A;
+                    if (msg == WM_SETTINGCHANGE)
+                    {
+                        if (wParam == IntPtr.Zero && Marshal.PtrToStringUni(lParam) == "ImmersiveColorSet")
+                        {
+                            ViewModel?.ModifyTheme(!Utils.IsLightTheme());
+                        }
+                    }
+                }
+
+                return IntPtr.Zero;
+            });
         }
 
         #region Event

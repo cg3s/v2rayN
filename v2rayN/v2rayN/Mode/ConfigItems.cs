@@ -116,6 +116,7 @@ namespace v2rayN.Mode
         public double mainGirdHeight1 { get; set; }
         public double mainGirdHeight2 { get; set; }
         public bool colorModeDark { get; set; }
+        public bool followSystemTheme { get; set; }
         public string? colorPrimaryName { get; set; }
         public string currentLanguage { get; set; }
         public string currentFontFamily { get; set; }
@@ -161,19 +162,9 @@ namespace v2rayN.Mode
     public class TunModeItem
     {
         public bool enableTun { get; set; }
-        public bool showWindow { get; set; }
-        public bool enabledLog { get; set; }
         public bool strictRoute { get; set; }
         public string stack { get; set; }
         public int mtu { get; set; }
-        public string customTemplate { get; set; }
-        public bool bypassMode { get; set; } = true;
-        public List<string> directIP { get; set; }
-        public List<string> directProcess { get; set; }
-        public string directDNS { get; set; }
-        public List<string> proxyIP { get; set; }
-        public List<string> proxyProcess { get; set; }
-        public string proxyDNS { get; set; }
     }
 
     [Serializable]
@@ -191,6 +182,7 @@ namespace v2rayN.Mode
         /// 域名解析策略
         /// </summary>
         public string domainStrategy { get; set; }
+
         public string domainStrategy4Singbox { get; set; }
 
         public string domainMatcher { get; set; }
@@ -204,5 +196,15 @@ namespace v2rayN.Mode
         public string Name { get; set; }
         public int Width { get; set; }
         public int Index { get; set; }
+    }
+
+    [Serializable]
+    public class Mux4Sbox
+    {
+        public string protocol { get; set; }
+        public int max_connections { get; set; }
+        public int min_streams { get; set; }
+        public int max_streams { get; set; }
+        public bool padding { get; set; }
     }
 }
