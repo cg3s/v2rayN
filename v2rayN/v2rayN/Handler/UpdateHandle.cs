@@ -154,7 +154,7 @@ namespace v2rayN.Handler
             _updateFunc = update;
 
             _updateFunc(false, ResUI.MsgUpdateSubscriptionStart);
-            var subItem = LazyConfig.Instance.SubItems();
+            var subItem = LazyConfig.Instance.SubItems().OrderBy(t => t.sort).ToList();
 
             if (subItem == null || subItem.Count <= 0)
             {
@@ -173,6 +173,10 @@ namespace v2rayN.Handler
                     if (Utils.IsNullOrEmpty(id) || Utils.IsNullOrEmpty(url) || (!Utils.IsNullOrEmpty(subId) && item.id != subId))
                     {
                         //_updateFunc(false, $"{hashCode}{ResUI.MsgNoValidSubscription}");
+                        continue;
+                    }
+                    if (!url.StartsWith(Global.httpsProtocol) && !url.StartsWith(Global.httpProtocol))
+                    {
                         continue;
                     }
                     if (item.enabled == false)
@@ -510,7 +514,7 @@ namespace v2rayN.Handler
                         throw new ArgumentException("Type");
                 }
 
-                if (curVersion >= version)
+                if (curVersion >= version && version != new SemanticVersion(0, 0, 0))
                 {
                     AbsoluteCompleted?.Invoke(this, new ResultEventArgs(false, message));
                     return;
@@ -609,6 +613,7 @@ namespace v2rayN.Handler
                     try
                     {
                         if (needStop) coreHandler?.CoreStop();
+                        Task.Delay(1000);
                         string fileName = Utils.GetTempPath(Utils.GetDownloadFileName(url));
                         if (File.Exists(fileName))
                         {

@@ -107,29 +107,18 @@ namespace v2rayN.Handler
         {
             try
             {
-                if (_config.tunModeItem.enableTun)
+                singboxConfig.inbounds.Clear();
+
+                if (!_config.tunModeItem.enableTun || (_config.tunModeItem.enableTun && _config.tunModeItem.enableExInbound))
                 {
-                    singboxConfig.inbounds.Clear();
-
-                    if (_config.tunModeItem.mtu <= 0)
+                    var inbound = new Inbound4Sbox()
                     {
-                        _config.tunModeItem.mtu = Convert.ToInt32(Global.TunMtus[0]);
-                    }
-                    if (Utils.IsNullOrEmpty(_config.tunModeItem.stack))
-                    {
-                        _config.tunModeItem.stack = Global.TunStacks[0];
-                    }
+                        type = Global.InboundSocks,
+                        tag = Global.InboundSocks,
+                        listen = Global.Loopback,
+                    };
+                    singboxConfig.inbounds.Add(inbound);
 
-                    var tunInbound = Utils.FromJson<Inbound4Sbox>(Utils.GetEmbedText(Global.TunSingboxInboundFileName));
-                    tunInbound.mtu = _config.tunModeItem.mtu;
-                    tunInbound.strict_route = _config.tunModeItem.strictRoute;
-                    tunInbound.stack = _config.tunModeItem.stack;
-
-                    singboxConfig.inbounds.Add(tunInbound);
-                }
-                else
-                {
-                    var inbound = singboxConfig.inbounds[0];
                     inbound.listen_port = LazyConfig.Instance.GetLocalPort(Global.InboundSocks);
                     inbound.sniff = _config.inbound[0].sniffingEnabled;
                     inbound.sniff_override_destination = _config.inbound[0].routeOnly ? false : _config.inbound[0].sniffingEnabled;
@@ -173,6 +162,25 @@ namespace v2rayN.Handler
                             inbound2.listen = "::";
                         }
                     }
+                }
+
+                if (_config.tunModeItem.enableTun)
+                {
+                    if (_config.tunModeItem.mtu <= 0)
+                    {
+                        _config.tunModeItem.mtu = Convert.ToInt32(Global.TunMtus[0]);
+                    }
+                    if (Utils.IsNullOrEmpty(_config.tunModeItem.stack))
+                    {
+                        _config.tunModeItem.stack = Global.TunStacks[0];
+                    }
+
+                    var tunInbound = Utils.FromJson<Inbound4Sbox>(Utils.GetEmbedText(Global.TunSingboxInboundFileName));
+                    tunInbound.mtu = _config.tunModeItem.mtu;
+                    tunInbound.strict_route = _config.tunModeItem.strictRoute;
+                    tunInbound.stack = _config.tunModeItem.stack;
+
+                    singboxConfig.inbounds.Add(tunInbound);
                 }
             }
             catch (Exception ex)
@@ -255,13 +263,16 @@ namespace v2rayN.Handler
                     outbound.type = Global.vlessProtocolLite;
 
                     outbound.uuid = node.id;
-                    outbound.flow = node.flow;
 
                     outbound.packet_encoding = "xudp";
 
                     if (Utils.IsNullOrEmpty(node.flow))
                     {
                         outboundMux(node, outbound);
+                    }
+                    else
+                    {
+                        outbound.flow = node.flow;
                     }
                 }
                 else if (node.configType == EConfigType.Trojan)
@@ -288,19 +299,19 @@ namespace v2rayN.Handler
         {
             try
             {
-                if (_config.coreBasicItem.muxEnabled)
-                {
-                    var mux = new Multiplex4Sbox()
-                    {
-                        enabled = true,
-                        protocol = _config.mux4Sbox.protocol,
-                        max_connections = _config.mux4Sbox.max_connections,
-                        min_streams = _config.mux4Sbox.min_streams,
-                        max_streams = _config.mux4Sbox.max_streams,
-                        padding = _config.mux4Sbox.padding
-                    };
-                    outbound.multiplex = mux;
-                }
+                //if (_config.coreBasicItem.muxEnabled)
+                //{
+                //    var mux = new Multiplex4Sbox()
+                //    {
+                //        enabled = true,
+                //        protocol = _config.mux4Sbox.protocol,
+                //        max_connections = _config.mux4Sbox.max_connections,
+                //        min_streams = _config.mux4Sbox.min_streams,
+                //        max_streams = _config.mux4Sbox.max_streams,
+                //        padding = _config.mux4Sbox.padding
+                //    };
+                //    outbound.multiplex = mux;
+                //}
             }
             catch (Exception ex)
             {
@@ -315,10 +326,19 @@ namespace v2rayN.Handler
             {
                 if (node.streamSecurity == Global.StreamSecurityReality || node.streamSecurity == Global.StreamSecurity)
                 {
+                    var server_name = string.Empty;
+                    if (!string.IsNullOrWhiteSpace(node.sni))
+                    {
+                        server_name = node.sni;
+                    }
+                    else if (!string.IsNullOrWhiteSpace(node.requestHost))
+                    {
+                        server_name = Utils.String2List(node.requestHost)[0];
+                    }
                     var tls = new Tls4Sbox()
                     {
                         enabled = true,
-                        server_name = node.sni,
+                        server_name = server_name,
                         insecure = Utils.ToBool(node.allowInsecure.IsNullOrEmpty() ? _config.coreBasicItem.defAllowInsecure.ToString().ToLower() : node.allowInsecure),
                         alpn = node.GetAlpn(),
                     };
@@ -666,24 +686,21 @@ namespace v2rayN.Handler
                     return 0;
                 }
                 //Add the dns of the remote server domain
-                if (Utils.IsDomain(node.address))
+                if (dns4Sbox.rules is null)
                 {
-                    if (dns4Sbox.rules is null)
-                    {
-                        dns4Sbox.rules = new();
-                    }
-                    dns4Sbox.servers.Add(new()
-                    {
-                        tag = "local_local",
-                        address = "223.5.5.5",
-                        detour = "direct"
-                    });
-                    dns4Sbox.rules.Add(new()
-                    {
-                        server = "local_local",
-                        domain = new List<string>() { node.address }
-                    });
+                    dns4Sbox.rules = new();
                 }
+                dns4Sbox.servers.Add(new()
+                {
+                    tag = "local_local",
+                    address = "223.5.5.5",
+                    detour = "direct"
+                });
+                dns4Sbox.rules.Add(new()
+                {
+                    server = "local_local",
+                    outbound = "any"
+                });
 
                 singboxConfig.dns = dns4Sbox;
             }
