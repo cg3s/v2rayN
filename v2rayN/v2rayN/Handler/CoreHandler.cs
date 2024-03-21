@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.IO;
+using System.Reactive.Linq;
 using System.Text;
 using v2rayN.Mode;
 using v2rayN.Resx;
@@ -45,6 +46,24 @@ namespace v2rayN.Handler
                 ShowMsg(true, $"{node.GetSummary()}");
                 CoreStop();
                 CoreStart(node);
+
+                //In tun mode, do a delay check and restart the core
+                if (_config.tunModeItem.enableTun)
+                {
+                    Observable.Range(1, 1)
+                    .Delay(TimeSpan.FromSeconds(15))
+                    .Subscribe(x =>
+                    {
+                        {
+                            if (_process == null || _process.HasExited)
+                            {
+                                CoreStart(node);
+                                ShowMsg(false, "Tun mode restart the core once");
+                                Utils.SaveLog("Tun mode restart the core once");
+                            }
+                        }
+                    });
+                }
             }
         }
 
@@ -152,7 +171,7 @@ namespace v2rayN.Handler
 
         private void CoreStart(ProfileItem node)
         {
-            ShowMsg(false, string.Format(ResUI.StartService, DateTime.Now.ToString()));
+            ShowMsg(false, string.Format(ResUI.StartService, DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss")));
 
             ECoreType coreType;
             if (node.configType != EConfigType.Custom && _config.tunModeItem.enableTun)
@@ -201,7 +220,7 @@ namespace v2rayN.Handler
 
         private int CoreStartViaString(string configStr)
         {
-            ShowMsg(false, string.Format(ResUI.StartService, DateTime.Now.ToString()));
+            ShowMsg(false, string.Format(ResUI.StartService, DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss")));
 
             try
             {

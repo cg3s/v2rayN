@@ -10,23 +10,23 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<ApplicationIcon>v2rayN.ico</ApplicationIcon>
 		<Copyright>Copyright © 2017-2023 (GPLv3)</Copyright>
-		<FileVersion>6.27</FileVersion>
+		<FileVersion>6.31</FileVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Downloader" Version="3.0.6" />		
 		<PackageReference Include="MaterialDesignThemes" Version="4.9.0" />
-		<PackageReference Include="H.NotifyIcon.Wpf" Version="2.0.108" />
+		<PackageReference Include="H.NotifyIcon.Wpf" Version="2.0.118" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="QRCoder.Xaml" Version="1.4.3" />
 		<PackageReference Include="ReactiveUI.Fody" Version="18.4.20" />
 		<PackageReference Include="sqlite-net-pcl" Version="1.8.116" />
 		<PackageReference Include="TaskScheduler" Version="2.10.1" /> 
 		<PackageReference Include="ZXing.Net.Bindings.Windows.Compatibility" Version="0.16.12" />
-		<PackageReference Include="ReactiveUI.Fody" Version="18.4.1" />
-		<PackageReference Include="ReactiveUI.Validation" Version="3.0.22" />
-		<PackageReference Include="ReactiveUI.WPF" Version="18.4.1" />
-		<PackageReference Include="Splat.NLog" Version="14.6.37" />
+		<PackageReference Include="ReactiveUI.Fody" Version="19.5.1" />
+		<PackageReference Include="ReactiveUI.Validation" Version="3.1.7" />
+		<PackageReference Include="ReactiveUI.WPF" Version="19.5.1" />
+		<PackageReference Include="Splat.NLog" Version="14.8.6" />
 		<PackageReference Include="System.Reactive" Version="6.0.0" />
 	</ItemGroup>
 	
@@ -107,6 +107,9 @@
 	    <LastGenOutput>ResUI.Designer.cs</LastGenOutput>
 	  </EmbeddedResource>
 	  <EmbeddedResource Update="Resx\ResUI.zh-Hans.resx">
+	    <Generator>PublicResXFileCodeGenerator</Generator>
+	  </EmbeddedResource>
+	  <EmbeddedResource Update="Resx\ResUI.zh-Hant.resx">
 	    <Generator>PublicResXFileCodeGenerator</Generator>
 	  </EmbeddedResource>
 	  <EmbeddedResource Update="Resx\ResUI.fa-Ir.resx">

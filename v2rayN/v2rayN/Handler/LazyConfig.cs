@@ -252,7 +252,7 @@ namespace v2rayN.Handler
             {
                 coreType = ECoreType.v2fly_v5,
                 coreExes = new List<string> { "v2ray" },
-                arguments = "run",
+                arguments = "run -c config.json -format jsonv5",
                 coreUrl = Global.v2flyCoreUrl,
                 coreReleaseApiUrl = Global.v2flyCoreUrl.Replace(Global.githubUrl, Global.githubApiUrl),
                 coreDownloadUrl32 = Global.v2flyCoreUrl + "/download/{0}/v2ray-windows-{1}.zip",
@@ -352,6 +352,27 @@ namespace v2rayN.Handler
                 coreDownloadUrlArm64 = Global.singboxCoreUrl + "/download/{0}/sing-box-{1}-windows-arm64.zip",
                 match = "sing-box",
                 versionArg = "version",
+            });
+
+            coreInfos.Add(new CoreInfo
+            {
+                coreType = ECoreType.juicity,
+                coreExes = new List<string> { "juicity-client", "juicity" },
+                arguments = "run -c config.json",
+                coreUrl = Global.juicityCoreUrl
+            });
+
+            coreInfos.Add(new CoreInfo
+            {
+                coreType = ECoreType.hysteria2,
+                coreExes = new List<string> { "hysteria-windows-amd64", "hysteria-windows-386", "hysteria" },
+                arguments = "",
+                coreUrl = Global.hysteriaCoreUrl,
+                coreReleaseApiUrl = Global.hysteriaCoreUrl.Replace(Global.githubUrl, Global.githubApiUrl),
+                coreDownloadUrl32 = Global.hysteriaCoreUrl + "/download/{0}/hysteria-windows-386.exe",
+                coreDownloadUrl64 = Global.hysteriaCoreUrl + "/download/{0}/hysteria-windows-amd64.exe",
+                coreDownloadUrlArm64 = Global.hysteriaCoreUrl + "/download/{0}/hysteria-windows-arm64.exe",
+                redirectInfo = true,
             });
         }
 

@@ -89,6 +89,7 @@ namespace v2rayN.ViewModels
         public ReactiveCommand<Unit, Unit> AddShadowsocksServerCmd { get; }
         public ReactiveCommand<Unit, Unit> AddSocksServerCmd { get; }
         public ReactiveCommand<Unit, Unit> AddTrojanServerCmd { get; }
+        public ReactiveCommand<Unit, Unit> AddHysteria2ServerCmd { get; }
         public ReactiveCommand<Unit, Unit> AddCustomServerCmd { get; }
         public ReactiveCommand<Unit, Unit> AddServerViaClipboardCmd { get; }
         public ReactiveCommand<Unit, Unit> AddServerViaScanCmd { get; }
@@ -147,11 +148,14 @@ namespace v2rayN.ViewModels
         public ReactiveCommand<Unit, Unit> CheckUpdateNCmd { get; }
 
         public ReactiveCommand<Unit, Unit> CheckUpdateV2flyCoreCmd { get; }
-        public ReactiveCommand<Unit, Unit> CheckUpdateSagerNetCoreCmd { get; }
+
+        //public ReactiveCommand<Unit, Unit> CheckUpdateSagerNetCoreCmd { get; }
         public ReactiveCommand<Unit, Unit> CheckUpdateXrayCoreCmd { get; }
-        public ReactiveCommand<Unit, Unit> CheckUpdateClashCoreCmd { get; }
-        public ReactiveCommand<Unit, Unit> CheckUpdateClashMetaCoreCmd { get; }
+
+        //public ReactiveCommand<Unit, Unit> CheckUpdateClashCoreCmd { get; }
+        //public ReactiveCommand<Unit, Unit> CheckUpdateClashMetaCoreCmd { get; }
         public ReactiveCommand<Unit, Unit> CheckUpdateSingBoxCoreCmd { get; }
+
         public ReactiveCommand<Unit, Unit> CheckUpdateGeoCmd { get; }
 
         public ReactiveCommand<Unit, Unit> ReloadCmd { get; }
@@ -210,8 +214,8 @@ namespace v2rayN.ViewModels
         [Reactive]
         public string RunningServerDisplay { get; set; }
 
-        //[Reactive]
-        //public string RunningServerToolTipText { get; set; }
+        [Reactive]
+        public string RunningServerToolTipText { get; set; }
 
         [Reactive]
         public string RunningInfoDisplay { get; set; }
@@ -336,6 +340,10 @@ namespace v2rayN.ViewModels
             AddTrojanServerCmd = ReactiveCommand.Create(() =>
             {
                 EditServer(true, EConfigType.Trojan);
+            });
+            AddHysteria2ServerCmd = ReactiveCommand.Create(() =>
+            {
+                EditServer(true, EConfigType.Hysteria2);
             });
             AddCustomServerCmd = ReactiveCommand.Create(() =>
             {
@@ -500,22 +508,22 @@ namespace v2rayN.ViewModels
             {
                 CheckUpdateCore(ECoreType.v2fly_v5);
             });
-            CheckUpdateSagerNetCoreCmd = ReactiveCommand.Create(() =>
-            {
-                CheckUpdateCore(ECoreType.SagerNet);
-            });
+            //CheckUpdateSagerNetCoreCmd = ReactiveCommand.Create(() =>
+            //{
+            //    CheckUpdateCore(ECoreType.SagerNet);
+            //});
             CheckUpdateXrayCoreCmd = ReactiveCommand.Create(() =>
             {
                 CheckUpdateCore(ECoreType.Xray);
             });
-            CheckUpdateClashCoreCmd = ReactiveCommand.Create(() =>
-            {
-                CheckUpdateCore(ECoreType.clash);
-            });
-            CheckUpdateClashMetaCoreCmd = ReactiveCommand.Create(() =>
-            {
-                CheckUpdateCore(ECoreType.clash_meta);
-            });
+            //CheckUpdateClashCoreCmd = ReactiveCommand.Create(() =>
+            //{
+            //    CheckUpdateCore(ECoreType.clash);
+            //});
+            //CheckUpdateClashMetaCoreCmd = ReactiveCommand.Create(() =>
+            //{
+            //    CheckUpdateCore(ECoreType.clash_meta);
+            //});
             CheckUpdateSingBoxCoreCmd = ReactiveCommand.Create(() =>
             {
                 CheckUpdateCore(ECoreType.sing_box);
@@ -849,12 +857,12 @@ namespace v2rayN.ViewModels
                 {
                     var runningSummary = running.GetSummary();
                     RunningServerDisplay = $"{ResUI.menuServers}:{runningSummary}";
-                    //RunningServerToolTipText = runningSummary;
+                    RunningServerToolTipText = runningSummary;
                 }
                 else
                 {
                     RunningServerDisplay = ResUI.CheckServerSettings;
-                    //RunningServerToolTipText = ResUI.CheckServerSettings;
+                    RunningServerToolTipText = ResUI.CheckServerSettings;
                 }
             }));
         }

@@ -283,6 +283,17 @@ namespace v2rayN.Handler
 
                     outboundMux(node, outbound);
                 }
+                else if (node.configType == EConfigType.Hysteria2)
+                {
+                    outbound.type = Global.hysteria2ProtocolLite;
+
+                    outbound.password = node.id;
+
+                    outbound.up_mbps = _config.hysteriaItem.up_mbps > 0 ? _config.hysteriaItem.up_mbps : null;
+                    outbound.down_mbps = _config.hysteriaItem.down_mbps > 0 ? _config.hysteriaItem.down_mbps : null;
+
+                    outboundMux(node, outbound);
+                }
 
                 outboundTls(node, outbound);
 

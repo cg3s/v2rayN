@@ -15,6 +15,17 @@ namespace v2rayN.Views
         public AddServerWindow(ProfileItem profileItem)
         {
             InitializeComponent();
+
+            // 设置窗口的尺寸不大于屏幕的尺寸
+            if (this.Width > SystemParameters.WorkArea.Width)
+            {
+                this.Width = SystemParameters.WorkArea.Width;
+            }
+            if (this.Height > SystemParameters.WorkArea.Height)
+            {
+                this.Height = SystemParameters.WorkArea.Height;
+            }
+
             this.Owner = Application.Current.MainWindow;
             this.Loaded += Window_Loaded;
             cmbNetwork.SelectionChanged += CmbNetwork_SelectionChanged;
@@ -106,6 +117,15 @@ namespace v2rayN.Views
                         cmbFlow6.Items.Add(it);
                     });
                     break;
+
+                case EConfigType.Hysteria2:
+                    gridHysteria2.Visibility = Visibility.Visible;
+                    sepa2.Visibility = Visibility.Collapsed;
+                    gridTransport.Visibility = Visibility.Collapsed;
+                    cmbCoreType.IsEnabled = false;
+                    cmbFingerprint.IsEnabled = false;
+                    cmbFingerprint.Text = string.Empty;
+                    break;
             }
 
             gridTlsMore.Visibility = Visibility.Hidden;
@@ -144,6 +164,10 @@ namespace v2rayN.Views
                     case EConfigType.Trojan:
                         this.Bind(ViewModel, vm => vm.SelectedSource.id, v => v.txtId6.Text).DisposeWith(disposables);
                         this.Bind(ViewModel, vm => vm.SelectedSource.flow, v => v.cmbFlow6.Text).DisposeWith(disposables);
+                        break;
+
+                    case EConfigType.Hysteria2:
+                        this.Bind(ViewModel, vm => vm.SelectedSource.id, v => v.txtId7.Text).DisposeWith(disposables);
                         break;
                 }
                 this.Bind(ViewModel, vm => vm.SelectedSource.network, v => v.cmbNetwork.Text).DisposeWith(disposables);

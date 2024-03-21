@@ -18,6 +18,17 @@ namespace v2rayN.Views
         public OptionSettingWindow()
         {
             InitializeComponent();
+
+            // 设置窗口的尺寸不大于屏幕的尺寸
+            if (this.Width > SystemParameters.WorkArea.Width)
+            {
+                this.Width = SystemParameters.WorkArea.Width;
+            }
+            if (this.Height > SystemParameters.WorkArea.Height)
+            {
+                this.Height = SystemParameters.WorkArea.Height;
+            }
+
             this.Owner = Application.Current.MainWindow;
             _config = LazyConfig.Instance.GetConfig();
 
@@ -78,7 +89,12 @@ namespace v2rayN.Views
             //fill fonts
             try
             {
-                var files = Directory.GetFiles(Utils.GetFontsPath(), "*.ttf");
+                string[] searchPatterns = { "*.ttf", "*.ttc" };
+                var files = new List<string>();
+                foreach (var pattern in searchPatterns)
+                {
+                    files.AddRange(Directory.GetFiles(Utils.GetFontsPath(), pattern));
+                }
                 var culture = _config.uiItem.currentLanguage == Global.Languages[0] ? "zh-cn" : "en-us";
                 var culture2 = "en-us";
                 foreach (var ttf in files)
@@ -135,6 +151,8 @@ namespace v2rayN.Views
                 this.Bind(ViewModel, vm => vm.defFingerprint, v => v.cmbdefFingerprint.Text).DisposeWith(disposables);
                 this.Bind(ViewModel, vm => vm.defUserAgent, v => v.cmbdefUserAgent.Text).DisposeWith(disposables);
                 this.Bind(ViewModel, vm => vm.mux4SboxProtocol, v => v.cmbmux4SboxProtocol.Text).DisposeWith(disposables);
+                this.Bind(ViewModel, vm => vm.hyUpMbps, v => v.txtUpMbps.Text).DisposeWith(disposables);
+                this.Bind(ViewModel, vm => vm.hyDownMbps, v => v.txtDownMbps.Text).DisposeWith(disposables);
 
                 //this.Bind(ViewModel, vm => vm.Kcpmtu, v => v.txtKcpmtu.Text).DisposeWith(disposables);
                 //this.Bind(ViewModel, vm => vm.Kcptti, v => v.txtKcptti.Text).DisposeWith(disposables);

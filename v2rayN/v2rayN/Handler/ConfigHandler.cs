@@ -184,15 +184,24 @@ namespace v2rayN.Handler
                 config.speedTestItem.speedPingTestUrl = Global.SpeedPingTestUrl;
             }
 
-            if (config.mux4Sbox == null)
+            if (config.mux4SboxItem == null)
             {
-                config.mux4Sbox = new()
+                config.mux4SboxItem = new()
                 {
                     protocol = Global.SingboxMuxs[0],
                     max_connections = 4,
                     min_streams = 4,
                     max_streams = 0,
                     padding = true
+                };
+            }
+
+            if (config.hysteriaItem == null)
+            {
+                config.hysteriaItem = new()
+                {
+                    up_mbps = 100,
+                    down_mbps = 100
                 };
             }
 
@@ -347,7 +356,7 @@ namespace v2rayN.Handler
         #region Server
 
         /// <summary>
-        /// 添加服务器或编辑
+        /// Add or edit server
         /// </summary>
         /// <param name="config"></param>
         /// <param name="profileItem"></param>
@@ -594,7 +603,7 @@ namespace v2rayN.Handler
             profileItem.configType = EConfigType.Custom;
             if (Utils.IsNullOrEmpty(profileItem.remarks))
             {
-                profileItem.remarks = $"import custom@{DateTime.Now.ToShortDateString()}";
+                profileItem.remarks = $"import custom@{DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss")}";
             }
 
             AddServerCommon(ref config, profileItem, true);
@@ -603,7 +612,7 @@ namespace v2rayN.Handler
         }
 
         /// <summary>
-        /// 添加服务器或编辑
+        /// Add or edit server
         /// </summary>
         /// <param name="config"></param>
         /// <param name="profileItem"></param>
@@ -623,7 +632,7 @@ namespace v2rayN.Handler
         }
 
         /// <summary>
-        /// 添加服务器或编辑
+        /// Add or edit server
         /// </summary>
         /// <param name="config"></param>
         /// <param name="profileItem"></param>
@@ -651,7 +660,7 @@ namespace v2rayN.Handler
         }
 
         /// <summary>
-        /// 添加服务器或编辑
+        /// Add or edit server
         /// </summary>
         /// <param name="config"></param>
         /// <param name="profileItem"></param>
@@ -668,7 +677,7 @@ namespace v2rayN.Handler
         }
 
         /// <summary>
-        /// 添加服务器或编辑
+        /// Add or edit server
         /// </summary>
         /// <param name="config"></param>
         /// <param name="profileItem"></param>
@@ -676,6 +685,33 @@ namespace v2rayN.Handler
         public static int AddTrojanServer(ref Config config, ProfileItem profileItem, bool toFile = true)
         {
             profileItem.configType = EConfigType.Trojan;
+
+            profileItem.address = profileItem.address.TrimEx();
+            profileItem.id = profileItem.id.TrimEx();
+            if (Utils.IsNullOrEmpty(profileItem.streamSecurity))
+            {
+                profileItem.streamSecurity = Global.StreamSecurity;
+            }
+            if (profileItem.id.IsNullOrEmpty())
+            {
+                return -1;
+            }
+
+            AddServerCommon(ref config, profileItem, toFile);
+
+            return 0;
+        }
+
+        /// <summary>
+        /// Add or edit server
+        /// </summary>
+        /// <param name="config"></param>
+        /// <param name="profileItem"></param>
+        /// <returns></returns>
+        public static int AddHysteria2Server(ref Config config, ProfileItem profileItem, bool toFile = true)
+        {
+            profileItem.configType = EConfigType.Hysteria2;
+            profileItem.coreType = ECoreType.sing_box;
 
             profileItem.address = profileItem.address.TrimEx();
             profileItem.id = profileItem.id.TrimEx();
@@ -790,7 +826,7 @@ namespace v2rayN.Handler
         }
 
         /// <summary>
-        /// 添加服务器或编辑
+        /// Add or edit server
         /// </summary>
         /// <param name="config"></param>
         /// <param name="profileItem"></param>
@@ -856,7 +892,7 @@ namespace v2rayN.Handler
                 {
                     profileItem.allowInsecure = config.coreBasicItem.defAllowInsecure.ToString().ToLower();
                 }
-                if (Utils.IsNullOrEmpty(profileItem.fingerprint))
+                if (Utils.IsNullOrEmpty(profileItem.fingerprint) && profileItem.streamSecurity == Global.StreamSecurityReality)
                 {
                     profileItem.fingerprint = config.coreBasicItem.defFingerprint;
                 }
@@ -1041,6 +1077,10 @@ namespace v2rayN.Handler
                 else if (profileItem.configType == EConfigType.VLESS)
                 {
                     addStatus = AddVlessServer(ref config, profileItem, false);
+                }
+                else if (profileItem.configType == EConfigType.Hysteria2)
+                {
+                    addStatus = AddHysteria2Server(ref config, profileItem, false);
                 }
 
                 if (addStatus == 0)

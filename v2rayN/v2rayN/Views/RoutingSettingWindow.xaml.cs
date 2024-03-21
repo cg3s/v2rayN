@@ -12,6 +12,17 @@ namespace v2rayN.Views
         public RoutingSettingWindow()
         {
             InitializeComponent();
+
+            // 设置窗口的尺寸不大于屏幕的尺寸
+            if (this.Width > SystemParameters.WorkArea.Width)
+            {
+                this.Width = SystemParameters.WorkArea.Width;
+            }
+            if (this.Height > SystemParameters.WorkArea.Height)
+            {
+                this.Height = SystemParameters.WorkArea.Height;
+            }
+
             this.Owner = Application.Current.MainWindow;
             this.Closing += RoutingSettingWindow_Closing;
             this.PreviewKeyDown += RoutingSettingWindow_PreviewKeyDown;
@@ -77,6 +88,11 @@ namespace v2rayN.Views
 
         private void RoutingSettingWindow_PreviewKeyDown(object sender, KeyEventArgs e)
         {
+            if (ViewModel?.enableRoutingBasic ?? false)
+            {
+                return;
+            }
+
             if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
             {
                 if (e.Key == Key.A)

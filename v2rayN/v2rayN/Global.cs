@@ -22,6 +22,7 @@
         public const string geoUrl = "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/{0}.dat";
         public const string singboxGeoUrl = "https://github.com/soffchen/sing-{0}/releases/latest/download/{0}.db";
         public const string SpeedPingTestUrl = @"https://www.google.com/generate_204";
+        public const string juicityCoreUrl = "https://github.com/juicity/juicity/releases";
         public const string CustomRoutingListUrl = @"https://raw.githubusercontent.com/2dust/v2rayCustomRoutingList/master/";
 
         public const string PromotionUrl = @"aHR0cHM6Ly85LjIzNDQ1Ni54eXovYWJjLmh0bWw=";
@@ -73,6 +74,9 @@
         public const string vlessProtocolLite = "vless";
         public const string trojanProtocol = "trojan://";
         public const string trojanProtocolLite = "trojan";
+        public const string hysteria2Protocol = "hysteria2://";
+        public const string hysteria2Protocol2 = "hy2://";
+        public const string hysteria2ProtocolLite = "hysteria2";
 
         public const string userEMail = "t@t.tt";
         public const string MyRegPath = "Software\\v2rayNGUI";
@@ -119,6 +123,9 @@
             };
 
         public static readonly List<string> SpeedTestUrls = new() {
+            @"https://speed.cloudflare.com/__down?bytes=100000000",
+            @"https://speed.cloudflare.com/__down?bytes=10000000",
+            @"http://cachefly.cachefly.net/50mb.test",
             @"http://cachefly.cachefly.net/100mb.test",
             @"http://cachefly.cachefly.net/10mb.test"
         };
@@ -139,7 +146,7 @@
         public static readonly List<string> flows = new() { "", "xtls-rprx-vision", "xtls-rprx-vision-udp443" };
         public static readonly List<string> networks = new() { "tcp", "kcp", "ws", "h2", "quic", "grpc" };
         public static readonly List<string> kcpHeaderTypes = new() { "srtp", "utp", "wechat-video", "dtls", "wireguard" };
-        public static readonly List<string> coreTypes = new() { "v2fly", "SagerNet", "Xray", "v2fly_v5", "sing_box" };
+        public static readonly List<string> coreTypes = new() { "v2fly", "SagerNet", "Xray", "sing_box" };
         public static readonly List<string> coreTypes4VLESS = new() { "Xray", "sing_box" };
         public static readonly List<string> domainStrategys = new() { "AsIs", "IPIfNonMatch", "IPOnDemand" };
         public static readonly List<string> domainStrategys4Singbox = new() { "ipv4_only", "ipv6_only", "prefer_ipv4", "prefer_ipv6", "" };
@@ -149,8 +156,8 @@
 
         public static readonly List<string> allowInsecures = new() { "true", "false", "" };
         public static readonly List<string> domainStrategy4Freedoms = new() { "AsIs", "UseIP", "UseIPv4", "UseIPv6", "" };
-        public static readonly List<string> Languages = new() { "zh-Hans", "en", "fa-Ir", "ru" };
-        public static readonly List<string> alpns = new() { "h2", "http/1.1", "h2,http/1.1", "" };
+        public static readonly List<string> Languages = new() { "zh-Hans", "zh-Hant", "en", "fa-Ir", "ru" };
+        public static readonly List<string> alpns = new() { "h2", "http/1.1", "h2,http/1.1", "h3", "" };
         public static readonly List<string> LogLevel = new() { "debug", "info", "warning", "error", "none" };
         public static readonly List<string> InboundTags = new() { "socks", "http", "socks2", "http2" };
         public static readonly List<string> Protocols = new() { "http", "tls", "bittorrent" };
