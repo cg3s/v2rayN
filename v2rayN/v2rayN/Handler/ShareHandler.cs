@@ -1,8 +1,6 @@
 ﻿using System.Collections.Specialized;
 using System.Text.RegularExpressions;
-using System.Web;
-using v2rayN.Base;
-using v2rayN.Mode;
+using v2rayN.Model;
 using v2rayN.Resx;
 
 namespace v2rayN.Handler
@@ -30,6 +28,8 @@ namespace v2rayN.Handler
                     EConfigType.Trojan => ShareTrojan(item),
                     EConfigType.VLESS => ShareVLESS(item),
                     EConfigType.Hysteria2 => ShareHysteria2(item),
+                    EConfigType.Tuic => ShareTuic(item),
+                    EConfigType.Wireguard => ShareWireguard(item),
                     _ => null,
                 };
 
@@ -37,7 +37,7 @@ namespace v2rayN.Handler
             }
             catch (Exception ex)
             {
-                Utils.SaveLog(ex.Message, ex);
+                Logging.SaveLog(ex.Message, ex);
                 return "";
             }
         }
@@ -48,12 +48,12 @@ namespace v2rayN.Handler
 
             VmessQRCode vmessQRCode = new()
             {
-                v = item.configVersion.ToString(),
+                v = item.configVersion,
                 ps = item.remarks.TrimEx(),
                 add = item.address,
-                port = item.port.ToString(),
+                port = item.port,
                 id = item.id,
-                aid = item.alterId.ToString(),
+                aid = item.alterId,
                 scy = item.security,
                 net = item.network,
                 type = item.headerType,
@@ -65,9 +65,9 @@ namespace v2rayN.Handler
                 fp = item.fingerprint
             };
 
-            url = Utils.ToJson(vmessQRCode);
-            url = Utils.Base64Encode(url);
-            url = $"{Global.vmessProtocol}{url}";
+            url = JsonUtile.Serialize(vmessQRCode);
+            url = Utile.Base64Encode(url);
+            url = $"{Global.ProtocolShares[EConfigType.VMess]}{url}";
 
             return url;
         }
@@ -77,20 +77,20 @@ namespace v2rayN.Handler
             string url = string.Empty;
 
             string remark = string.Empty;
-            if (!Utils.IsNullOrEmpty(item.remarks))
+            if (!Utile.IsNullOrEmpty(item.remarks))
             {
-                remark = "#" + Utils.UrlEncode(item.remarks);
+                remark = "#" + Utile.UrlEncode(item.remarks);
             }
             //url = string.Format("{0}:{1}@{2}:{3}",
             //    item.security,
             //    item.id,
             //    item.address,
             //    item.port);
-            //url = Utils.Base64Encode(url);
+            //url = Utile.Base64Encode(url);
             //new Sip002
-            var pw = Utils.Base64Encode($"{item.security}:{item.id}");
+            var pw = Utile.Base64Encode($"{item.security}:{item.id}");
             url = $"{pw}@{GetIpv6(item.address)}:{item.port}";
-            url = $"{Global.ssProtocol}{url}{remark}";
+            url = $"{Global.ProtocolShares[EConfigType.Shadowsocks]}{url}{remark}";
             return url;
         }
 
@@ -98,20 +98,20 @@ namespace v2rayN.Handler
         {
             string url = string.Empty;
             string remark = string.Empty;
-            if (!Utils.IsNullOrEmpty(item.remarks))
+            if (!Utile.IsNullOrEmpty(item.remarks))
             {
-                remark = "#" + Utils.UrlEncode(item.remarks);
+                remark = "#" + Utile.UrlEncode(item.remarks);
             }
             //url = string.Format("{0}:{1}@{2}:{3}",
             //    item.security,
             //    item.id,
             //    item.address,
             //    item.port);
-            //url = Utils.Base64Encode(url);
+            //url = Utile.Base64Encode(url);
             //new
-            var pw = Utils.Base64Encode($"{item.security}:{item.id}");
+            var pw = Utile.Base64Encode($"{item.security}:{item.id}");
             url = $"{pw}@{GetIpv6(item.address)}:{item.port}";
-            url = $"{Global.socksProtocol}{url}{remark}";
+            url = $"{Global.ProtocolShares[EConfigType.Socks]}{url}{remark}";
             return url;
         }
 
@@ -119,9 +119,9 @@ namespace v2rayN.Handler
         {
             string url = string.Empty;
             string remark = string.Empty;
-            if (!Utils.IsNullOrEmpty(item.remarks))
+            if (!Utile.IsNullOrEmpty(item.remarks))
             {
-                remark = "#" + Utils.UrlEncode(item.remarks);
+                remark = "#" + Utile.UrlEncode(item.remarks);
             }
             var dicQuery = new Dictionary<string, string>();
             GetStdTransport(item, null, ref dicQuery);
@@ -131,7 +131,7 @@ namespace v2rayN.Handler
             item.id,
             GetIpv6(item.address),
             item.port);
-            url = $"{Global.trojanProtocol}{url}{query}{remark}";
+            url = $"{Global.ProtocolShares[EConfigType.Trojan]}{url}{query}{remark}";
             return url;
         }
 
@@ -139,27 +139,27 @@ namespace v2rayN.Handler
         {
             string url = string.Empty;
             string remark = string.Empty;
-            if (!Utils.IsNullOrEmpty(item.remarks))
+            if (!Utile.IsNullOrEmpty(item.remarks))
             {
-                remark = "#" + Utils.UrlEncode(item.remarks);
+                remark = "#" + Utile.UrlEncode(item.remarks);
             }
             var dicQuery = new Dictionary<string, string>();
-            if (!Utils.IsNullOrEmpty(item.security))
+            if (!Utile.IsNullOrEmpty(item.security))
             {
                 dicQuery.Add("encryption", item.security);
             }
             else
             {
-                dicQuery.Add("encryption", "none");
+                dicQuery.Add("encryption", Global.None);
             }
-            GetStdTransport(item, "none", ref dicQuery);
+            GetStdTransport(item, Global.None, ref dicQuery);
             string query = "?" + string.Join("&", dicQuery.Select(x => x.Key + "=" + x.Value).ToArray());
 
             url = string.Format("{0}@{1}:{2}",
             item.id,
             GetIpv6(item.address),
             item.port);
-            url = $"{Global.vlessProtocol}{url}{query}{remark}";
+            url = $"{Global.ProtocolShares[EConfigType.VLESS]}{url}{query}{remark}";
             return url;
         }
 
@@ -167,18 +167,23 @@ namespace v2rayN.Handler
         {
             string url = string.Empty;
             string remark = string.Empty;
-            if (!Utils.IsNullOrEmpty(item.remarks))
+            if (!Utile.IsNullOrEmpty(item.remarks))
             {
-                remark = "#" + Utils.UrlEncode(item.remarks);
+                remark = "#" + Utile.UrlEncode(item.remarks);
             }
             var dicQuery = new Dictionary<string, string>();
-            if (!Utils.IsNullOrEmpty(item.sni))
+            if (!Utile.IsNullOrEmpty(item.sni))
             {
                 dicQuery.Add("sni", item.sni);
             }
-            if (!Utils.IsNullOrEmpty(item.alpn))
+            if (!Utile.IsNullOrEmpty(item.alpn))
             {
-                dicQuery.Add("alpn", Utils.UrlEncode(item.alpn));
+                dicQuery.Add("alpn", Utile.UrlEncode(item.alpn));
+            }
+            if (!Utile.IsNullOrEmpty(item.path))
+            {
+                dicQuery.Add("obfs", "salamander");
+                dicQuery.Add("obfs-password", Utile.UrlEncode(item.path));
             }
             dicQuery.Add("insecure", item.allowInsecure.ToLower() == "true" ? "1" : "0");
 
@@ -188,23 +193,88 @@ namespace v2rayN.Handler
             item.id,
             GetIpv6(item.address),
             item.port);
-            url = $"{Global.hysteria2Protocol}{url}{query}{remark}";
+            url = $"{Global.ProtocolShares[EConfigType.Hysteria2]}{url}/{query}{remark}";
+            return url;
+        }
+
+        private static string ShareTuic(ProfileItem item)
+        {
+            string url = string.Empty;
+            string remark = string.Empty;
+            if (!Utile.IsNullOrEmpty(item.remarks))
+            {
+                remark = "#" + Utile.UrlEncode(item.remarks);
+            }
+            var dicQuery = new Dictionary<string, string>();
+            if (!Utile.IsNullOrEmpty(item.sni))
+            {
+                dicQuery.Add("sni", item.sni);
+            }
+            if (!Utile.IsNullOrEmpty(item.alpn))
+            {
+                dicQuery.Add("alpn", Utile.UrlEncode(item.alpn));
+            }
+            dicQuery.Add("congestion_control", item.headerType);
+
+            string query = "?" + string.Join("&", dicQuery.Select(x => x.Key + "=" + x.Value).ToArray());
+
+            url = string.Format("{0}@{1}:{2}",
+            $"{item.id}:{item.security}",
+            GetIpv6(item.address),
+            item.port);
+            url = $"{Global.ProtocolShares[EConfigType.Tuic]}{url}{query}{remark}";
+            return url;
+        }
+
+        private static string ShareWireguard(ProfileItem item)
+        {
+            string url = string.Empty;
+            string remark = string.Empty;
+            if (!Utile.IsNullOrEmpty(item.remarks))
+            {
+                remark = "#" + Utile.UrlEncode(item.remarks);
+            }
+
+            var dicQuery = new Dictionary<string, string>();
+            if (!Utile.IsNullOrEmpty(item.publicKey))
+            {
+                dicQuery.Add("publickey", Utile.UrlEncode(item.publicKey));
+            }
+            if (!Utile.IsNullOrEmpty(item.path))
+            {
+                dicQuery.Add("reserved", Utile.UrlEncode(item.path));
+            }
+            if (!Utile.IsNullOrEmpty(item.requestHost))
+            {
+                dicQuery.Add("address", Utile.UrlEncode(item.requestHost));
+            }
+            if (!Utile.IsNullOrEmpty(item.shortId))
+            {
+                dicQuery.Add("mtu", Utile.UrlEncode(item.shortId));
+            }
+            string query = "?" + string.Join("&", dicQuery.Select(x => x.Key + "=" + x.Value).ToArray());
+
+            url = string.Format("{0}@{1}:{2}",
+            Utile.UrlEncode(item.id),
+            GetIpv6(item.address),
+            item.port);
+            url = $"{Global.ProtocolShares[EConfigType.Wireguard]}{url}/{query}{remark}";
             return url;
         }
 
         private static string GetIpv6(string address)
         {
-            return Utils.IsIpv6(address) ? $"[{address}]" : address;
+            return Utile.IsIpv6(address) ? $"[{address}]" : address;
         }
 
         private static int GetStdTransport(ProfileItem item, string? securityDef, ref Dictionary<string, string> dicQuery)
         {
-            if (!Utils.IsNullOrEmpty(item.flow))
+            if (!Utile.IsNullOrEmpty(item.flow))
             {
                 dicQuery.Add("flow", item.flow);
             }
 
-            if (!Utils.IsNullOrEmpty(item.streamSecurity))
+            if (!Utile.IsNullOrEmpty(item.streamSecurity))
             {
                 dicQuery.Add("security", item.streamSecurity);
             }
@@ -215,88 +285,89 @@ namespace v2rayN.Handler
                     dicQuery.Add("security", securityDef);
                 }
             }
-            if (!Utils.IsNullOrEmpty(item.sni))
+            if (!Utile.IsNullOrEmpty(item.sni))
             {
                 dicQuery.Add("sni", item.sni);
             }
-            if (!Utils.IsNullOrEmpty(item.alpn))
+            if (!Utile.IsNullOrEmpty(item.alpn))
             {
-                dicQuery.Add("alpn", Utils.UrlEncode(item.alpn));
+                dicQuery.Add("alpn", Utile.UrlEncode(item.alpn));
             }
-            if (!Utils.IsNullOrEmpty(item.fingerprint))
+            if (!Utile.IsNullOrEmpty(item.fingerprint))
             {
-                dicQuery.Add("fp", Utils.UrlEncode(item.fingerprint));
+                dicQuery.Add("fp", Utile.UrlEncode(item.fingerprint));
             }
-            if (!Utils.IsNullOrEmpty(item.publicKey))
+            if (!Utile.IsNullOrEmpty(item.publicKey))
             {
-                dicQuery.Add("pbk", Utils.UrlEncode(item.publicKey));
+                dicQuery.Add("pbk", Utile.UrlEncode(item.publicKey));
             }
-            if (!Utils.IsNullOrEmpty(item.shortId))
+            if (!Utile.IsNullOrEmpty(item.shortId))
             {
-                dicQuery.Add("sid", Utils.UrlEncode(item.shortId));
+                dicQuery.Add("sid", Utile.UrlEncode(item.shortId));
             }
-            if (!Utils.IsNullOrEmpty(item.spiderX))
+            if (!Utile.IsNullOrEmpty(item.spiderX))
             {
-                dicQuery.Add("spx", Utils.UrlEncode(item.spiderX));
+                dicQuery.Add("spx", Utile.UrlEncode(item.spiderX));
             }
 
-            dicQuery.Add("type", !Utils.IsNullOrEmpty(item.network) ? item.network : "tcp");
+            dicQuery.Add("type", !Utile.IsNullOrEmpty(item.network) ? item.network : nameof(ETransport.tcp));
 
             switch (item.network)
             {
-                case "tcp":
-                    dicQuery.Add("headerType", !Utils.IsNullOrEmpty(item.headerType) ? item.headerType : "none");
-                    if (!Utils.IsNullOrEmpty(item.requestHost))
+                case nameof(ETransport.tcp):
+                    dicQuery.Add("headerType", !Utile.IsNullOrEmpty(item.headerType) ? item.headerType : Global.None);
+                    if (!Utile.IsNullOrEmpty(item.requestHost))
                     {
-                        dicQuery.Add("host", Utils.UrlEncode(item.requestHost));
+                        dicQuery.Add("host", Utile.UrlEncode(item.requestHost));
                     }
                     break;
 
-                case "kcp":
-                    dicQuery.Add("headerType", !Utils.IsNullOrEmpty(item.headerType) ? item.headerType : "none");
-                    if (!Utils.IsNullOrEmpty(item.path))
+                case nameof(ETransport.kcp):
+                    dicQuery.Add("headerType", !Utile.IsNullOrEmpty(item.headerType) ? item.headerType : Global.None);
+                    if (!Utile.IsNullOrEmpty(item.path))
                     {
-                        dicQuery.Add("seed", Utils.UrlEncode(item.path));
+                        dicQuery.Add("seed", Utile.UrlEncode(item.path));
                     }
                     break;
 
-                case "ws":
-                    if (!Utils.IsNullOrEmpty(item.requestHost))
+                case nameof(ETransport.ws):
+                case nameof(ETransport.httpupgrade):
+                    if (!Utile.IsNullOrEmpty(item.requestHost))
                     {
-                        dicQuery.Add("host", Utils.UrlEncode(item.requestHost));
+                        dicQuery.Add("host", Utile.UrlEncode(item.requestHost));
                     }
-                    if (!Utils.IsNullOrEmpty(item.path))
+                    if (!Utile.IsNullOrEmpty(item.path))
                     {
-                        dicQuery.Add("path", Utils.UrlEncode(item.path));
-                    }
-                    break;
-
-                case "http":
-                case "h2":
-                    dicQuery["type"] = "http";
-                    if (!Utils.IsNullOrEmpty(item.requestHost))
-                    {
-                        dicQuery.Add("host", Utils.UrlEncode(item.requestHost));
-                    }
-                    if (!Utils.IsNullOrEmpty(item.path))
-                    {
-                        dicQuery.Add("path", Utils.UrlEncode(item.path));
+                        dicQuery.Add("path", Utile.UrlEncode(item.path));
                     }
                     break;
 
-                case "quic":
-                    dicQuery.Add("headerType", !Utils.IsNullOrEmpty(item.headerType) ? item.headerType : "none");
-                    dicQuery.Add("quicSecurity", Utils.UrlEncode(item.requestHost));
-                    dicQuery.Add("key", Utils.UrlEncode(item.path));
+                case nameof(ETransport.http):
+                case nameof(ETransport.h2):
+                    dicQuery["type"] = nameof(ETransport.http);
+                    if (!Utile.IsNullOrEmpty(item.requestHost))
+                    {
+                        dicQuery.Add("host", Utile.UrlEncode(item.requestHost));
+                    }
+                    if (!Utile.IsNullOrEmpty(item.path))
+                    {
+                        dicQuery.Add("path", Utile.UrlEncode(item.path));
+                    }
                     break;
 
-                case "grpc":
-                    if (!Utils.IsNullOrEmpty(item.path))
+                case nameof(ETransport.quic):
+                    dicQuery.Add("headerType", !Utile.IsNullOrEmpty(item.headerType) ? item.headerType : Global.None);
+                    dicQuery.Add("quicSecurity", Utile.UrlEncode(item.requestHost));
+                    dicQuery.Add("key", Utile.UrlEncode(item.path));
+                    break;
+
+                case nameof(ETransport.grpc):
+                    if (!Utile.IsNullOrEmpty(item.path))
                     {
-                        dicQuery.Add("serviceName", Utils.UrlEncode(item.path));
-                        if (item.headerType is Global.GrpcgunMode or Global.GrpcmultiMode)
+                        dicQuery.Add("serviceName", Utile.UrlEncode(item.path));
+                        if (item.headerType is Global.GrpcGunMode or Global.GrpcMultiMode)
                         {
-                            dicQuery.Add("mode", Utils.UrlEncode(item.headerType));
+                            dicQuery.Add("mode", Utile.UrlEncode(item.headerType));
                         }
                     }
                     break;
@@ -315,21 +386,19 @@ namespace v2rayN.Handler
         /// <returns></returns>
         public static ProfileItem? ImportFromClipboardConfig(string clipboardData, out string msg)
         {
-            msg = string.Empty;
-
-            ProfileItem profileItem = new();
+            msg = ResUI.ConfigurationFormatIncorrect;
+            ProfileItem? profileItem;
 
             try
             {
-                //载入配置文件
-                string result = clipboardData.TrimEx();// Utils.GetClipboardData();
-                if (Utils.IsNullOrEmpty(result))
+                string result = clipboardData.TrimEx();
+                if (Utile.IsNullOrEmpty(result))
                 {
                     msg = ResUI.FailedReadConfiguration;
                     return null;
                 }
 
-                if (result.StartsWith(Global.vmessProtocol))
+                if (result.StartsWith(Global.ProtocolShares[EConfigType.VMess]))
                 {
                     int indexSplit = result.IndexOf("?");
                     if (indexSplit > 0)
@@ -341,10 +410,8 @@ namespace v2rayN.Handler
                         profileItem = ResolveVmess(result, out msg);
                     }
                 }
-                else if (result.StartsWith(Global.ssProtocol))
+                else if (result.StartsWith(Global.ProtocolShares[EConfigType.Shadowsocks]))
                 {
-                    msg = ResUI.ConfigurationFormatIncorrect;
-
                     profileItem = ResolveSSLegacy(result) ?? ResolveSip002(result);
                     if (profileItem == null)
                     {
@@ -357,10 +424,8 @@ namespace v2rayN.Handler
 
                     profileItem.configType = EConfigType.Shadowsocks;
                 }
-                else if (result.StartsWith(Global.socksProtocol))
+                else if (result.StartsWith(Global.ProtocolShares[EConfigType.Socks]))
                 {
-                    msg = ResUI.ConfigurationFormatIncorrect;
-
                     profileItem = ResolveSocksNew(result) ?? ResolveSocks(result);
                     if (profileItem == null)
                     {
@@ -373,21 +438,25 @@ namespace v2rayN.Handler
 
                     profileItem.configType = EConfigType.Socks;
                 }
-                else if (result.StartsWith(Global.trojanProtocol))
+                else if (result.StartsWith(Global.ProtocolShares[EConfigType.Trojan]))
                 {
-                    msg = ResUI.ConfigurationFormatIncorrect;
-
                     profileItem = ResolveTrojan(result);
                 }
-                else if (result.StartsWith(Global.vlessProtocol))
+                else if (result.StartsWith(Global.ProtocolShares[EConfigType.VLESS]))
                 {
                     profileItem = ResolveStdVLESS(result);
                 }
-                else if (result.StartsWith(Global.hysteria2Protocol) || result.StartsWith(Global.hysteria2Protocol2))
+                else if (result.StartsWith(Global.ProtocolShares[EConfigType.Hysteria2]) || result.StartsWith(Global.Hysteria2ProtocolShare))
                 {
-                    msg = ResUI.ConfigurationFormatIncorrect;
-
                     profileItem = ResolveHysteria2(result);
+                }
+                else if (result.StartsWith(Global.ProtocolShares[EConfigType.Tuic]))
+                {
+                    profileItem = ResolveTuic(result);
+                }
+                else if (result.StartsWith(Global.ProtocolShares[EConfigType.Wireguard]))
+                {
+                    profileItem = ResolveWireguard(result);
                 }
                 else
                 {
@@ -397,7 +466,7 @@ namespace v2rayN.Handler
             }
             catch (Exception ex)
             {
-                Utils.SaveLog(ex.Message, ex);
+                Logging.SaveLog(ex.Message, ex);
                 msg = ResUI.Incorrectconfiguration;
                 return null;
             }
@@ -413,11 +482,11 @@ namespace v2rayN.Handler
                 configType = EConfigType.VMess
             };
 
-            result = result[Global.vmessProtocol.Length..];
-            result = Utils.Base64Decode(result);
+            result = result[Global.ProtocolShares[EConfigType.VMess].Length..];
+            result = Utile.Base64Decode(result);
 
             //转成Json
-            VmessQRCode? vmessQRCode = Utils.FromJson<VmessQRCode>(result);
+            VmessQRCode? vmessQRCode = JsonUtile.Deserialize<VmessQRCode>(result);
             if (vmessQRCode == null)
             {
                 msg = ResUI.FailedConversionConfiguration;
@@ -427,30 +496,30 @@ namespace v2rayN.Handler
             profileItem.network = Global.DefaultNetwork;
             profileItem.headerType = Global.None;
 
-            profileItem.configVersion = Utils.ToInt(vmessQRCode.v);
-            profileItem.remarks = Utils.ToString(vmessQRCode.ps);
-            profileItem.address = Utils.ToString(vmessQRCode.add);
-            profileItem.port = Utils.ToInt(vmessQRCode.port);
-            profileItem.id = Utils.ToString(vmessQRCode.id);
-            profileItem.alterId = Utils.ToInt(vmessQRCode.aid);
-            profileItem.security = Utils.ToString(vmessQRCode.scy);
+            profileItem.configVersion = Utile.ToInt(vmessQRCode.v);
+            profileItem.remarks = Utile.ToString(vmessQRCode.ps);
+            profileItem.address = Utile.ToString(vmessQRCode.add);
+            profileItem.port = Utile.ToInt(vmessQRCode.port);
+            profileItem.id = Utile.ToString(vmessQRCode.id);
+            profileItem.alterId = Utile.ToInt(vmessQRCode.aid);
+            profileItem.security = Utile.ToString(vmessQRCode.scy);
 
-            profileItem.security = !Utils.IsNullOrEmpty(vmessQRCode.scy) ? vmessQRCode.scy : Global.DefaultSecurity;
-            if (!Utils.IsNullOrEmpty(vmessQRCode.net))
+            profileItem.security = !Utile.IsNullOrEmpty(vmessQRCode.scy) ? vmessQRCode.scy : Global.DefaultSecurity;
+            if (!Utile.IsNullOrEmpty(vmessQRCode.net))
             {
                 profileItem.network = vmessQRCode.net;
             }
-            if (!Utils.IsNullOrEmpty(vmessQRCode.type))
+            if (!Utile.IsNullOrEmpty(vmessQRCode.type))
             {
                 profileItem.headerType = vmessQRCode.type;
             }
 
-            profileItem.requestHost = Utils.ToString(vmessQRCode.host);
-            profileItem.path = Utils.ToString(vmessQRCode.path);
-            profileItem.streamSecurity = Utils.ToString(vmessQRCode.tls);
-            profileItem.sni = Utils.ToString(vmessQRCode.sni);
-            profileItem.alpn = Utils.ToString(vmessQRCode.alpn);
-            profileItem.fingerprint = Utils.ToString(vmessQRCode.fp);
+            profileItem.requestHost = Utile.ToString(vmessQRCode.host);
+            profileItem.path = Utile.ToString(vmessQRCode.path);
+            profileItem.streamSecurity = Utile.ToString(vmessQRCode.tls);
+            profileItem.sni = Utile.ToString(vmessQRCode.sni);
+            profileItem.alpn = Utile.ToString(vmessQRCode.alpn);
+            profileItem.fingerprint = Utile.ToString(vmessQRCode.fp);
 
             return profileItem;
         }
@@ -461,13 +530,13 @@ namespace v2rayN.Handler
             {
                 configType = EConfigType.VMess
             };
-            result = result[Global.vmessProtocol.Length..];
+            result = result[Global.ProtocolShares[EConfigType.VMess].Length..];
             int indexSplit = result.IndexOf("?");
             if (indexSplit > 0)
             {
                 result = result[..indexSplit];
             }
-            result = Utils.Base64Decode(result);
+            result = Utile.Base64Decode(result);
 
             string[] arr1 = result.Split('@');
             if (arr1.Length != 2)
@@ -482,7 +551,7 @@ namespace v2rayN.Handler
             }
 
             profileItem.address = arr22[0];
-            profileItem.port = Utils.ToInt(arr22[1]);
+            profileItem.port = Utile.ToInt(arr22[1]);
             profileItem.security = arr21[0];
             profileItem.id = arr21[1];
 
@@ -506,7 +575,7 @@ namespace v2rayN.Handler
             i.address = u.IdnHost;
             i.port = u.Port;
             i.remarks = u.GetComponents(UriComponents.Fragment, UriFormat.Unescaped);
-            var q = HttpUtility.ParseQueryString(u.Query);
+            var query = Utile.ParseQueryString(u.Query);
 
             var m = StdVmessUserInfo.Match(u.UserInfo);
             if (!m.Success) return null;
@@ -519,7 +588,7 @@ namespace v2rayN.Handler
             }
             switch (i.streamSecurity)
             {
-                case "tls":
+                case Global.StreamSecurity:
                     break;
 
                 default:
@@ -531,37 +600,38 @@ namespace v2rayN.Handler
             i.network = m.Groups["network"].Value;
             switch (i.network)
             {
-                case "tcp":
-                    string t1 = q["type"] ?? "none";
+                case nameof(ETransport.tcp):
+                    string t1 = query["type"] ?? Global.None;
                     i.headerType = t1;
                     break;
 
-                case "kcp":
-                    i.headerType = q["type"] ?? "none";
+                case nameof(ETransport.kcp):
+                    i.headerType = query["type"] ?? Global.None;
                     break;
 
-                case "ws":
-                    string p1 = q["path"] ?? "/";
-                    string h1 = q["host"] ?? "";
-                    i.requestHost = Utils.UrlDecode(h1);
+                case nameof(ETransport.ws):
+                case nameof(ETransport.httpupgrade):
+                    string p1 = query["path"] ?? "/";
+                    string h1 = query["host"] ?? "";
+                    i.requestHost = Utile.UrlDecode(h1);
                     i.path = p1;
                     break;
 
-                case "http":
-                case "h2":
-                    i.network = "h2";
-                    string p2 = q["path"] ?? "/";
-                    string h2 = q["host"] ?? "";
-                    i.requestHost = Utils.UrlDecode(h2);
+                case nameof(ETransport.http):
+                case nameof(ETransport.h2):
+                    i.network = nameof(ETransport.h2);
+                    string p2 = query["path"] ?? "/";
+                    string h2 = query["host"] ?? "";
+                    i.requestHost = Utile.UrlDecode(h2);
                     i.path = p2;
                     break;
 
-                case "quic":
-                    string s = q["security"] ?? "none";
-                    string k = q["key"] ?? "";
-                    string t3 = q["type"] ?? "none";
+                case nameof(ETransport.quic):
+                    string s = query["security"] ?? Global.None;
+                    string k = query["key"] ?? "";
+                    string t3 = query["type"] ?? Global.None;
                     i.headerType = t3;
-                    i.requestHost = Utils.UrlDecode(s);
+                    i.requestHost = Utile.UrlDecode(s);
                     i.path = k;
                     break;
 
@@ -599,12 +669,12 @@ namespace v2rayN.Handler
                     return null;
                 }
                 server.security = userInfoParts[0];
-                server.id = Utils.UrlDecode(userInfoParts[1]);
+                server.id = Utile.UrlDecode(userInfoParts[1]);
             }
             else
             {
                 // parse base64 UserInfo
-                string userInfo = Utils.Base64Decode(rawUserInfo);
+                string userInfo = Utile.Base64Decode(rawUserInfo);
                 string[] userInfoParts = userInfo.Split(new[] { ':' }, 2);
                 if (userInfoParts.Length != 2)
                 {
@@ -614,17 +684,17 @@ namespace v2rayN.Handler
                 server.id = userInfoParts[1];
             }
 
-            NameValueCollection queryParameters = HttpUtility.ParseQueryString(parsedUrl.Query);
+            var queryParameters = Utile.ParseQueryString(parsedUrl.Query);
             if (queryParameters["plugin"] != null)
             {
                 //obfs-host exists
-                var obfsHost = queryParameters["plugin"].Split(';').FirstOrDefault(t => t.Contains("obfs-host"));
-                if (queryParameters["plugin"].Contains("obfs=http") && !Utils.IsNullOrEmpty(obfsHost))
+                var obfsHost = queryParameters["plugin"]?.Split(';').FirstOrDefault(t => t.Contains("obfs-host"));
+                if (queryParameters["plugin"].Contains("obfs=http") && !Utile.IsNullOrEmpty(obfsHost))
                 {
-                    obfsHost = obfsHost.Replace("obfs-host=", "");
+                    obfsHost = obfsHost?.Replace("obfs-host=", "");
                     server.network = Global.DefaultNetwork;
                     server.headerType = Global.TcpHeaderHttp;
-                    server.requestHost = obfsHost;
+                    server.requestHost = obfsHost ?? "";
                 }
                 else
                 {
@@ -647,14 +717,14 @@ namespace v2rayN.Handler
             ProfileItem server = new();
             var base64 = match.Groups["base64"].Value.TrimEnd('/');
             var tag = match.Groups["tag"].Value;
-            if (!Utils.IsNullOrEmpty(tag))
+            if (!Utile.IsNullOrEmpty(tag))
             {
-                server.remarks = Utils.UrlDecode(tag);
+                server.remarks = Utile.UrlDecode(tag);
             }
             Match details;
             try
             {
-                details = DetailsParser.Match(Utils.Base64Decode(base64));
+                details = DetailsParser.Match(Utile.Base64Decode(base64));
             }
             catch (FormatException)
             {
@@ -665,7 +735,7 @@ namespace v2rayN.Handler
             server.security = details.Groups["method"].Value;
             server.id = details.Groups["password"].Value;
             server.address = details.Groups["hostname"].Value;
-            server.port = Utils.ToInt(details.Groups["port"].Value);
+            server.port = Utile.ToInt(details.Groups["port"].Value);
             return server;
         }
 
@@ -678,14 +748,14 @@ namespace v2rayN.Handler
             {
                 configType = EConfigType.Socks
             };
-            result = result[Global.socksProtocol.Length..];
+            result = result[Global.ProtocolShares[EConfigType.Socks].Length..];
             //remark
             int indexRemark = result.IndexOf("#");
             if (indexRemark > 0)
             {
                 try
                 {
-                    profileItem.remarks = Utils.UrlDecode(result.Substring(indexRemark + 1, result.Length - indexRemark - 1));
+                    profileItem.remarks = Utile.UrlDecode(result.Substring(indexRemark + 1, result.Length - indexRemark - 1));
                 }
                 catch { }
                 result = result[..indexRemark];
@@ -697,7 +767,7 @@ namespace v2rayN.Handler
             }
             else
             {
-                result = Utils.Base64Decode(result);
+                result = Utile.Base64Decode(result);
             }
 
             string[] arr1 = result.Split('@');
@@ -713,7 +783,7 @@ namespace v2rayN.Handler
                 return null;
             }
             profileItem.address = arr1[1][..indexPort];
-            profileItem.port = Utils.ToInt(arr1[1][(indexPort + 1)..]);
+            profileItem.port = Utile.ToInt(arr1[1][(indexPort + 1)..]);
             profileItem.security = arr21[0];
             profileItem.id = arr21[1];
 
@@ -740,7 +810,7 @@ namespace v2rayN.Handler
 
             // parse base64 UserInfo
             string rawUserInfo = parsedUrl.GetComponents(UriComponents.UserInfo, UriFormat.Unescaped);
-            string userInfo = Utils.Base64Decode(rawUserInfo);
+            string userInfo = Utile.Base64Decode(rawUserInfo);
             string[] userInfoParts = userInfo.Split(new[] { ':' }, 2);
             if (userInfoParts.Length == 2)
             {
@@ -763,9 +833,9 @@ namespace v2rayN.Handler
             item.address = url.IdnHost;
             item.port = url.Port;
             item.remarks = url.GetComponents(UriComponents.Fragment, UriFormat.Unescaped);
-            item.id = url.UserInfo;
+            item.id = Utile.UrlDecode(url.UserInfo);
 
-            var query = HttpUtility.ParseQueryString(url.Query);
+            var query = Utile.ParseQueryString(url.Query);
             ResolveStdTransport(query, ref item);
 
             return item;
@@ -776,7 +846,7 @@ namespace v2rayN.Handler
             ProfileItem item = new()
             {
                 configType = EConfigType.VLESS,
-                security = "none"
+                security = Global.None
             };
 
             Uri url = new(result);
@@ -784,10 +854,10 @@ namespace v2rayN.Handler
             item.address = url.IdnHost;
             item.port = url.Port;
             item.remarks = url.GetComponents(UriComponents.Fragment, UriFormat.Unescaped);
-            item.id = url.UserInfo;
+            item.id = Utile.UrlDecode(url.UserInfo);
 
-            var query = HttpUtility.ParseQueryString(url.Query);
-            item.security = query["encryption"] ?? "none";
+            var query = Utile.ParseQueryString(url.Query);
+            item.security = query["encryption"] ?? Global.None;
             item.streamSecurity = query["security"] ?? "";
             ResolveStdTransport(query, ref item);
 
@@ -806,11 +876,62 @@ namespace v2rayN.Handler
             item.address = url.IdnHost;
             item.port = url.Port;
             item.remarks = url.GetComponents(UriComponents.Fragment, UriFormat.Unescaped);
-            item.id = url.UserInfo;
+            item.id = Utile.UrlDecode(url.UserInfo);
 
-            var query = HttpUtility.ParseQueryString(url.Query);
+            var query = Utile.ParseQueryString(url.Query);
             ResolveStdTransport(query, ref item);
+            item.path = Utile.UrlDecode(query["obfs-password"] ?? "");
             item.allowInsecure = (query["insecure"] ?? "") == "1" ? "true" : "false";
+
+            return item;
+        }
+
+        private static ProfileItem ResolveTuic(string result)
+        {
+            ProfileItem item = new()
+            {
+                configType = EConfigType.Tuic
+            };
+
+            Uri url = new(result);
+
+            item.address = url.IdnHost;
+            item.port = url.Port;
+            item.remarks = url.GetComponents(UriComponents.Fragment, UriFormat.Unescaped);
+            var userInfoParts = url.UserInfo.Split(new[] { ':' }, 2);
+            if (userInfoParts.Length == 2)
+            {
+                item.id = userInfoParts[0];
+                item.security = userInfoParts[1];
+            }
+
+            var query = Utile.ParseQueryString(url.Query);
+            ResolveStdTransport(query, ref item);
+            item.headerType = query["congestion_control"] ?? "";
+
+            return item;
+        }
+
+        private static ProfileItem ResolveWireguard(string result)
+        {
+            ProfileItem item = new()
+            {
+                configType = EConfigType.Wireguard
+            };
+
+            Uri url = new(result);
+
+            item.address = url.IdnHost;
+            item.port = url.Port;
+            item.remarks = url.GetComponents(UriComponents.Fragment, UriFormat.Unescaped);
+            item.id = Utile.UrlDecode(url.UserInfo);
+
+            var query = Utile.ParseQueryString(url.Query);
+
+            item.publicKey = Utile.UrlDecode(query["publickey"] ?? "");
+            item.path = Utile.UrlDecode(query["reserved"] ?? "");
+            item.requestHost = Utile.UrlDecode(query["address"] ?? "");
+            item.shortId = Utile.UrlDecode(query["mtu"] ?? "");
 
             return item;
         }
@@ -820,47 +941,48 @@ namespace v2rayN.Handler
             item.flow = query["flow"] ?? "";
             item.streamSecurity = query["security"] ?? "";
             item.sni = query["sni"] ?? "";
-            item.alpn = Utils.UrlDecode(query["alpn"] ?? "");
-            item.fingerprint = Utils.UrlDecode(query["fp"] ?? "");
-            item.publicKey = Utils.UrlDecode(query["pbk"] ?? "");
-            item.shortId = Utils.UrlDecode(query["sid"] ?? "");
-            item.spiderX = Utils.UrlDecode(query["spx"] ?? "");
+            item.alpn = Utile.UrlDecode(query["alpn"] ?? "");
+            item.fingerprint = Utile.UrlDecode(query["fp"] ?? "");
+            item.publicKey = Utile.UrlDecode(query["pbk"] ?? "");
+            item.shortId = Utile.UrlDecode(query["sid"] ?? "");
+            item.spiderX = Utile.UrlDecode(query["spx"] ?? "");
 
-            item.network = query["type"] ?? "tcp";
+            item.network = query["type"] ?? nameof(ETransport.tcp);
             switch (item.network)
             {
-                case "tcp":
-                    item.headerType = query["headerType"] ?? "none";
-                    item.requestHost = Utils.UrlDecode(query["host"] ?? "");
+                case nameof(ETransport.tcp):
+                    item.headerType = query["headerType"] ?? Global.None;
+                    item.requestHost = Utile.UrlDecode(query["host"] ?? "");
 
                     break;
 
-                case "kcp":
-                    item.headerType = query["headerType"] ?? "none";
-                    item.path = Utils.UrlDecode(query["seed"] ?? "");
+                case nameof(ETransport.kcp):
+                    item.headerType = query["headerType"] ?? Global.None;
+                    item.path = Utile.UrlDecode(query["seed"] ?? "");
                     break;
 
-                case "ws":
-                    item.requestHost = Utils.UrlDecode(query["host"] ?? "");
-                    item.path = Utils.UrlDecode(query["path"] ?? "/");
+                case nameof(ETransport.ws):
+                case nameof(ETransport.httpupgrade):
+                    item.requestHost = Utile.UrlDecode(query["host"] ?? "");
+                    item.path = Utile.UrlDecode(query["path"] ?? "/");
                     break;
 
-                case "http":
-                case "h2":
-                    item.network = "h2";
-                    item.requestHost = Utils.UrlDecode(query["host"] ?? "");
-                    item.path = Utils.UrlDecode(query["path"] ?? "/");
+                case nameof(ETransport.http):
+                case nameof(ETransport.h2):
+                    item.network = nameof(ETransport.h2);
+                    item.requestHost = Utile.UrlDecode(query["host"] ?? "");
+                    item.path = Utile.UrlDecode(query["path"] ?? "/");
                     break;
 
-                case "quic":
-                    item.headerType = query["headerType"] ?? "none";
-                    item.requestHost = query["quicSecurity"] ?? "none";
-                    item.path = Utils.UrlDecode(query["key"] ?? "");
+                case nameof(ETransport.quic):
+                    item.headerType = query["headerType"] ?? Global.None;
+                    item.requestHost = query["quicSecurity"] ?? Global.None;
+                    item.path = Utile.UrlDecode(query["key"] ?? "");
                     break;
 
-                case "grpc":
-                    item.path = Utils.UrlDecode(query["serviceName"] ?? "");
-                    item.headerType = Utils.UrlDecode(query["mode"] ?? Global.GrpcgunMode);
+                case nameof(ETransport.grpc):
+                    item.path = Utile.UrlDecode(query["serviceName"] ?? "");
+                    item.headerType = Utile.UrlDecode(query["mode"] ?? Global.GrpcGunMode);
                     break;
 
                 default:

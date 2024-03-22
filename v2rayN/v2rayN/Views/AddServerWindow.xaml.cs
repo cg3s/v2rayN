@@ -2,9 +2,8 @@
 using System.Reactive.Disposables;
 using System.Windows;
 using System.Windows.Controls;
-using v2rayN.Base;
 using v2rayN.Handler;
-using v2rayN.Mode;
+using v2rayN.Model;
 using v2rayN.Resx;
 using v2rayN.ViewModels;
 
@@ -35,14 +34,14 @@ namespace v2rayN.Views
 
             if (profileItem.configType == EConfigType.VLESS)
             {
-                Global.coreTypes4VLESS.ForEach(it =>
+                Global.CoreTypes4VLESS.ForEach(it =>
                 {
                     cmbCoreType.Items.Add(it);
                 });
             }
             else
             {
-                Global.coreTypes.ForEach(it =>
+                Global.CoreTypes.ForEach(it =>
                 {
                     cmbCoreType.Items.Add(it);
                 });
@@ -52,20 +51,20 @@ namespace v2rayN.Views
             cmbStreamSecurity.Items.Add(string.Empty);
             cmbStreamSecurity.Items.Add(Global.StreamSecurity);
 
-            Global.networks.ForEach(it =>
+            Global.Networks.ForEach(it =>
             {
                 cmbNetwork.Items.Add(it);
             });
-            Global.fingerprints.ForEach(it =>
+            Global.Fingerprints.ForEach(it =>
             {
                 cmbFingerprint.Items.Add(it);
                 cmbFingerprint2.Items.Add(it);
             });
-            Global.allowInsecures.ForEach(it =>
+            Global.AllowInsecure.ForEach(it =>
             {
                 cmbAllowInsecure.Items.Add(it);
             });
-            Global.alpns.ForEach(it =>
+            Global.Alpns.ForEach(it =>
             {
                 cmbAlpn.Items.Add(it);
             });
@@ -74,7 +73,7 @@ namespace v2rayN.Views
             {
                 case EConfigType.VMess:
                     gridVMess.Visibility = Visibility.Visible;
-                    Global.vmessSecuritys.ForEach(it =>
+                    Global.VmessSecurities.ForEach(it =>
                     {
                         cmbSecurity.Items.Add(it);
                     });
@@ -86,7 +85,7 @@ namespace v2rayN.Views
 
                 case EConfigType.Shadowsocks:
                     gridSs.Visibility = Visibility.Visible;
-                    LazyConfig.Instance.GetShadowsocksSecuritys(profileItem).ForEach(it =>
+                    LazyConfig.Instance.GetShadowsocksSecurities(profileItem).ForEach(it =>
                     {
                         cmbSecurity3.Items.Add(it);
                     });
@@ -99,7 +98,7 @@ namespace v2rayN.Views
                 case EConfigType.VLESS:
                     gridVLESS.Visibility = Visibility.Visible;
                     cmbStreamSecurity.Items.Add(Global.StreamSecurityReality);
-                    Global.flows.ForEach(it =>
+                    Global.Flows.ForEach(it =>
                     {
                         cmbFlow5.Items.Add(it);
                     });
@@ -112,7 +111,7 @@ namespace v2rayN.Views
                 case EConfigType.Trojan:
                     gridTrojan.Visibility = Visibility.Visible;
                     cmbStreamSecurity.Items.Add(Global.StreamSecurityReality);
-                    Global.flows.ForEach(it =>
+                    Global.Flows.ForEach(it =>
                     {
                         cmbFlow6.Items.Add(it);
                     });
@@ -125,6 +124,30 @@ namespace v2rayN.Views
                     cmbCoreType.IsEnabled = false;
                     cmbFingerprint.IsEnabled = false;
                     cmbFingerprint.Text = string.Empty;
+                    break;
+
+                case EConfigType.Tuic:
+                    gridTuic.Visibility = Visibility.Visible;
+                    sepa2.Visibility = Visibility.Collapsed;
+                    gridTransport.Visibility = Visibility.Collapsed;
+                    cmbCoreType.IsEnabled = false;
+                    cmbFingerprint.IsEnabled = false;
+                    cmbFingerprint.Text = string.Empty;
+
+                    Global.TuicCongestionControls.ForEach(it =>
+                    {
+                        cmbHeaderType8.Items.Add(it);
+                    });
+                    break;
+
+                case EConfigType.Wireguard:
+                    gridWireguard.Visibility = Visibility.Visible;
+
+                    sepa2.Visibility = Visibility.Collapsed;
+                    gridTransport.Visibility = Visibility.Collapsed;
+                    gridTls.Visibility = Visibility.Collapsed;
+                    cmbCoreType.IsEnabled = false;
+
                     break;
             }
 
@@ -168,6 +191,21 @@ namespace v2rayN.Views
 
                     case EConfigType.Hysteria2:
                         this.Bind(ViewModel, vm => vm.SelectedSource.id, v => v.txtId7.Text).DisposeWith(disposables);
+                        this.Bind(ViewModel, vm => vm.SelectedSource.path, v => v.txtPath7.Text).DisposeWith(disposables);
+                        break;
+
+                    case EConfigType.Tuic:
+                        this.Bind(ViewModel, vm => vm.SelectedSource.id, v => v.txtId8.Text).DisposeWith(disposables);
+                        this.Bind(ViewModel, vm => vm.SelectedSource.security, v => v.txtSecurity8.Text).DisposeWith(disposables);
+                        this.Bind(ViewModel, vm => vm.SelectedSource.headerType, v => v.cmbHeaderType8.Text).DisposeWith(disposables);
+                        break;
+
+                    case EConfigType.Wireguard:
+                        this.Bind(ViewModel, vm => vm.SelectedSource.id, v => v.txtId9.Text).DisposeWith(disposables);
+                        this.Bind(ViewModel, vm => vm.SelectedSource.publicKey, v => v.txtPublicKey9.Text).DisposeWith(disposables);
+                        this.Bind(ViewModel, vm => vm.SelectedSource.path, v => v.txtPath9.Text).DisposeWith(disposables);
+                        this.Bind(ViewModel, vm => vm.SelectedSource.requestHost, v => v.txtRequestHost9.Text).DisposeWith(disposables);
+                        this.Bind(ViewModel, vm => vm.SelectedSource.shortId, v => v.txtShortId9.Text).DisposeWith(disposables);
                         break;
                 }
                 this.Bind(ViewModel, vm => vm.SelectedSource.network, v => v.cmbNetwork.Text).DisposeWith(disposables);
@@ -227,7 +265,7 @@ namespace v2rayN.Views
         private void btnGUID_Click(object sender, RoutedEventArgs e)
         {
             txtId.Text =
-            txtId5.Text = Utils.GetGUID();
+            txtId5.Text = Utile.GetGUID();
         }
 
         private void SetHeaderType()
@@ -235,29 +273,29 @@ namespace v2rayN.Views
             cmbHeaderType.Items.Clear();
 
             var network = cmbNetwork.SelectedItem.ToString();
-            if (Utils.IsNullOrEmpty(network))
+            if (Utile.IsNullOrEmpty(network))
             {
                 cmbHeaderType.Items.Add(Global.None);
                 return;
             }
 
-            if (network == Global.DefaultNetwork)
+            if (network == nameof(ETransport.tcp))
             {
                 cmbHeaderType.Items.Add(Global.None);
                 cmbHeaderType.Items.Add(Global.TcpHeaderHttp);
             }
-            else if (network is "kcp" or "quic")
+            else if (network is nameof(ETransport.kcp) or nameof(ETransport.quic))
             {
                 cmbHeaderType.Items.Add(Global.None);
-                Global.kcpHeaderTypes.ForEach(it =>
+                Global.KcpHeaderTypes.ForEach(it =>
                 {
                     cmbHeaderType.Items.Add(it);
                 });
             }
-            else if (network == "grpc")
+            else if (network == nameof(ETransport.grpc))
             {
-                cmbHeaderType.Items.Add(Global.GrpcgunMode);
-                cmbHeaderType.Items.Add(Global.GrpcmultiMode);
+                cmbHeaderType.Items.Add(Global.GrpcGunMode);
+                cmbHeaderType.Items.Add(Global.GrpcMultiMode);
             }
             else
             {
@@ -269,7 +307,7 @@ namespace v2rayN.Views
         private void SetTips()
         {
             var network = cmbNetwork.SelectedItem.ToString();
-            if (Utils.IsNullOrEmpty(network))
+            if (Utile.IsNullOrEmpty(network))
             {
                 network = Global.DefaultNetwork;
             }
@@ -280,43 +318,39 @@ namespace v2rayN.Views
 
             switch (network)
             {
-                case Global.DefaultNetwork:
+                case nameof(ETransport.tcp):
                     tipRequestHost.Text = ResUI.TransportRequestHostTip1;
                     tipHeaderType.Text = ResUI.TransportHeaderTypeTip1;
                     break;
 
-                case "kcp":
+                case nameof(ETransport.kcp):
                     tipHeaderType.Text = ResUI.TransportHeaderTypeTip2;
                     tipPath.Text = ResUI.TransportPathTip5;
                     break;
 
-                case "ws":
+                case nameof(ETransport.ws):
+                case nameof(ETransport.httpupgrade):
                     tipRequestHost.Text = ResUI.TransportRequestHostTip2;
                     tipPath.Text = ResUI.TransportPathTip1;
                     break;
 
-                case "h2":
+                case nameof(ETransport.h2):
                     tipRequestHost.Text = ResUI.TransportRequestHostTip3;
                     tipPath.Text = ResUI.TransportPathTip2;
                     break;
 
-                case "quic":
+                case nameof(ETransport.quic):
                     tipRequestHost.Text = ResUI.TransportRequestHostTip4;
                     tipPath.Text = ResUI.TransportPathTip3;
                     tipHeaderType.Text = ResUI.TransportHeaderTypeTip3;
                     break;
 
-                case "grpc":
+                case nameof(ETransport.grpc):
                     tipPath.Text = ResUI.TransportPathTip4;
                     tipHeaderType.Text = ResUI.TransportHeaderTypeTip4;
                     labHeaderType.Visibility = Visibility.Hidden;
                     break;
             }
-        }
-
-        private void btnCancel_Click(object sender, RoutedEventArgs e)
-        {
-            this.Close();
         }
     }
 }

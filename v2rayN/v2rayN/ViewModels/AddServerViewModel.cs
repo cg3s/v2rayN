@@ -3,9 +3,8 @@ using ReactiveUI.Fody.Helpers;
 using Splat;
 using System.Reactive;
 using System.Windows;
-using v2rayN.Base;
 using v2rayN.Handler;
-using v2rayN.Mode;
+using v2rayN.Model;
 using v2rayN.Resx;
 
 namespace v2rayN.ViewModels
@@ -37,7 +36,7 @@ namespace v2rayN.ViewModels
             }
             else
             {
-                SelectedSource = Utils.DeepCopy(profileItem);
+                SelectedSource = JsonUtile.DeepCopy(profileItem);
             }
 
             SaveCmd = ReactiveCommand.Create(() =>
@@ -45,47 +44,47 @@ namespace v2rayN.ViewModels
                 SaveServer();
             });
 
-            Utils.SetDarkBorder(view, _config.uiItem.colorModeDark);
+            Utile.SetDarkBorder(view, _config.uiItem.colorModeDark);
         }
 
         private void SaveServer()
         {
-            if (Utils.IsNullOrEmpty(SelectedSource.remarks))
+            if (Utile.IsNullOrEmpty(SelectedSource.remarks))
             {
-                UI.Show(ResUI.PleaseFillRemarks);
+                _noticeHandler?.Enqueue(ResUI.PleaseFillRemarks);
                 return;
             }
 
-            if (Utils.IsNullOrEmpty(SelectedSource.address))
+            if (Utile.IsNullOrEmpty(SelectedSource.address))
             {
-                UI.Show(ResUI.FillServerAddress);
+                _noticeHandler?.Enqueue(ResUI.FillServerAddress);
                 return;
             }
             var port = SelectedSource.port.ToString();
-            if (Utils.IsNullOrEmpty(port) || !Utils.IsNumberic(port)
+            if (Utile.IsNullOrEmpty(port) || !Utile.IsNumeric(port)
                 || SelectedSource.port <= 0 || SelectedSource.port >= Global.MaxPort)
             {
-                UI.Show(ResUI.FillCorrectServerPort);
+                _noticeHandler?.Enqueue(ResUI.FillCorrectServerPort);
                 return;
             }
             if (SelectedSource.configType == EConfigType.Shadowsocks)
             {
-                if (Utils.IsNullOrEmpty(SelectedSource.id))
+                if (Utile.IsNullOrEmpty(SelectedSource.id))
                 {
-                    UI.Show(ResUI.FillPassword);
+                    _noticeHandler?.Enqueue(ResUI.FillPassword);
                     return;
                 }
-                if (Utils.IsNullOrEmpty(SelectedSource.security))
+                if (Utile.IsNullOrEmpty(SelectedSource.security))
                 {
-                    UI.Show(ResUI.PleaseSelectEncryption);
+                    _noticeHandler?.Enqueue(ResUI.PleaseSelectEncryption);
                     return;
                 }
             }
             if (SelectedSource.configType != EConfigType.Socks)
             {
-                if (Utils.IsNullOrEmpty(SelectedSource.id))
+                if (Utile.IsNullOrEmpty(SelectedSource.id))
                 {
-                    UI.Show(ResUI.FillUUID);
+                    _noticeHandler?.Enqueue(ResUI.FillUUID);
                     return;
                 }
             }
@@ -123,33 +122,18 @@ namespace v2rayN.ViewModels
                 item.spiderX = SelectedSource.spiderX;
             }
 
-            int ret = -1;
-            switch (item.configType)
+            var ret = item.configType switch
             {
-                case EConfigType.VMess:
-                    ret = ConfigHandler.AddServer(ref _config, item);
-                    break;
-
-                case EConfigType.Shadowsocks:
-                    ret = ConfigHandler.AddShadowsocksServer(ref _config, item);
-                    break;
-
-                case EConfigType.Socks:
-                    ret = ConfigHandler.AddSocksServer(ref _config, item);
-                    break;
-
-                case EConfigType.VLESS:
-                    ret = ConfigHandler.AddVlessServer(ref _config, item);
-                    break;
-
-                case EConfigType.Trojan:
-                    ret = ConfigHandler.AddTrojanServer(ref _config, item);
-                    break;
-
-                case EConfigType.Hysteria2:
-                    ret = ConfigHandler.AddHysteria2Server(ref _config, item);
-                    break;
-            }
+                EConfigType.VMess => ConfigHandler.AddServer(_config, item),
+                EConfigType.Shadowsocks => ConfigHandler.AddShadowsocksServer(_config, item),
+                EConfigType.Socks => ConfigHandler.AddSocksServer(_config, item),
+                EConfigType.Trojan => ConfigHandler.AddTrojanServer(_config, item),
+                EConfigType.VLESS => ConfigHandler.AddVlessServer(_config, item),
+                EConfigType.Hysteria2 => ConfigHandler.AddHysteria2Server(_config, item),
+                EConfigType.Tuic => ConfigHandler.AddTuicServer(_config, item),
+                EConfigType.Wireguard => ConfigHandler.AddWireguardServer(_config, item),
+                _ => -1,
+            };
 
             if (ret == 0)
             {
@@ -159,7 +143,7 @@ namespace v2rayN.ViewModels
             }
             else
             {
-                UI.Show(ResUI.OperationFailed);
+                _noticeHandler?.Enqueue(ResUI.OperationFailed);
             }
         }
     }

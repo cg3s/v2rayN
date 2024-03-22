@@ -1,4 +1,3 @@
-using Microsoft.Win32;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using ReactiveUI.Validation.Helpers;
@@ -6,9 +5,8 @@ using Splat;
 using System.IO;
 using System.Reactive;
 using System.Windows;
-using v2rayN.Base;
 using v2rayN.Handler;
-using v2rayN.Mode;
+using v2rayN.Model;
 using v2rayN.Resx;
 
 namespace v2rayN.ViewModels
@@ -38,7 +36,7 @@ namespace v2rayN.ViewModels
             }
             else
             {
-                SelectedSource = Utils.DeepCopy(profileItem);
+                SelectedSource = JsonUtile.DeepCopy(profileItem);
             }
 
             _view = view;
@@ -58,21 +56,21 @@ namespace v2rayN.ViewModels
                 SaveServer();
             });
 
-            Utils.SetDarkBorder(view, _config.uiItem.colorModeDark);
+            Utile.SetDarkBorder(view, _config.uiItem.colorModeDark);
         }
 
         private void SaveServer()
         {
             string remarks = SelectedSource.remarks;
-            if (Utils.IsNullOrEmpty(remarks))
+            if (Utile.IsNullOrEmpty(remarks))
             {
-                UI.Show(ResUI.PleaseFillRemarks);
+                _noticeHandler?.Enqueue(ResUI.PleaseFillRemarks);
                 return;
             }
 
-            if (Utils.IsNullOrEmpty(SelectedSource.address))
+            if (Utile.IsNullOrEmpty(SelectedSource.address))
             {
-                UI.Show(ResUI.FillServerAddressCustom);
+                _noticeHandler?.Enqueue(ResUI.FillServerAddressCustom);
                 return;
             }
 
@@ -90,66 +88,62 @@ namespace v2rayN.ViewModels
                 item.preSocksPort = SelectedSource.preSocksPort;
             }
 
-            if (ConfigHandler.EditCustomServer(ref _config, item) == 0)
+            if (ConfigHandler.EditCustomServer(_config, item) == 0)
             {
                 _noticeHandler?.Enqueue(ResUI.OperationSuccess);
                 _view.DialogResult = true;
             }
             else
             {
-                UI.Show(ResUI.OperationFailed);
+                _noticeHandler?.Enqueue(ResUI.OperationFailed);
             }
         }
 
         private void BrowseServer()
         {
-            UI.Show(ResUI.CustomServerTips);
+            //_noticeHandler?.Enqueue(ResUI.CustomServerTips);
 
-            OpenFileDialog fileDialog = new()
-            {
-                Multiselect = false,
-                Filter = "Config|*.json|YAML|*.yaml;*.yml|All|*.*"
-            };
-            if (fileDialog.ShowDialog() != true)
+            if (UI.OpenFileDialog(out string fileName,
+                "Config|*.json|YAML|*.yaml;*.yml|All|*.*") != true)
             {
                 return;
             }
-            string fileName = fileDialog.FileName;
-            if (Utils.IsNullOrEmpty(fileName))
+            if (Utile.IsNullOrEmpty(fileName))
             {
                 return;
             }
+
             var item = LazyConfig.Instance.GetProfileItem(SelectedSource.indexId);
             item ??= SelectedSource;
             item.address = fileName;
-            if (ConfigHandler.AddCustomServer(ref _config, item, false) == 0)
+            if (ConfigHandler.AddCustomServer(_config, item, false) == 0)
             {
                 _noticeHandler?.Enqueue(ResUI.SuccessfullyImportedCustomServer);
-                if (!Utils.IsNullOrEmpty(item.indexId))
+                if (!Utile.IsNullOrEmpty(item.indexId))
                 {
-                    SelectedSource = Utils.DeepCopy(item);
+                    SelectedSource = JsonUtile.DeepCopy(item);
                 }
                 IsModified = true;
             }
             else
             {
-                UI.ShowWarning(ResUI.FailedImportedCustomServer);
+                _noticeHandler?.Enqueue(ResUI.FailedImportedCustomServer);
             }
         }
 
         private void EditServer()
         {
             var address = SelectedSource.address;
-            if (Utils.IsNullOrEmpty(address))
+            if (Utile.IsNullOrEmpty(address))
             {
-                UI.Show(ResUI.FillServerAddressCustom);
+                _noticeHandler?.Enqueue(ResUI.FillServerAddressCustom);
                 return;
             }
 
-            address = Utils.GetConfigPath(address);
+            address = Utile.GetConfigPath(address);
             if (File.Exists(address))
             {
-                Utils.ProcessStart(address);
+                Utile.ProcessStart(address);
             }
             else
             {

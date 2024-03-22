@@ -11,7 +11,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using v2rayN.Base;
 using v2rayN.Handler;
-using v2rayN.Mode;
+using v2rayN.Model;
 using v2rayN.Resx;
 using v2rayN.ViewModels;
 using Point = System.Windows.Point;
@@ -79,6 +79,7 @@ namespace v2rayN.Views
                 this.Bind(ViewModel, vm => vm.SelectedSub, v => v.lstGroup.SelectedItem).DisposeWith(disposables);
                 this.Bind(ViewModel, vm => vm.ServerFilter, v => v.txtServerFilter.Text).DisposeWith(disposables);
                 this.BindCommand(ViewModel, vm => vm.AddSubCmd, v => v.btnAddSub).DisposeWith(disposables);
+                this.BindCommand(ViewModel, vm => vm.EditSubCmd, v => v.btnEditSub).DisposeWith(disposables);
 
                 //servers
                 this.BindCommand(ViewModel, vm => vm.AddVmessServerCmd, v => v.menuAddVmessServer).DisposeWith(disposables);
@@ -87,6 +88,8 @@ namespace v2rayN.Views
                 this.BindCommand(ViewModel, vm => vm.AddSocksServerCmd, v => v.menuAddSocksServer).DisposeWith(disposables);
                 this.BindCommand(ViewModel, vm => vm.AddTrojanServerCmd, v => v.menuAddTrojanServer).DisposeWith(disposables);
                 this.BindCommand(ViewModel, vm => vm.AddHysteria2ServerCmd, v => v.menuAddHysteria2Server).DisposeWith(disposables);
+                this.BindCommand(ViewModel, vm => vm.AddTuicServerCmd, v => v.menuAddTuicServer).DisposeWith(disposables);
+                this.BindCommand(ViewModel, vm => vm.AddWireguardServerCmd, v => v.menuAddWireguardServer).DisposeWith(disposables);
                 this.BindCommand(ViewModel, vm => vm.AddCustomServerCmd, v => v.menuAddCustomServer).DisposeWith(disposables);
                 this.BindCommand(ViewModel, vm => vm.AddServerViaClipboardCmd, v => v.menuAddServerViaClipboard).DisposeWith(disposables);
                 this.BindCommand(ViewModel, vm => vm.AddServerViaScanCmd, v => v.menuAddServerViaScan).DisposeWith(disposables);
@@ -110,7 +113,6 @@ namespace v2rayN.Views
 
                 //servers ping
                 this.BindCommand(ViewModel, vm => vm.MixedTestServerCmd, v => v.menuMixedTestServer).DisposeWith(disposables);
-                this.BindCommand(ViewModel, vm => vm.PingServerCmd, v => v.menuPingServer).DisposeWith(disposables);
                 this.BindCommand(ViewModel, vm => vm.TcpingServerCmd, v => v.menuTcpingServer).DisposeWith(disposables);
                 this.BindCommand(ViewModel, vm => vm.RealPingServerCmd, v => v.menuRealPingServer).DisposeWith(disposables);
                 this.BindCommand(ViewModel, vm => vm.SpeedServerCmd, v => v.menuSpeedServer).DisposeWith(disposables);
@@ -137,9 +139,9 @@ namespace v2rayN.Views
                 this.BindCommand(ViewModel, vm => vm.ClearServerStatisticsCmd, v => v.menuClearServerStatistics).DisposeWith(disposables);
                 this.BindCommand(ViewModel, vm => vm.ImportOldGuiConfigCmd, v => v.menuImportOldGuiConfig).DisposeWith(disposables);
 
-                //checkupdate
+                //check update
                 this.BindCommand(ViewModel, vm => vm.CheckUpdateNCmd, v => v.menuCheckUpdateN).DisposeWith(disposables);
-                this.BindCommand(ViewModel, vm => vm.CheckUpdateV2flyCoreCmd, v => v.menuCheckUpdateV2flyCore).DisposeWith(disposables);
+                //this.BindCommand(ViewModel, vm => vm.CheckUpdateV2flyCoreCmd, v => v.menuCheckUpdateV2flyCore).DisposeWith(disposables);
                 //this.BindCommand(ViewModel, vm => vm.CheckUpdateSagerNetCoreCmd, v => v.menuCheckUpdateSagerNetCore).DisposeWith(disposables);
                 this.BindCommand(ViewModel, vm => vm.CheckUpdateXrayCoreCmd, v => v.menuCheckUpdateXrayCore).DisposeWith(disposables);
                 //this.BindCommand(ViewModel, vm => vm.CheckUpdateClashCoreCmd, v => v.menuCheckUpdateClashCore).DisposeWith(disposables);
@@ -208,10 +210,8 @@ namespace v2rayN.Views
             RestoreUI();
             AddHelpMenuItem();
 
-            var IsAdministrator = Utils.IsAdministrator();
-            this.Title = $"{Utils.GetVersion()} - {(IsAdministrator ? ResUI.RunAsAdmin : ResUI.NotRunAsAdmin)}";
-
-            spEnableTun.Visibility = IsAdministrator ? Visibility.Visible : Visibility.Collapsed;
+            var IsAdministrator = Utile.IsAdministrator();
+            this.Title = $"{Utile.GetVersion()} - {(IsAdministrator ? ResUI.RunAsAdmin : ResUI.NotRunAsAdmin)}";
 
             //if (_config.uiItem.autoHideStartup)
             //{
@@ -234,7 +234,7 @@ namespace v2rayN.Views
                     {
                         if (wParam == IntPtr.Zero && Marshal.PtrToStringUni(lParam) == "ImmersiveColorSet")
                         {
-                            ViewModel?.ModifyTheme(!Utils.IsLightTheme());
+                            ViewModel?.ModifyTheme(!Utile.IsLightTheme());
                         }
                     }
                 }
@@ -275,7 +275,7 @@ namespace v2rayN.Views
 
         private void Current_SessionEnding(object sender, SessionEndingCancelEventArgs e)
         {
-            Utils.SaveLog("Current_SessionEnding");
+            Logging.SaveLog("Current_SessionEnding");
             StorageUI();
             ViewModel?.MyAppExit(true);
         }
@@ -329,10 +329,6 @@ namespace v2rayN.Views
                         ViewModel?.AddServerViaClipboard();
                         break;
 
-                    case Key.P:
-                        ViewModel?.ServerSpeedtest(ESpeedActionType.Ping);
-                        break;
-
                     case Key.O:
                         ViewModel?.ServerSpeedtest(ESpeedActionType.Tcping);
                         break;
@@ -342,7 +338,7 @@ namespace v2rayN.Views
                         break;
 
                     case Key.S:
-                        _ = ViewModel?.ScanScreenTaskAsync();
+                        ViewModel?.ScanScreenTaskAsync().ContinueWith(_ => { });
                         break;
 
                     case Key.T:
@@ -359,6 +355,10 @@ namespace v2rayN.Views
                 if (e.Key == Key.F5)
                 {
                     ViewModel?.Reload();
+                }
+                else if (e.Key == Key.Escape)
+                {
+                    MessageBus.Current.SendMessage("true", Global.CommandStopSpeedTest);
                 }
             }
         }
@@ -421,7 +421,7 @@ namespace v2rayN.Views
 
         private void menuPromotion_Click(object sender, RoutedEventArgs e)
         {
-            Utils.ProcessStart($"{Utils.Base64Decode(Global.PromotionUrl)}?t={DateTime.Now.Ticks}");
+            Utile.ProcessStart($"{Utile.Base64Decode(Global.PromotionUrl)}?t={DateTime.Now.Ticks}");
         }
 
         private void txtRunningInfoDisplay_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -431,7 +431,7 @@ namespace v2rayN.Views
 
         private void menuSettingsSetUWP_Click(object sender, RoutedEventArgs e)
         {
-            Utils.ProcessStart(Utils.GetBinPath("EnableLoopback.exe"));
+            Utile.ProcessStart(Utile.GetBinPath("EnableLoopback.exe"));
         }
 
         private void BtnAutofitColumnWidth_Click(object sender, RoutedEventArgs e)
@@ -478,12 +478,11 @@ namespace v2rayN.Views
             }
 
             var lvColumnItem = _config.uiItem.mainColumnItem.OrderBy(t => t.Index).ToList();
-            for (int i = 0; i < lvColumnItem.Count; i++)
+            var displayIndex = 0;
+            foreach (var item in lvColumnItem)
             {
-                var item = lvColumnItem[i];
-                for (int k = 1; k < lstProfiles.Columns.Count; k++)
+                foreach (MyDGTextColumn item2 in lstProfiles.Columns)
                 {
-                    var item2 = (MyDGTextColumn)lstProfiles.Columns[k];
                     if (item2.ExName == item.Name)
                     {
                         if (item.Width < 0)
@@ -493,7 +492,7 @@ namespace v2rayN.Views
                         else
                         {
                             item2.Width = item.Width;
-                            item2.DisplayIndex = i;
+                            item2.DisplayIndex = displayIndex++;
                         }
                     }
                 }
@@ -517,8 +516,8 @@ namespace v2rayN.Views
 
         private void StorageUI()
         {
-            _config.uiItem.mainWidth = this.Width;
-            _config.uiItem.mainHeight = this.Height;
+            _config.uiItem.mainWidth = Utile.ToInt(this.Width);
+            _config.uiItem.mainHeight = Utile.ToInt(this.Height);
 
             List<ColumnItem> lvColumnItem = new();
             for (int k = 0; k < lstProfiles.Columns.Count; k++)
@@ -527,7 +526,7 @@ namespace v2rayN.Views
                 lvColumnItem.Add(new()
                 {
                     Name = item2.ExName,
-                    Width = item2.Visibility == Visibility.Visible ? Convert.ToInt32(item2.ActualWidth) : -1,
+                    Width = item2.Visibility == Visibility.Visible ? Utile.ToInt(item2.ActualWidth) : -1,
                     Index = item2.DisplayIndex
                 });
             }
@@ -539,13 +538,13 @@ namespace v2rayN.Views
 
         private void AddHelpMenuItem()
         {
-            var coreInfos = LazyConfig.Instance.GetCoreInfos();
-            foreach (var it in coreInfos)
+            var coreInfo = LazyConfig.Instance.GetCoreInfo();
+            foreach (var it in coreInfo
+                .Where(t => t.coreType != ECoreType.v2fly
+                            && t.coreType != ECoreType.clash
+                            && t.coreType != ECoreType.clash_meta
+                            && t.coreType != ECoreType.hysteria))
             {
-                if (it.coreType == ECoreType.v2fly)
-                {
-                    continue;
-                }
                 var item = new MenuItem()
                 {
                     Tag = it.coreUrl.Replace(@"/releases", ""),
@@ -560,7 +559,7 @@ namespace v2rayN.Views
         {
             if (sender is MenuItem item)
             {
-                Utils.ProcessStart(item.Tag.ToString());
+                Utile.ProcessStart(item.Tag.ToString());
             }
         }
 
@@ -578,7 +577,7 @@ namespace v2rayN.Views
         /// <typeparam name="T"></typeparam>
         /// <param name="current"></param>
         /// <returns></returns>
-        private static T? FindAnchestor<T>(DependencyObject current) where T : DependencyObject
+        private static T? FindAncestor<T>(DependencyObject current) where T : DependencyObject
         {
             do
             {
@@ -610,7 +609,7 @@ namespace v2rayN.Views
             {
                 // Get the dragged Item
                 if (sender is not DataGrid listView) return;
-                var listViewItem = FindAnchestor<DataGridRow>((DependencyObject)e.OriginalSource);
+                var listViewItem = FindAncestor<DataGridRow>((DependencyObject)e.OriginalSource);
                 if (listViewItem == null) return;           // Abort
                                                             // Find the data behind the ListViewItem
                 ProfileItemModel item = (ProfileItemModel)listView.ItemContainerGenerator.ItemFromContainer(listViewItem);
@@ -636,7 +635,7 @@ namespace v2rayN.Views
             {
                 // Get the drop Item destination
                 if (sender is not DataGrid listView) return;
-                var listViewItem = FindAnchestor<DataGridRow>((DependencyObject)e.OriginalSource);
+                var listViewItem = FindAncestor<DataGridRow>((DependencyObject)e.OriginalSource);
                 if (listViewItem == null)
                 {
                     // Abort

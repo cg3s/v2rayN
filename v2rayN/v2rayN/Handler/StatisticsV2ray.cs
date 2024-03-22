@@ -1,19 +1,19 @@
 ﻿using Grpc.Core;
 using Grpc.Net.Client;
 using ProtosLib.Statistics;
-using v2rayN.Mode;
+using v2rayN.Model;
 
 namespace v2rayN.Handler
 {
     internal class StatisticsV2ray
     {
-        private Mode.Config _config;
-        private GrpcChannel _channel;
-        private StatsService.StatsServiceClient _client;
+        private Model.Config _config;
+        private GrpcChannel? _channel;
+        private StatsService.StatsServiceClient? _client;
         private bool _exitFlag;
         private Action<ServerSpeedItem> _updateFunc;
 
-        public StatisticsV2ray(Mode.Config config, Action<ServerSpeedItem> update)
+        public StatisticsV2ray(Model.Config config, Action<ServerSpeedItem> update)
         {
             _config = config;
             _updateFunc = update;
@@ -26,10 +26,17 @@ namespace v2rayN.Handler
 
         private void GrpcInit()
         {
-            if (_channel == null)
+            if (_channel is null)
             {
-                _channel = GrpcChannel.ForAddress($"{Global.httpProtocol}{Global.Loopback}:{Global.statePort}");
-                _client = new StatsService.StatsServiceClient(_channel);
+                try
+                {
+                    _channel = GrpcChannel.ForAddress($"{Global.HttpProtocol}{Global.Loopback}:{LazyConfig.Instance.StatePort}");
+                    _client = new StatsService.StatsServiceClient(_channel);
+                }
+                catch (Exception ex)
+                {
+                    Logging.SaveLog(ex.Message, ex);
+                }
             }
         }
 
@@ -44,7 +51,7 @@ namespace v2rayN.Handler
             {
                 try
                 {
-                    if (_channel.State == ConnectivityState.Ready)
+                    if (_channel?.State == ConnectivityState.Ready)
                     {
                         QueryStatsResponse? res = null;
                         try
@@ -62,7 +69,7 @@ namespace v2rayN.Handler
                         }
                     }
                     await Task.Delay(1000);
-                    await _channel.ConnectAsync();
+                    if (_channel != null) await _channel.ConnectAsync();
                 }
                 catch
                 {
@@ -87,7 +94,7 @@ namespace v2rayN.Handler
                     name = nStr[1];
                     type = nStr[3];
 
-                    if (name == Global.agentTag)
+                    if (name == Global.ProxyTag)
                     {
                         if (type == "uplink")
                         {
@@ -98,7 +105,7 @@ namespace v2rayN.Handler
                             server.proxyDown = value;
                         }
                     }
-                    else if (name == Global.directTag)
+                    else if (name == Global.DirectTag)
                     {
                         if (type == "uplink")
                         {
