@@ -2,24 +2,23 @@ using ReactiveUI;
 using System.Reactive.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Threading;
-using v2rayN.Base;
 using v2rayN.Handler;
-using v2rayN.Mode;
+using v2rayN.Model;
 
 namespace v2rayN.Views
 {
     public partial class MsgView
     {
-        private static Config _config;
+        private static Config? _config;
 
-        private string lastMsgFilter;
+        private string lastMsgFilter = string.Empty;
         private bool lastMsgFilterNotAvailable;
 
         public MsgView()
         {
             InitializeComponent();
             _config = LazyConfig.Instance.GetConfig();
-            MessageBus.Current.Listen<string>("MsgView").Subscribe(x => DelegateAppendText(x));
+            MessageBus.Current.Listen<string>(Global.CommandSendMsgView).Subscribe(x => DelegateAppendText(x));
             Global.PresetMsgFilters.ForEach(it =>
             {
                 cmbMsgFilter.Items.Add(it);
@@ -66,6 +65,11 @@ namespace v2rayN.Views
             lastMsgFilter = MsgFilter;
 
             ShowMsg(msg);
+
+            if (togScrollToEnd.IsChecked ?? true)
+            {
+                txtMsg.ScrollToEnd();
+            }
         }
 
         private void ShowMsg(string msg)
@@ -79,7 +83,6 @@ namespace v2rayN.Views
             {
                 this.txtMsg.AppendText(Environment.NewLine);
             }
-            txtMsg.ScrollToEnd();
         }
 
         public void ClearMsg()
@@ -96,13 +99,13 @@ namespace v2rayN.Views
         private void menuMsgViewCopy_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             var data = txtMsg.SelectedText.TrimEx();
-            Utils.SetClipboardData(data);
+            Utile.SetClipboardData(data);
         }
 
         private void menuMsgViewCopyAll_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             var data = txtMsg.Text;
-            Utils.SetClipboardData(data);
+            Utile.SetClipboardData(data);
         }
 
         private void menuMsgViewClear_Click(object sender, System.Windows.RoutedEventArgs e)

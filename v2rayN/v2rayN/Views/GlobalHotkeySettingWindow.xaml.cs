@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using v2rayN.Handler;
-using v2rayN.Mode;
+using v2rayN.Model;
 using v2rayN.Resx;
 
 namespace v2rayN.Views
@@ -39,7 +39,7 @@ namespace v2rayN.Views
 
             HotkeyHandler.Instance.IsPause = true;
             this.Closing += (s, e) => HotkeyHandler.Instance.IsPause = false;
-            Utils.SetDarkBorder(this, _config.uiItem.colorModeDark);
+            Utile.SetDarkBorder(this, _config.uiItem.colorModeDark);
             InitData();
         }
 
@@ -68,9 +68,9 @@ namespace v2rayN.Views
             (sender as TextBox)!.Text = KeyEventItemToString(_TextBoxKeyEventItem[sender]);
         }
 
-        private KeyEventItem GetKeyEventItemByEGlobalHotkey(List<KeyEventItem> KELsit, EGlobalHotkey eg)
+        private KeyEventItem GetKeyEventItemByEGlobalHotkey(List<KeyEventItem> KEList, EGlobalHotkey eg)
         {
-            return Utils.DeepCopy(KELsit.Find((it) => it.eGlobalHotkey == eg) ?? new()
+            return JsonUtile.DeepCopy(KEList.Find((it) => it.eGlobalHotkey == eg) ?? new()
             {
                 eGlobalHotkey = eg,
                 Control = false,
@@ -112,20 +112,15 @@ namespace v2rayN.Views
         {
             _config.globalHotkeys = _TextBoxKeyEventItem.Values.ToList();
 
-            if (ConfigHandler.SaveConfig(ref _config, false) == 0)
+            if (ConfigHandler.SaveConfig(_config, false) == 0)
             {
                 HotkeyHandler.Instance.ReLoad();
                 this.DialogResult = true;
             }
             else
             {
-                UI.ShowWarning(ResUI.OperationFailed);
+                UI.Show(ResUI.OperationFailed);
             }
-        }
-
-        private void btnCancel_Click(object sender, RoutedEventArgs e)
-        {
-            this.Close();
         }
 
         private void btnReset_Click(object sender, RoutedEventArgs e)

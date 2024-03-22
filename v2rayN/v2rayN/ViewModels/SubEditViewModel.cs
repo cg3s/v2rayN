@@ -3,9 +3,8 @@ using ReactiveUI.Fody.Helpers;
 using Splat;
 using System.Reactive;
 using System.Windows;
-using v2rayN.Base;
 using v2rayN.Handler;
-using v2rayN.Mode;
+using v2rayN.Model;
 using v2rayN.Resx;
 
 namespace v2rayN.ViewModels
@@ -33,7 +32,7 @@ namespace v2rayN.ViewModels
             }
             else
             {
-                SelectedSource = Utils.DeepCopy(subItem);
+                SelectedSource = JsonUtile.DeepCopy(subItem);
             }
 
             SaveCmd = ReactiveCommand.Create(() =>
@@ -41,7 +40,7 @@ namespace v2rayN.ViewModels
                 SaveSub();
             });
 
-            Utils.SetDarkBorder(view, _config.uiItem.colorModeDark);
+            Utile.SetDarkBorder(view, _config.uiItem.colorModeDark);
         }
 
         private void SaveSub()
@@ -49,7 +48,7 @@ namespace v2rayN.ViewModels
             string remarks = SelectedSource.remarks;
             if (string.IsNullOrEmpty(remarks))
             {
-                UI.Show(ResUI.PleaseFillRemarks);
+                _noticeHandler?.Enqueue(ResUI.PleaseFillRemarks);
                 return;
             }
 
@@ -69,9 +68,11 @@ namespace v2rayN.ViewModels
                 item.sort = SelectedSource.sort;
                 item.filter = SelectedSource.filter;
                 item.convertTarget = SelectedSource.convertTarget;
+                item.prevProfile = SelectedSource.prevProfile;
+                item.nextProfile = SelectedSource.nextProfile;
             }
 
-            if (ConfigHandler.AddSubItem(ref _config, item) == 0)
+            if (ConfigHandler.AddSubItem(_config, item) == 0)
             {
                 _noticeHandler?.Enqueue(ResUI.OperationSuccess);
                 _view.DialogResult = true;

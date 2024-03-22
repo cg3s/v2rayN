@@ -1,9 +1,7 @@
 ﻿using System.Data;
 using System.IO;
 using System.Text.RegularExpressions;
-using v2rayN.Base;
-using v2rayN.Mode;
-using v2rayN.Tool;
+using v2rayN.Model;
 
 namespace v2rayN.Handler
 {
@@ -22,20 +20,20 @@ namespace v2rayN.Handler
         /// </summary>
         /// <param name="config"></param>
         /// <returns></returns>
-        public static int LoadConfig(ref Config config)
+        public static int LoadConfig(ref Config? config)
         {
             //载入配置文件
-            string result = Utils.LoadResource(Utils.GetConfigPath(configRes));
-            if (!Utils.IsNullOrEmpty(result))
+            var result = Utile.LoadResource(Utile.GetConfigPath(configRes));
+            if (!Utile.IsNullOrEmpty(result))
             {
                 //转成Json
-                config = Utils.FromJson<Config>(result);
+                config = JsonUtile.Deserialize<Config>(result);
             }
             else
             {
-                if (File.Exists(Utils.GetConfigPath(configRes)))
+                if (File.Exists(Utile.GetConfigPath(configRes)))
                 {
-                    Utils.SaveLog("LoadConfig Exception");
+                    Logging.SaveLog("LoadConfig Exception");
                     return -1;
                 }
             }
@@ -63,7 +61,7 @@ namespace v2rayN.Handler
                 config.inbound = new List<InItem>();
                 InItem inItem = new()
                 {
-                    protocol = Global.InboundSocks,
+                    protocol = EInboundProtocol.socks.ToString(),
                     localPort = 10808,
                     udpEnabled = true,
                     sniffingEnabled = true,
@@ -71,19 +69,12 @@ namespace v2rayN.Handler
                 };
 
                 config.inbound.Add(inItem);
-
-                //inItem = new InItem();
-                //inItem.protocol = "http";
-                //inItem.localPort = 1081;
-                //inItem.udpEnabled = true;
-
-                //config.inbound.Add(inItem);
             }
             else
             {
                 if (config.inbound.Count > 0)
                 {
-                    config.inbound[0].protocol = Global.InboundSocks;
+                    config.inbound[0].protocol = EInboundProtocol.socks.ToString();
                 }
             }
             if (config.routingBasicItem == null)
@@ -94,11 +85,11 @@ namespace v2rayN.Handler
                 };
             }
             //路由规则
-            if (Utils.IsNullOrEmpty(config.routingBasicItem.domainStrategy))
+            if (Utile.IsNullOrEmpty(config.routingBasicItem.domainStrategy))
             {
-                config.routingBasicItem.domainStrategy = Global.domainStrategys[0];//"IPIfNonMatch";
+                config.routingBasicItem.domainStrategy = Global.DomainStrategies[0];//"IPIfNonMatch";
             }
-            //if (Utils.IsNullOrEmpty(config.domainMatcher))
+            //if (Utile.IsNullOrEmpty(config.domainMatcher))
             //{
             //    config.domainMatcher = "linear";
             //}
@@ -153,7 +144,7 @@ namespace v2rayN.Handler
             {
                 config.uiItem.mainColumnItem = new();
             }
-            if (Utils.IsNullOrEmpty(config.uiItem.currentLanguage))
+            if (Utile.IsNullOrEmpty(config.uiItem.currentLanguage))
             {
                 config.uiItem.currentLanguage = Global.Languages[0];
             }
@@ -162,7 +153,7 @@ namespace v2rayN.Handler
             {
                 config.constItem = new ConstItem();
             }
-            if (Utils.IsNullOrEmpty(config.constItem.defIEProxyExceptions))
+            if (Utile.IsNullOrEmpty(config.constItem.defIEProxyExceptions))
             {
                 config.constItem.defIEProxyExceptions = Global.IEProxyExceptions;
             }
@@ -175,11 +166,11 @@ namespace v2rayN.Handler
             {
                 config.speedTestItem.speedTestTimeout = 10;
             }
-            if (Utils.IsNullOrEmpty(config.speedTestItem.speedTestUrl))
+            if (Utile.IsNullOrEmpty(config.speedTestItem.speedTestUrl))
             {
                 config.speedTestItem.speedTestUrl = Global.SpeedTestUrls[0];
             }
-            if (Utils.IsNullOrEmpty(config.speedTestItem.speedPingTestUrl))
+            if (Utile.IsNullOrEmpty(config.speedTestItem.speedPingTestUrl))
             {
                 config.speedTestItem.speedPingTestUrl = Global.SpeedPingTestUrl;
             }
@@ -189,10 +180,7 @@ namespace v2rayN.Handler
                 config.mux4SboxItem = new()
                 {
                     protocol = Global.SingboxMuxs[0],
-                    max_connections = 4,
-                    min_streams = 4,
-                    max_streams = 0,
-                    padding = true
+                    max_connections = 4
                 };
             }
 
@@ -214,7 +202,7 @@ namespace v2rayN.Handler
         /// </summary>
         /// <param name="config"></param>
         /// <returns></returns>
-        public static int SaveConfig(ref Config config, bool reload = true)
+        public static int SaveConfig(Config config, bool reload = true)
         {
             ToJsonFile(config);
 
@@ -232,9 +220,9 @@ namespace v2rayN.Handler
                 try
                 {
                     //save temp file
-                    var resPath = Utils.GetConfigPath(configRes);
+                    var resPath = Utile.GetConfigPath(configRes);
                     var tempPath = $"{resPath}_temp";
-                    if (Utils.ToJsonFile(config, tempPath) != 0)
+                    if (JsonUtile.ToFile(config, tempPath) != 0)
                     {
                         return;
                     }
@@ -248,43 +236,43 @@ namespace v2rayN.Handler
                 }
                 catch (Exception ex)
                 {
-                    Utils.SaveLog("ToJsonFile", ex);
+                    Logging.SaveLog("ToJsonFile", ex);
                 }
             }
         }
 
-        public static int ImportOldGuiConfig(ref Config config, string fileName)
+        public static int ImportOldGuiConfig(Config config, string fileName)
         {
-            string result = Utils.LoadResource(fileName);
-            if (Utils.IsNullOrEmpty(result))
+            var result = Utile.LoadResource(fileName);
+            if (Utile.IsNullOrEmpty(result))
             {
                 return -1;
             }
 
-            var configOld = Utils.FromJson<ConfigOld>(result);
+            var configOld = JsonUtile.Deserialize<ConfigOld>(result);
             if (configOld == null)
             {
                 return -1;
             }
 
-            var subItem = Utils.FromJson<List<SubItem>>(Utils.ToJson(configOld.subItem));
+            var subItem = JsonUtile.Deserialize<List<SubItem>>(JsonUtile.Serialize(configOld.subItem));
             foreach (var it in subItem)
             {
-                if (Utils.IsNullOrEmpty(it.id))
+                if (Utile.IsNullOrEmpty(it.id))
                 {
-                    it.id = Utils.GetGUID(false);
+                    it.id = Utile.GetGUID(false);
                 }
-                SqliteHelper.Instance.Replace(it);
+                SQLiteHelper.Instance.Replace(it);
             }
 
-            var profileItems = Utils.FromJson<List<ProfileItem>>(Utils.ToJson(configOld.vmess));
+            var profileItems = JsonUtile.Deserialize<List<ProfileItem>>(JsonUtile.Serialize(configOld.vmess));
             foreach (var it in profileItems)
             {
-                if (Utils.IsNullOrEmpty(it.indexId))
+                if (Utile.IsNullOrEmpty(it.indexId))
                 {
-                    it.indexId = Utils.GetGUID(false);
+                    it.indexId = Utile.GetGUID(false);
                 }
-                SqliteHelper.Instance.Replace(it);
+                SQLiteHelper.Instance.Replace(it);
             }
 
             foreach (var it in configOld.routings)
@@ -293,22 +281,22 @@ namespace v2rayN.Handler
                 {
                     continue;
                 }
-                var routing = Utils.FromJson<RoutingItem>(Utils.ToJson(it));
+                var routing = JsonUtile.Deserialize<RoutingItem>(JsonUtile.Serialize(it));
                 foreach (var it2 in it.rules)
                 {
-                    it2.id = Utils.GetGUID(false);
+                    it2.id = Utile.GetGUID(false);
                 }
                 routing.ruleNum = it.rules.Count;
-                routing.ruleSet = Utils.ToJson(it.rules, false);
+                routing.ruleSet = JsonUtile.Serialize(it.rules, false);
 
-                if (Utils.IsNullOrEmpty(routing.id))
+                if (Utile.IsNullOrEmpty(routing.id))
                 {
-                    routing.id = Utils.GetGUID(false);
+                    routing.id = Utile.GetGUID(false);
                 }
-                SqliteHelper.Instance.Replace(routing);
+                SQLiteHelper.Instance.Replace(routing);
             }
 
-            config = Utils.FromJson<Config>(Utils.ToJson(configOld));
+            config = JsonUtile.Deserialize<Config>(JsonUtile.Serialize(configOld));
 
             if (config.coreBasicItem == null)
             {
@@ -343,9 +331,9 @@ namespace v2rayN.Handler
                 };
             }
 
-            GetDefaultServer(ref config);
-            GetDefaultRouting(ref config);
-            SaveConfig(ref config);
+            GetDefaultServer(config);
+            GetDefaultRouting(config);
+            SaveConfig(config);
             LoadConfig(ref config);
 
             return 0;
@@ -361,7 +349,7 @@ namespace v2rayN.Handler
         /// <param name="config"></param>
         /// <param name="profileItem"></param>
         /// <returns></returns>
-        public static int AddServer(ref Config config, ProfileItem profileItem, bool toFile = true)
+        public static int AddServer(Config config, ProfileItem profileItem, bool toFile = true)
         {
             profileItem.configType = EConfigType.VMess;
 
@@ -374,7 +362,7 @@ namespace v2rayN.Handler
             profileItem.path = profileItem.path.TrimEx();
             profileItem.streamSecurity = profileItem.streamSecurity.TrimEx();
 
-            if (!Global.vmessSecuritys.Contains(profileItem.security))
+            if (!Global.VmessSecurities.Contains(profileItem.security))
             {
                 return -1;
             }
@@ -383,7 +371,7 @@ namespace v2rayN.Handler
                 return -1;
             }
 
-            AddServerCommon(ref config, profileItem, toFile);
+            AddServerCommon(config, profileItem, toFile);
 
             return 0;
         }
@@ -392,18 +380,18 @@ namespace v2rayN.Handler
         /// 移除服务器
         /// </summary>
         /// <param name="config"></param>
-        /// <param name="indexs"></param>
+        /// <param name="indexes"></param>
         /// <returns></returns>
-        public static int RemoveServer(Config config, List<ProfileItem> indexs)
+        public static int RemoveServer(Config config, List<ProfileItem> indexes)
         {
             var subid = "TempRemoveSubId";
-            foreach (var item in indexs)
+            foreach (var item in indexes)
             {
                 item.subid = subid;
             }
 
-            SqliteHelper.Instance.UpdateAll(indexs);
-            RemoveServerViaSubid(ref config, subid, false);
+            SQLiteHelper.Instance.UpdateAll(indexes);
+            RemoveServerViaSubid(config, subid, false);
 
             return 0;
         }
@@ -414,9 +402,9 @@ namespace v2rayN.Handler
         /// <param name="config"></param>
         /// <param name="index"></param>
         /// <returns></returns>
-        public static int CopyServer(ref Config config, List<ProfileItem> indexs)
+        public static int CopyServer(Config config, List<ProfileItem> indexes)
         {
-            foreach (var it in indexs)
+            foreach (var it in indexes)
             {
                 var item = LazyConfig.Instance.GetProfileItem(it.indexId);
                 if (item is null)
@@ -424,20 +412,20 @@ namespace v2rayN.Handler
                     continue;
                 }
 
-                ProfileItem profileItem = Utils.DeepCopy(item);
+                ProfileItem profileItem = JsonUtile.DeepCopy(item);
                 profileItem.indexId = string.Empty;
                 profileItem.remarks = $"{item.remarks}-clone";
 
                 if (profileItem.configType == EConfigType.Custom)
                 {
-                    profileItem.address = Utils.GetConfigPath(profileItem.address);
-                    if (AddCustomServer(ref config, profileItem, false) == 0)
+                    profileItem.address = Utile.GetConfigPath(profileItem.address);
+                    if (AddCustomServer(config, profileItem, false) == 0)
                     {
                     }
                 }
                 else
                 {
-                    AddServerCommon(ref config, profileItem, true);
+                    AddServerCommon(config, profileItem, true);
                 }
             }
 
@@ -450,9 +438,9 @@ namespace v2rayN.Handler
         /// <param name="config"></param>
         /// <param name="item"></param>
         /// <returns></returns>
-        public static int SetDefaultServerIndex(ref Config config, string? indexId)
+        public static int SetDefaultServerIndex(Config config, string? indexId)
         {
-            if (Utils.IsNullOrEmpty(indexId))
+            if (Utile.IsNullOrEmpty(indexId))
             {
                 return -1;
             }
@@ -470,24 +458,24 @@ namespace v2rayN.Handler
             {
                 return 0;
             }
-            if (SqliteHelper.Instance.Table<ProfileItem>().Where(t => t.indexId == config.indexId).Any())
+            if (SQLiteHelper.Instance.Table<ProfileItem>().Where(t => t.indexId == config.indexId).Any())
             {
                 return 0;
             }
             if (lstProfile.Count > 0)
             {
-                return SetDefaultServerIndex(ref config, lstProfile.Where(t => t.port > 0).FirstOrDefault()?.indexId);
+                return SetDefaultServerIndex(config, lstProfile.Where(t => t.port > 0).FirstOrDefault()?.indexId);
             }
-            return SetDefaultServerIndex(ref config, SqliteHelper.Instance.Table<ProfileItem>().Where(t => t.port > 0).Select(t => t.indexId).FirstOrDefault());
+            return SetDefaultServerIndex(config, SQLiteHelper.Instance.Table<ProfileItem>().Where(t => t.port > 0).Select(t => t.indexId).FirstOrDefault());
         }
 
-        public static ProfileItem? GetDefaultServer(ref Config config)
+        public static ProfileItem? GetDefaultServer(Config config)
         {
             var item = LazyConfig.Instance.GetProfileItem(config.indexId);
             if (item is null)
             {
-                var item2 = SqliteHelper.Instance.Table<ProfileItem>().FirstOrDefault();
-                SetDefaultServerIndex(ref config, item2?.indexId);
+                var item2 = SQLiteHelper.Instance.Table<ProfileItem>().FirstOrDefault();
+                SetDefaultServerIndex(config, item2?.indexId);
                 return item2;
             }
 
@@ -502,7 +490,7 @@ namespace v2rayN.Handler
         /// <param name="index"></param>
         /// <param name="eMove"></param>
         /// <returns></returns>
-        public static int MoveServer(ref Config config, ref List<ProfileItem> lstProfile, int index, EMove eMove, int pos = -1)
+        public static int MoveServer(Config config, ref List<ProfileItem> lstProfile, int index, EMove eMove, int pos = -1)
         {
             int count = lstProfile.Count;
             if (index < 0 || index > lstProfile.Count - 1)
@@ -574,7 +562,7 @@ namespace v2rayN.Handler
         /// <param name="config"></param>
         /// <param name="profileItem"></param>
         /// <returns></returns>
-        public static int AddCustomServer(ref Config config, ProfileItem profileItem, bool blDelete)
+        public static int AddCustomServer(Config config, ProfileItem profileItem, bool blDelete)
         {
             var fileName = profileItem.address;
             if (!File.Exists(fileName))
@@ -582,12 +570,12 @@ namespace v2rayN.Handler
                 return -1;
             }
             var ext = Path.GetExtension(fileName);
-            string newFileName = $"{Utils.GetGUID()}{ext}";
-            //newFileName = Path.Combine(Utils.GetTempPath(), newFileName);
+            string newFileName = $"{Utile.GetGUID()}{ext}";
+            //newFileName = Path.Combine(Utile.GetTempPath(), newFileName);
 
             try
             {
-                File.Copy(fileName, Utils.GetConfigPath(newFileName));
+                File.Copy(fileName, Utile.GetConfigPath(newFileName));
                 if (blDelete)
                 {
                     File.Delete(fileName);
@@ -595,18 +583,18 @@ namespace v2rayN.Handler
             }
             catch (Exception ex)
             {
-                Utils.SaveLog(ex.Message, ex);
+                Logging.SaveLog(ex.Message, ex);
                 return -1;
             }
 
             profileItem.address = newFileName;
             profileItem.configType = EConfigType.Custom;
-            if (Utils.IsNullOrEmpty(profileItem.remarks))
+            if (Utile.IsNullOrEmpty(profileItem.remarks))
             {
                 profileItem.remarks = $"import custom@{DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss")}";
             }
 
-            AddServerCommon(ref config, profileItem, true);
+            AddServerCommon(config, profileItem, true);
 
             return 0;
         }
@@ -617,9 +605,9 @@ namespace v2rayN.Handler
         /// <param name="config"></param>
         /// <param name="profileItem"></param>
         /// <returns></returns>
-        public static int EditCustomServer(ref Config config, ProfileItem profileItem)
+        public static int EditCustomServer(Config config, ProfileItem profileItem)
         {
-            if (SqliteHelper.Instance.Update(profileItem) > 0)
+            if (SQLiteHelper.Instance.Update(profileItem) > 0)
             {
                 return 0;
             }
@@ -637,7 +625,7 @@ namespace v2rayN.Handler
         /// <param name="config"></param>
         /// <param name="profileItem"></param>
         /// <returns></returns>
-        public static int AddShadowsocksServer(ref Config config, ProfileItem profileItem, bool toFile = true)
+        public static int AddShadowsocksServer(Config config, ProfileItem profileItem, bool toFile = true)
         {
             profileItem.configType = EConfigType.Shadowsocks;
 
@@ -645,7 +633,7 @@ namespace v2rayN.Handler
             profileItem.id = profileItem.id.TrimEx();
             profileItem.security = profileItem.security.TrimEx();
 
-            if (!LazyConfig.Instance.GetShadowsocksSecuritys(profileItem).Contains(profileItem.security))
+            if (!LazyConfig.Instance.GetShadowsocksSecurities(profileItem).Contains(profileItem.security))
             {
                 return -1;
             }
@@ -654,7 +642,7 @@ namespace v2rayN.Handler
                 return -1;
             }
 
-            AddServerCommon(ref config, profileItem, toFile);
+            AddServerCommon(config, profileItem, toFile);
 
             return 0;
         }
@@ -665,13 +653,13 @@ namespace v2rayN.Handler
         /// <param name="config"></param>
         /// <param name="profileItem"></param>
         /// <returns></returns>
-        public static int AddSocksServer(ref Config config, ProfileItem profileItem, bool toFile = true)
+        public static int AddSocksServer(Config config, ProfileItem profileItem, bool toFile = true)
         {
             profileItem.configType = EConfigType.Socks;
 
             profileItem.address = profileItem.address.TrimEx();
 
-            AddServerCommon(ref config, profileItem, toFile);
+            AddServerCommon(config, profileItem, toFile);
 
             return 0;
         }
@@ -682,13 +670,13 @@ namespace v2rayN.Handler
         /// <param name="config"></param>
         /// <param name="profileItem"></param>
         /// <returns></returns>
-        public static int AddTrojanServer(ref Config config, ProfileItem profileItem, bool toFile = true)
+        public static int AddTrojanServer(Config config, ProfileItem profileItem, bool toFile = true)
         {
             profileItem.configType = EConfigType.Trojan;
 
             profileItem.address = profileItem.address.TrimEx();
             profileItem.id = profileItem.id.TrimEx();
-            if (Utils.IsNullOrEmpty(profileItem.streamSecurity))
+            if (Utile.IsNullOrEmpty(profileItem.streamSecurity))
             {
                 profileItem.streamSecurity = Global.StreamSecurity;
             }
@@ -697,7 +685,7 @@ namespace v2rayN.Handler
                 return -1;
             }
 
-            AddServerCommon(ref config, profileItem, toFile);
+            AddServerCommon(config, profileItem, toFile);
 
             return 0;
         }
@@ -708,14 +696,17 @@ namespace v2rayN.Handler
         /// <param name="config"></param>
         /// <param name="profileItem"></param>
         /// <returns></returns>
-        public static int AddHysteria2Server(ref Config config, ProfileItem profileItem, bool toFile = true)
+        public static int AddHysteria2Server(Config config, ProfileItem profileItem, bool toFile = true)
         {
             profileItem.configType = EConfigType.Hysteria2;
             profileItem.coreType = ECoreType.sing_box;
 
             profileItem.address = profileItem.address.TrimEx();
             profileItem.id = profileItem.id.TrimEx();
-            if (Utils.IsNullOrEmpty(profileItem.streamSecurity))
+            profileItem.path = profileItem.path.TrimEx();
+            profileItem.network = string.Empty;
+
+            if (Utile.IsNullOrEmpty(profileItem.streamSecurity))
             {
                 profileItem.streamSecurity = Global.StreamSecurity;
             }
@@ -724,12 +715,83 @@ namespace v2rayN.Handler
                 return -1;
             }
 
-            AddServerCommon(ref config, profileItem, toFile);
+            AddServerCommon(config, profileItem, toFile);
 
             return 0;
         }
 
-        public static int SortServers(ref Config config, string subId, string colName, bool asc)
+        /// <summary>
+        /// Add or edit server
+        /// </summary>
+        /// <param name="config"></param>
+        /// <param name="profileItem"></param>
+        /// <returns></returns>
+        public static int AddTuicServer(Config config, ProfileItem profileItem, bool toFile = true)
+        {
+            profileItem.configType = EConfigType.Tuic;
+            profileItem.coreType = ECoreType.sing_box;
+
+            profileItem.address = profileItem.address.TrimEx();
+            profileItem.id = profileItem.id.TrimEx();
+            profileItem.security = profileItem.security.TrimEx();
+            profileItem.network = string.Empty;
+
+            if (!Global.TuicCongestionControls.Contains(profileItem.headerType))
+            {
+                profileItem.headerType = Global.TuicCongestionControls.FirstOrDefault()!;
+            }
+
+            if (Utile.IsNullOrEmpty(profileItem.streamSecurity))
+            {
+                profileItem.streamSecurity = Global.StreamSecurity;
+            }
+            if (Utile.IsNullOrEmpty(profileItem.alpn))
+            {
+                profileItem.alpn = "h3";
+            }
+            if (profileItem.id.IsNullOrEmpty())
+            {
+                return -1;
+            }
+
+            AddServerCommon(config, profileItem, toFile);
+
+            return 0;
+        }
+
+        /// <summary>
+        /// Add or edit server
+        /// </summary>
+        /// <param name="config"></param>
+        /// <param name="profileItem"></param>
+        /// <returns></returns>
+        public static int AddWireguardServer(Config config, ProfileItem profileItem, bool toFile = true)
+        {
+            profileItem.configType = EConfigType.Wireguard;
+            profileItem.coreType = ECoreType.sing_box;
+
+            profileItem.address = profileItem.address.TrimEx();
+            profileItem.id = profileItem.id.TrimEx();
+            profileItem.publicKey = profileItem.publicKey.TrimEx();
+            profileItem.path = profileItem.path.TrimEx();
+            profileItem.requestHost = profileItem.requestHost.TrimEx();
+            profileItem.network = string.Empty;
+            if (profileItem.shortId.IsNullOrEmpty())
+            {
+                profileItem.shortId = Global.TunMtus.FirstOrDefault();
+            }
+
+            if (profileItem.id.IsNullOrEmpty())
+            {
+                return -1;
+            }
+
+            AddServerCommon(config, profileItem, toFile);
+
+            return 0;
+        }
+
+        public static int SortServers(Config config, string subId, string colName, bool asc)
         {
             var lstModel = LazyConfig.Instance.ProfileItems(subId, "");
             if (lstModel.Count <= 0)
@@ -763,7 +825,6 @@ namespace v2rayN.Handler
                 case EServerColName.remarks:
                 case EServerColName.address:
                 case EServerColName.port:
-                case EServerColName.security:
                 case EServerColName.network:
                 case EServerColName.streamSecurity:
                     propertyName = name.ToString();
@@ -831,7 +892,7 @@ namespace v2rayN.Handler
         /// <param name="config"></param>
         /// <param name="profileItem"></param>
         /// <returns></returns>
-        public static int AddVlessServer(ref Config config, ProfileItem profileItem, bool toFile = true)
+        public static int AddVlessServer(Config config, ProfileItem profileItem, bool toFile = true)
         {
             profileItem.configType = EConfigType.VLESS;
 
@@ -844,16 +905,20 @@ namespace v2rayN.Handler
             profileItem.path = profileItem.path.TrimEx();
             profileItem.streamSecurity = profileItem.streamSecurity.TrimEx();
 
-            if (!Global.flows.Contains(profileItem.flow))
+            if (!Global.Flows.Contains(profileItem.flow))
             {
-                profileItem.flow = Global.flows.First();
+                profileItem.flow = Global.Flows.First();
             }
             if (profileItem.id.IsNullOrEmpty())
             {
                 return -1;
             }
+            if (!Utile.IsNullOrEmpty(profileItem.security) && profileItem.security != Global.None)
+            {
+                profileItem.security = Global.None;
+            }
 
-            AddServerCommon(ref config, profileItem, toFile);
+            AddServerCommon(config, profileItem, toFile);
 
             return 0;
         }
@@ -882,31 +947,39 @@ namespace v2rayN.Handler
             return new Tuple<int, int>(lstProfile.Count, lstKeep.Count);
         }
 
-        public static int AddServerCommon(ref Config config, ProfileItem profileItem, bool toFile = true)
+        public static int AddServerCommon(Config config, ProfileItem profileItem, bool toFile = true)
         {
             profileItem.configVersion = 2;
 
-            if (!Utils.IsNullOrEmpty(profileItem.streamSecurity))
+            if (!Utile.IsNullOrEmpty(profileItem.streamSecurity))
             {
-                if (Utils.IsNullOrEmpty(profileItem.allowInsecure))
+                if (profileItem.streamSecurity != Global.StreamSecurity
+                     && profileItem.streamSecurity != Global.StreamSecurityReality)
                 {
-                    profileItem.allowInsecure = config.coreBasicItem.defAllowInsecure.ToString().ToLower();
+                    profileItem.streamSecurity = string.Empty;
                 }
-                if (Utils.IsNullOrEmpty(profileItem.fingerprint) && profileItem.streamSecurity == Global.StreamSecurityReality)
+                else
                 {
-                    profileItem.fingerprint = config.coreBasicItem.defFingerprint;
+                    if (Utile.IsNullOrEmpty(profileItem.allowInsecure))
+                    {
+                        profileItem.allowInsecure = config.coreBasicItem.defAllowInsecure.ToString().ToLower();
+                    }
+                    if (Utile.IsNullOrEmpty(profileItem.fingerprint) && profileItem.streamSecurity == Global.StreamSecurityReality)
+                    {
+                        profileItem.fingerprint = config.coreBasicItem.defFingerprint;
+                    }
                 }
             }
 
-            if (!Utils.IsNullOrEmpty(profileItem.network) && !Global.networks.Contains(profileItem.network))
+            if (!Utile.IsNullOrEmpty(profileItem.network) && !Global.Networks.Contains(profileItem.network))
             {
                 profileItem.network = Global.DefaultNetwork;
             }
 
             var maxSort = -1;
-            if (Utils.IsNullOrEmpty(profileItem.indexId))
+            if (Utile.IsNullOrEmpty(profileItem.indexId))
             {
-                profileItem.indexId = Utils.GetGUID(false);
+                profileItem.indexId = Utile.GetGUID(false);
                 maxSort = ProfileExHandler.Instance.GetMaxSort();
             }
             if (!toFile && maxSort < 0)
@@ -920,7 +993,7 @@ namespace v2rayN.Handler
 
             if (toFile)
             {
-                SqliteHelper.Instance.Replace(profileItem);
+                SQLiteHelper.Instance.Replace(profileItem);
             }
             return 0;
         }
@@ -959,14 +1032,14 @@ namespace v2rayN.Handler
                 }
                 if (item.configType == EConfigType.Custom)
                 {
-                    File.Delete(Utils.GetConfigPath(item.address));
+                    File.Delete(Utile.GetConfigPath(item.address));
                 }
 
-                SqliteHelper.Instance.Delete(item);
+                SQLiteHelper.Instance.Delete(item);
             }
             catch (Exception ex)
             {
-                Utils.SaveLog("Remove Item", ex);
+                Logging.SaveLog("Remove Item", ex);
             }
 
             return 0;
@@ -983,18 +1056,18 @@ namespace v2rayN.Handler
         /// <param name="clipboardData"></param>
         /// <param name="subid"></param>
         /// <returns>成功导入的数量</returns>
-        private static int AddBatchServers(ref Config config, string clipboardData, string subid, bool isSub, List<ProfileItem> lstOriSub)
+        private static int AddBatchServers(Config config, string clipboardData, string subid, bool isSub, List<ProfileItem> lstOriSub)
         {
-            if (Utils.IsNullOrEmpty(clipboardData))
+            if (Utile.IsNullOrEmpty(clipboardData))
             {
                 return -1;
             }
 
             string subFilter = string.Empty;
             //remove sub items
-            if (isSub && !Utils.IsNullOrEmpty(subid))
+            if (isSub && !Utile.IsNullOrEmpty(subid))
             {
-                RemoveServerViaSubid(ref config, subid, isSub);
+                RemoveServerViaSubid(config, subid, isSub);
                 subFilter = LazyConfig.Instance.GetSubItem(subid)?.filter ?? "";
             }
 
@@ -1010,30 +1083,31 @@ namespace v2rayN.Handler
             foreach (string str in arrData)
             {
                 //maybe sub
-                if (!isSub && (str.StartsWith(Global.httpsProtocol) || str.StartsWith(Global.httpProtocol)))
+                if (!isSub && (str.StartsWith(Global.HttpsProtocol) || str.StartsWith(Global.HttpProtocol)))
                 {
-                    if (AddSubItem(ref config, str) == 0)
+                    if (AddSubItem(config, str) == 0)
                     {
                         countServers++;
                     }
                     continue;
                 }
-                ProfileItem profileItem = ShareHandler.ImportFromClipboardConfig(str, out string msg);
-                if (profileItem == null)
+                var profileItem = ShareHandler.ImportFromClipboardConfig(str, out string msg);
+                if (profileItem is null)
                 {
                     continue;
                 }
 
                 //exist sub items
-                if (isSub && !Utils.IsNullOrEmpty(subid))
+                if (isSub && !Utile.IsNullOrEmpty(subid))
                 {
-                    var existItem = lstOriSub?.FirstOrDefault(t => t.isSub == isSub && CompareProfileItem(t, profileItem, true));
+                    var existItem = lstOriSub?.FirstOrDefault(t => t.isSub == isSub
+                                                && config.uiItem.enableUpdateSubOnlyRemarksExist ? t.remarks == profileItem.remarks : CompareProfileItem(t, profileItem, true));
                     if (existItem != null)
                     {
                         //Check for duplicate indexId
                         if (lstDbIndexId is null)
                         {
-                            lstDbIndexId = LazyConfig.Instance.ProfileItemIndexs("");
+                            lstDbIndexId = LazyConfig.Instance.ProfileItemIndexes("");
                         }
                         if (lstAdd.Any(t => t.indexId == existItem.indexId)
                             || lstDbIndexId.Any(t => t == existItem.indexId))
@@ -1046,7 +1120,7 @@ namespace v2rayN.Handler
                         }
                     }
                     //filter
-                    if (!Utils.IsNullOrEmpty(subFilter))
+                    if (!Utile.IsNullOrEmpty(subFilter))
                     {
                         if (!Regex.IsMatch(profileItem.remarks, subFilter))
                         {
@@ -1056,32 +1130,19 @@ namespace v2rayN.Handler
                 }
                 profileItem.subid = subid;
                 profileItem.isSub = isSub;
-                var addStatus = -1;
 
-                if (profileItem.configType == EConfigType.VMess)
+                var addStatus = profileItem.configType switch
                 {
-                    addStatus = AddServer(ref config, profileItem, false);
-                }
-                else if (profileItem.configType == EConfigType.Shadowsocks)
-                {
-                    addStatus = AddShadowsocksServer(ref config, profileItem, false);
-                }
-                else if (profileItem.configType == EConfigType.Socks)
-                {
-                    addStatus = AddSocksServer(ref config, profileItem, false);
-                }
-                else if (profileItem.configType == EConfigType.Trojan)
-                {
-                    addStatus = AddTrojanServer(ref config, profileItem, false);
-                }
-                else if (profileItem.configType == EConfigType.VLESS)
-                {
-                    addStatus = AddVlessServer(ref config, profileItem, false);
-                }
-                else if (profileItem.configType == EConfigType.Hysteria2)
-                {
-                    addStatus = AddHysteria2Server(ref config, profileItem, false);
-                }
+                    EConfigType.VMess => AddServer(config, profileItem, false),
+                    EConfigType.Shadowsocks => AddShadowsocksServer(config, profileItem, false),
+                    EConfigType.Socks => AddSocksServer(config, profileItem, false),
+                    EConfigType.Trojan => AddTrojanServer(config, profileItem, false),
+                    EConfigType.VLESS => AddVlessServer(config, profileItem, false),
+                    EConfigType.Hysteria2 => AddHysteria2Server(config, profileItem, false),
+                    EConfigType.Tuic => AddTuicServer(config, profileItem, false),
+                    EConfigType.Wireguard => AddWireguardServer(config, profileItem, false),
+                    _ => -1,
+                };
 
                 if (addStatus == 0)
                 {
@@ -1092,22 +1153,22 @@ namespace v2rayN.Handler
 
             if (lstAdd.Count > 0)
             {
-                SqliteHelper.Instance.InsertAll(lstAdd);
+                SQLiteHelper.Instance.InsertAll(lstAdd);
             }
 
             ToJsonFile(config);
             return countServers;
         }
 
-        private static int AddBatchServers4Custom(ref Config config, string clipboardData, string subid, bool isSub, List<ProfileItem> lstOriSub)
+        private static int AddBatchServers4Custom(Config config, string clipboardData, string subid, bool isSub, List<ProfileItem> lstOriSub)
         {
-            if (Utils.IsNullOrEmpty(clipboardData))
+            if (Utile.IsNullOrEmpty(clipboardData))
             {
                 return -1;
             }
 
             //判断str是否包含s的任意一个字符串
-            static bool Containss(string str, params string[] s)
+            static bool Contains(string str, params string[] s)
             {
                 foreach (var item in s)
                 {
@@ -1118,11 +1179,11 @@ namespace v2rayN.Handler
 
             ProfileItem profileItem = new();
             //Is v2ray configuration
-            V2rayConfig? v2rayConfig = Utils.FromJson<V2rayConfig>(clipboardData);
+            var v2rayConfig = JsonUtile.Deserialize<V2rayConfig>(clipboardData);
             if (v2rayConfig?.inbounds?.Count > 0
                 && v2rayConfig.outbounds?.Count > 0)
             {
-                var fileName = Utils.GetTempPath($"{Utils.GetGUID(false)}.json");
+                var fileName = Utile.GetTempPath($"{Utile.GetGUID(false)}.json");
                 File.WriteAllText(fileName, clipboardData);
 
                 profileItem.coreType = ECoreType.Xray;
@@ -1130,19 +1191,19 @@ namespace v2rayN.Handler
                 profileItem.remarks = "v2ray_custom";
             }
             //Is Clash configuration
-            else if (Containss(clipboardData, "port", "socks-port", "proxies"))
+            else if (Contains(clipboardData, "port", "socks-port", "proxies"))
             {
-                var fileName = Utils.GetTempPath($"{Utils.GetGUID(false)}.yaml");
+                var fileName = Utile.GetTempPath($"{Utile.GetGUID(false)}.yaml");
                 File.WriteAllText(fileName, clipboardData);
 
-                profileItem.coreType = ECoreType.clash;
+                profileItem.coreType = ECoreType.mihomo;
                 profileItem.address = fileName;
                 profileItem.remarks = "clash_custom";
             }
             //Is hysteria configuration
-            else if (Containss(clipboardData, "server", "up", "down", "listen", "<html>", "<body>"))
+            else if (Contains(clipboardData, "server", "up", "down", "listen", "<html>", "<body>"))
             {
-                var fileName = Utils.GetTempPath($"{Utils.GetGUID(false)}.json");
+                var fileName = Utile.GetTempPath($"{Utile.GetGUID(false)}.json");
                 File.WriteAllText(fileName, clipboardData);
 
                 profileItem.coreType = ECoreType.hysteria;
@@ -1150,9 +1211,9 @@ namespace v2rayN.Handler
                 profileItem.remarks = "hysteria_custom";
             }
             //Is naiveproxy configuration
-            else if (Containss(clipboardData, "listen", "proxy", "<html>", "<body>"))
+            else if (Contains(clipboardData, "listen", "proxy", "<html>", "<body>"))
             {
-                var fileName = Utils.GetTempPath($"{Utils.GetGUID(false)}.json");
+                var fileName = Utile.GetTempPath($"{Utile.GetGUID(false)}.json");
                 File.WriteAllText(fileName, clipboardData);
 
                 profileItem.coreType = ECoreType.naiveproxy;
@@ -1163,16 +1224,16 @@ namespace v2rayN.Handler
             else
             {
                 return -1;
-                //var fileName = Utils.GetTempPath($"{Utils.GetGUID(false)}.txt");
+                //var fileName = Utile.GetTempPath($"{Utile.GetGUID(false)}.txt");
                 //File.WriteAllText(fileName, clipboardData);
 
                 //profileItem.address = fileName;
                 //profileItem.remarks = "other_custom";
             }
 
-            if (isSub && !Utils.IsNullOrEmpty(subid))
+            if (isSub && !Utile.IsNullOrEmpty(subid))
             {
-                RemoveServerViaSubid(ref config, subid, isSub);
+                RemoveServerViaSubid(config, subid, isSub);
             }
             if (isSub && lstOriSub?.Count == 1)
             {
@@ -1181,12 +1242,12 @@ namespace v2rayN.Handler
             profileItem.subid = subid;
             profileItem.isSub = isSub;
 
-            if (Utils.IsNullOrEmpty(profileItem.address))
+            if (Utile.IsNullOrEmpty(profileItem.address))
             {
                 return -1;
             }
 
-            if (AddCustomServer(ref config, profileItem, true) == 0)
+            if (AddCustomServer(config, profileItem, true) == 0)
             {
                 return 1;
             }
@@ -1196,23 +1257,23 @@ namespace v2rayN.Handler
             }
         }
 
-        private static int AddBatchServers4SsSIP008(ref Config config, string clipboardData, string subid, bool isSub, List<ProfileItem> lstOriSub)
+        private static int AddBatchServers4SsSIP008(Config config, string clipboardData, string subid, bool isSub, List<ProfileItem> lstOriSub)
         {
-            if (Utils.IsNullOrEmpty(clipboardData))
+            if (Utile.IsNullOrEmpty(clipboardData))
             {
                 return -1;
             }
 
-            if (isSub && !Utils.IsNullOrEmpty(subid))
+            if (isSub && !Utile.IsNullOrEmpty(subid))
             {
-                RemoveServerViaSubid(ref config, subid, isSub);
+                RemoveServerViaSubid(config, subid, isSub);
             }
 
             //SsSIP008
-            var lstSsServer = Utils.FromJson<List<SsServer>>(clipboardData);
+            var lstSsServer = JsonUtile.Deserialize<List<SsServer>>(clipboardData);
             if (lstSsServer?.Count <= 0)
             {
-                var ssSIP008 = Utils.FromJson<SsSIP008>(clipboardData);
+                var ssSIP008 = JsonUtile.Deserialize<SsSIP008>(clipboardData);
                 if (ssSIP008?.servers?.Count > 0)
                 {
                     lstSsServer = ssSIP008.servers;
@@ -1231,11 +1292,11 @@ namespace v2rayN.Handler
                         security = it.method,
                         id = it.password,
                         address = it.server,
-                        port = Utils.ToInt(it.server_port)
+                        port = Utile.ToInt(it.server_port)
                     };
                     ssItem.subid = subid;
                     ssItem.isSub = isSub;
-                    if (AddShadowsocksServer(ref config, ssItem) == 0)
+                    if (AddShadowsocksServer(config, ssItem) == 0)
                     {
                         counter++;
                     }
@@ -1247,37 +1308,37 @@ namespace v2rayN.Handler
             return -1;
         }
 
-        public static int AddBatchServers(ref Config config, string clipboardData, string subid, bool isSub)
+        public static int AddBatchServers(Config config, string clipboardData, string subid, bool isSub)
         {
             List<ProfileItem>? lstOriSub = null;
-            if (isSub && !Utils.IsNullOrEmpty(subid))
+            if (isSub && !Utile.IsNullOrEmpty(subid))
             {
                 lstOriSub = LazyConfig.Instance.ProfileItems(subid);
             }
 
             var counter = 0;
-            if (Utils.IsBase64String(clipboardData))
+            if (Utile.IsBase64String(clipboardData))
             {
-                counter = AddBatchServers(ref config, Utils.Base64Decode(clipboardData), subid, isSub, lstOriSub);
+                counter = AddBatchServers(config, Utile.Base64Decode(clipboardData), subid, isSub, lstOriSub);
             }
             if (counter < 1)
             {
-                counter = AddBatchServers(ref config, clipboardData, subid, isSub, lstOriSub);
+                counter = AddBatchServers(config, clipboardData, subid, isSub, lstOriSub);
             }
             if (counter < 1)
             {
-                counter = AddBatchServers(ref config, Utils.Base64Decode(clipboardData), subid, isSub, lstOriSub);
+                counter = AddBatchServers(config, Utile.Base64Decode(clipboardData), subid, isSub, lstOriSub);
             }
 
             if (counter < 1)
             {
-                counter = AddBatchServers4SsSIP008(ref config, clipboardData, subid, isSub, lstOriSub);
+                counter = AddBatchServers4SsSIP008(config, clipboardData, subid, isSub, lstOriSub);
             }
 
             //maybe other sub
             if (counter < 1)
             {
-                counter = AddBatchServers4Custom(ref config, clipboardData, subid, isSub, lstOriSub);
+                counter = AddBatchServers4Custom(config, clipboardData, subid, isSub, lstOriSub);
             }
 
             return counter;
@@ -1293,10 +1354,10 @@ namespace v2rayN.Handler
         /// <param name="config"></param>
         /// <param name="url"></param>
         /// <returns></returns>
-        public static int AddSubItem(ref Config config, string url)
+        public static int AddSubItem(Config config, string url)
         {
             //already exists
-            if (SqliteHelper.Instance.Table<SubItem>().Where(e => e.url == url).Count() > 0)
+            if (SQLiteHelper.Instance.Table<SubItem>().Where(e => e.url == url).Count() > 0)
             {
                 return 0;
             }
@@ -1308,26 +1369,26 @@ namespace v2rayN.Handler
                 url = url
             };
 
-            return AddSubItem(ref config, subItem);
+            return AddSubItem(config, subItem);
         }
 
-        public static int AddSubItem(ref Config config, SubItem subItem)
+        public static int AddSubItem(Config config, SubItem subItem)
         {
-            if (Utils.IsNullOrEmpty(subItem.id))
+            if (Utile.IsNullOrEmpty(subItem.id))
             {
-                subItem.id = Utils.GetGUID(false);
+                subItem.id = Utile.GetGUID(false);
 
                 if (subItem.sort <= 0)
                 {
                     var maxSort = 0;
-                    if (SqliteHelper.Instance.Table<SubItem>().Count() > 0)
+                    if (SQLiteHelper.Instance.Table<SubItem>().Count() > 0)
                     {
-                        maxSort = SqliteHelper.Instance.Table<SubItem>().Max(t => t == null ? 0 : t.sort);
+                        maxSort = SQLiteHelper.Instance.Table<SubItem>().Max(t => t == null ? 0 : t.sort);
                     }
                     subItem.sort = maxSort + 1;
                 }
             }
-            if (SqliteHelper.Instance.Replace(subItem) > 0)
+            if (SQLiteHelper.Instance.Replace(subItem) > 0)
             {
                 return 0;
             }
@@ -1343,38 +1404,38 @@ namespace v2rayN.Handler
         /// <param name="config"></param>
         /// <param name="subid"></param>
         /// <returns></returns>
-        public static int RemoveServerViaSubid(ref Config config, string subid, bool isSub)
+        public static int RemoveServerViaSubid(Config config, string subid, bool isSub)
         {
-            if (Utils.IsNullOrEmpty(subid))
+            if (Utile.IsNullOrEmpty(subid))
             {
                 return -1;
             }
-            var customProfile = SqliteHelper.Instance.Table<ProfileItem>().Where(t => t.subid == subid && t.configType == EConfigType.Custom).ToList();
+            var customProfile = SQLiteHelper.Instance.Table<ProfileItem>().Where(t => t.subid == subid && t.configType == EConfigType.Custom).ToList();
             if (isSub)
             {
-                SqliteHelper.Instance.Execute($"delete from ProfileItem where isSub = 1 and subid = '{subid}'");
+                SQLiteHelper.Instance.Execute($"delete from ProfileItem where isSub = 1 and subid = '{subid}'");
             }
             else
             {
-                SqliteHelper.Instance.Execute($"delete from ProfileItem where subid = '{subid}'");
+                SQLiteHelper.Instance.Execute($"delete from ProfileItem where subid = '{subid}'");
             }
             foreach (var item in customProfile)
             {
-                File.Delete(Utils.GetConfigPath(item.address));
+                File.Delete(Utile.GetConfigPath(item.address));
             }
 
             return 0;
         }
 
-        public static int DeleteSubItem(ref Config config, string id)
+        public static int DeleteSubItem(Config config, string id)
         {
             var item = LazyConfig.Instance.GetSubItem(id);
             if (item is null)
             {
                 return 0;
             }
-            SqliteHelper.Instance.Delete(item);
-            RemoveServerViaSubid(ref config, id, false);
+            SQLiteHelper.Instance.Delete(item);
+            RemoveServerViaSubid(config, id, false);
 
             return 0;
         }
@@ -1385,7 +1446,7 @@ namespace v2rayN.Handler
             {
                 item.subid = subid;
             }
-            SqliteHelper.Instance.UpdateAll(lstProfile);
+            SQLiteHelper.Instance.UpdateAll(lstProfile);
 
             return 0;
         }
@@ -1394,14 +1455,14 @@ namespace v2rayN.Handler
 
         #region Routing
 
-        public static int SaveRoutingItem(ref Config config, RoutingItem item)
+        public static int SaveRoutingItem(Config config, RoutingItem item)
         {
-            if (Utils.IsNullOrEmpty(item.id))
+            if (Utile.IsNullOrEmpty(item.id))
             {
-                item.id = Utils.GetGUID(false);
+                item.id = Utile.GetGUID(false);
             }
 
-            if (SqliteHelper.Instance.Replace(item) > 0)
+            if (SQLiteHelper.Instance.Replace(item) > 0)
             {
                 return 0;
             }
@@ -1419,12 +1480,12 @@ namespace v2rayN.Handler
         /// <returns></returns>
         public static int AddBatchRoutingRules(ref RoutingItem routingItem, string clipboardData)
         {
-            if (Utils.IsNullOrEmpty(clipboardData))
+            if (Utile.IsNullOrEmpty(clipboardData))
             {
                 return -1;
             }
 
-            var lstRules = Utils.FromJson<List<RulesItem>>(clipboardData);
+            var lstRules = JsonUtile.Deserialize<List<RulesItem>>(clipboardData);
             if (lstRules == null)
             {
                 return -1;
@@ -1432,17 +1493,17 @@ namespace v2rayN.Handler
 
             foreach (var item in lstRules)
             {
-                item.id = Utils.GetGUID(false);
+                item.id = Utile.GetGUID(false);
             }
             routingItem.ruleNum = lstRules.Count;
-            routingItem.ruleSet = Utils.ToJson(lstRules, false);
+            routingItem.ruleSet = JsonUtile.Serialize(lstRules, false);
 
-            if (Utils.IsNullOrEmpty(routingItem.id))
+            if (Utile.IsNullOrEmpty(routingItem.id))
             {
-                routingItem.id = Utils.GetGUID(false);
+                routingItem.id = Utile.GetGUID(false);
             }
 
-            if (SqliteHelper.Instance.Replace(routingItem) > 0)
+            if (SQLiteHelper.Instance.Replace(routingItem) > 0)
             {
                 return 0;
             }
@@ -1474,7 +1535,7 @@ namespace v2rayN.Handler
                         {
                             return 0;
                         }
-                        var item = Utils.DeepCopy(rules[index]);
+                        var item = JsonUtile.DeepCopy(rules[index]);
                         rules.RemoveAt(index);
                         rules.Insert(0, item);
 
@@ -1486,7 +1547,7 @@ namespace v2rayN.Handler
                         {
                             return 0;
                         }
-                        var item = Utils.DeepCopy(rules[index]);
+                        var item = JsonUtile.DeepCopy(rules[index]);
                         rules.RemoveAt(index);
                         rules.Insert(index - 1, item);
 
@@ -1499,7 +1560,7 @@ namespace v2rayN.Handler
                         {
                             return 0;
                         }
-                        var item = Utils.DeepCopy(rules[index]);
+                        var item = JsonUtile.DeepCopy(rules[index]);
                         rules.RemoveAt(index);
                         rules.Insert(index + 1, item);
 
@@ -1511,7 +1572,7 @@ namespace v2rayN.Handler
                         {
                             return 0;
                         }
-                        var item = Utils.DeepCopy(rules[index]);
+                        var item = JsonUtile.DeepCopy(rules[index]);
                         rules.RemoveAt(index);
                         rules.Add(item);
 
@@ -1520,7 +1581,7 @@ namespace v2rayN.Handler
                 case EMove.Position:
                     {
                         var removeItem = rules[index];
-                        var item = Utils.DeepCopy(rules[index]);
+                        var item = JsonUtile.DeepCopy(rules[index]);
                         rules.Insert(pos, item);
                         rules.Remove(removeItem);
                         break;
@@ -1529,9 +1590,9 @@ namespace v2rayN.Handler
             return 0;
         }
 
-        public static int SetDefaultRouting(ref Config config, RoutingItem routingItem)
+        public static int SetDefaultRouting(Config config, RoutingItem routingItem)
         {
-            if (SqliteHelper.Instance.Table<RoutingItem>().Where(t => t.id == routingItem.id).Count() > 0)
+            if (SQLiteHelper.Instance.Table<RoutingItem>().Where(t => t.id == routingItem.id).Count() > 0)
             {
                 config.routingBasicItem.routingIndexId = routingItem.id;
             }
@@ -1541,20 +1602,20 @@ namespace v2rayN.Handler
             return 0;
         }
 
-        public static RoutingItem GetDefaultRouting(ref Config config)
+        public static RoutingItem GetDefaultRouting(Config config)
         {
             var item = LazyConfig.Instance.GetRoutingItem(config.routingBasicItem.routingIndexId);
             if (item is null)
             {
-                var item2 = SqliteHelper.Instance.Table<RoutingItem>().FirstOrDefault(t => t.locked == false);
-                SetDefaultRouting(ref config, item2);
+                var item2 = SQLiteHelper.Instance.Table<RoutingItem>().FirstOrDefault(t => t.locked == false);
+                SetDefaultRouting(config, item2);
                 return item2;
             }
 
             return item;
         }
 
-        public static int InitBuiltinRouting(ref Config config, bool blImportAdvancedRules = false)
+        public static int InitBuiltinRouting(Config config, bool blImportAdvancedRules = false)
         {
             var items = LazyConfig.Instance.RoutingItems();
             if (blImportAdvancedRules || items.Count <= 0)
@@ -1567,7 +1628,7 @@ namespace v2rayN.Handler
                     url = string.Empty,
                     sort = maxSort + 1,
                 };
-                AddBatchRoutingRules(ref item2, Utils.GetEmbedText(Global.CustomRoutingFileName + "white"));
+                AddBatchRoutingRules(ref item2, Utile.GetEmbedText(Global.CustomRoutingFileName + "white"));
 
                 //Blacklist
                 var item3 = new RoutingItem()
@@ -1576,7 +1637,7 @@ namespace v2rayN.Handler
                     url = string.Empty,
                     sort = maxSort + 2,
                 };
-                AddBatchRoutingRules(ref item3, Utils.GetEmbedText(Global.CustomRoutingFileName + "black"));
+                AddBatchRoutingRules(ref item3, Utile.GetEmbedText(Global.CustomRoutingFileName + "black"));
 
                 //Global
                 var item1 = new RoutingItem()
@@ -1585,15 +1646,15 @@ namespace v2rayN.Handler
                     url = string.Empty,
                     sort = maxSort + 3,
                 };
-                AddBatchRoutingRules(ref item1, Utils.GetEmbedText(Global.CustomRoutingFileName + "global"));
+                AddBatchRoutingRules(ref item1, Utile.GetEmbedText(Global.CustomRoutingFileName + "global"));
 
                 if (!blImportAdvancedRules)
                 {
-                    SetDefaultRouting(ref config, item2);
+                    SetDefaultRouting(config, item2);
                 }
             }
 
-            if (GetLockedRoutingItem(ref config) == null)
+            if (GetLockedRoutingItem(config) == null)
             {
                 var item1 = new RoutingItem()
                 {
@@ -1601,19 +1662,19 @@ namespace v2rayN.Handler
                     url = string.Empty,
                     locked = true,
                 };
-                AddBatchRoutingRules(ref item1, Utils.GetEmbedText(Global.CustomRoutingFileName + "locked"));
+                AddBatchRoutingRules(ref item1, Utile.GetEmbedText(Global.CustomRoutingFileName + "locked"));
             }
             return 0;
         }
 
-        public static RoutingItem GetLockedRoutingItem(ref Config config)
+        public static RoutingItem GetLockedRoutingItem(Config config)
         {
-            return SqliteHelper.Instance.Table<RoutingItem>().FirstOrDefault(it => it.locked == true);
+            return SQLiteHelper.Instance.Table<RoutingItem>().FirstOrDefault(it => it.locked == true);
         }
 
         public static void RemoveRoutingItem(RoutingItem routingItem)
         {
-            SqliteHelper.Instance.Delete(routingItem);
+            SQLiteHelper.Instance.Delete(routingItem);
         }
 
         #endregion Routing
@@ -1645,12 +1706,12 @@ namespace v2rayN.Handler
 
         public static int SaveDNSItems(Config config, DNSItem item)
         {
-            if (Utils.IsNullOrEmpty(item.id))
+            if (Utile.IsNullOrEmpty(item.id))
             {
-                item.id = Utils.GetGUID(false);
+                item.id = Utile.GetGUID(false);
             }
 
-            if (SqliteHelper.Instance.Replace(item) > 0)
+            if (SQLiteHelper.Instance.Replace(item) > 0)
             {
                 return 0;
             }

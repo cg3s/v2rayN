@@ -1,9 +1,8 @@
-﻿using Microsoft.Win32;
-using ReactiveUI;
+﻿using ReactiveUI;
 using System.Reactive.Disposables;
 using System.Windows;
 using System.Windows.Input;
-using v2rayN.Mode;
+using v2rayN.Model;
 using v2rayN.ViewModels;
 
 namespace v2rayN.Views
@@ -31,12 +30,12 @@ namespace v2rayN.Views
             lstRules.MouseDoubleClick += LstRules_MouseDoubleClick;
 
             ViewModel = new RoutingRuleSettingViewModel(routingItem, this);
-            Global.domainStrategys.ForEach(it =>
+            Global.DomainStrategies.ForEach(it =>
             {
                 cmbdomainStrategy.Items.Add(it);
             });
             cmbdomainStrategy.Items.Add(string.Empty);
-            Global.domainStrategys4Singbox.ForEach(it =>
+            Global.DomainStrategies4Singbox.ForEach(it =>
             {
                 cmbdomainStrategy4Singbox.Items.Add(it);
             });
@@ -131,11 +130,13 @@ namespace v2rayN.Views
 
         private void btnBrowse_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            var openFileDialog1 = new OpenFileDialog();
-            openFileDialog1.Filter = "PNG|*.png";
-            openFileDialog1.ShowDialog();
+            if (UI.OpenFileDialog(out string fileName,
+                "PNG,ICO|*.png;*.ico") != true)
+            {
+                return;
+            }
 
-            txtCustomIcon.Text = openFileDialog1.FileName;
+            txtCustomIcon.Text = fileName;
         }
     }
 }

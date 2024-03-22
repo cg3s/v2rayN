@@ -1,5 +1,5 @@
 ﻿using System.IO;
-using v2rayN.Mode;
+using v2rayN.Model;
 using v2rayN.Resx;
 
 namespace v2rayN.Handler
@@ -33,13 +33,13 @@ namespace v2rayN.Handler
                     {
                         return -1;
                     }
-                    if (Utils.IsNullOrEmpty(fileName))
+                    if (Utile.IsNullOrEmpty(fileName))
                     {
-                        content = Utils.ToJson(singboxConfig);
+                        content = JsonUtile.Serialize(singboxConfig);
                     }
                     else
                     {
-                        Utils.ToJsonFile(singboxConfig, fileName, false);
+                        JsonUtile.ToFile(singboxConfig, fileName, false);
                     }
                 }
                 else
@@ -49,19 +49,19 @@ namespace v2rayN.Handler
                     {
                         return -1;
                     }
-                    if (Utils.IsNullOrEmpty(fileName))
+                    if (Utile.IsNullOrEmpty(fileName))
                     {
-                        content = Utils.ToJson(v2rayConfig);
+                        content = JsonUtile.Serialize(v2rayConfig);
                     }
                     else
                     {
-                        Utils.ToJsonFile(v2rayConfig, fileName, false);
+                        JsonUtile.ToFile(v2rayConfig, fileName, false);
                     }
                 }
             }
             catch (Exception ex)
             {
-                Utils.SaveLog("GenerateClientConfig", ex);
+                Logging.SaveLog("GenerateClientConfig", ex);
                 msg = ResUI.FailedGenDefaultConfiguration;
                 return -1;
             }
@@ -87,7 +87,7 @@ namespace v2rayN.Handler
                 string addressFileName = node.address;
                 if (!File.Exists(addressFileName))
                 {
-                    addressFileName = Utils.GetConfigPath(addressFileName);
+                    addressFileName = Utile.GetConfigPath(addressFileName);
                 }
                 if (!File.Exists(addressFileName))
                 {
@@ -119,6 +119,7 @@ namespace v2rayN.Handler
 
                         case ECoreType.clash:
                         case ECoreType.clash_meta:
+                        case ECoreType.mihomo:
                             //remove the original
                             var indexPort = fileContent.FindIndex(t => t.Contains("port:"));
                             if (indexPort >= 0)
@@ -131,8 +132,8 @@ namespace v2rayN.Handler
                                 fileContent.RemoveAt(indexPort);
                             }
 
-                            fileContent.Add($"port: {LazyConfig.Instance.GetLocalPort(Global.InboundHttp)}");
-                            fileContent.Add($"socks-port: {LazyConfig.Instance.GetLocalPort(Global.InboundSocks)}");
+                            fileContent.Add($"port: {LazyConfig.Instance.GetLocalPort(EInboundProtocol.http)}");
+                            fileContent.Add($"socks-port: {LazyConfig.Instance.GetLocalPort(EInboundProtocol.socks)}");
                             break;
                     }
                     File.WriteAllLines(fileName, fileContent);
@@ -142,17 +143,32 @@ namespace v2rayN.Handler
             }
             catch (Exception ex)
             {
-                Utils.SaveLog("GenerateClientCustomConfig", ex);
+                Logging.SaveLog("GenerateClientCustomConfig", ex);
                 msg = ResUI.FailedGenDefaultConfiguration;
                 return -1;
             }
             return 0;
         }
 
-        public static string GenerateClientSpeedtestConfigString(Config config, List<ServerTestItem> selecteds, out string msg)
+        public static int GenerateClientSpeedtestConfig(Config config, string fileName, List<ServerTestItem> selecteds, ECoreType coreType, out string msg)
         {
-            var coreConfigV2ray = new CoreConfigV2ray(config);
-            return coreConfigV2ray.GenerateClientSpeedtestConfigString(selecteds, out msg);
+            if (coreType == ECoreType.sing_box)
+            {
+                if ((new CoreConfigSingbox(config)).GenerateClientSpeedtestConfig(selecteds, out SingboxConfig? singboxConfig, out msg) != 0)
+                {
+                    return -1;
+                }
+                JsonUtile.ToFile(singboxConfig, fileName, false);
+            }
+            else
+            {
+                if ((new CoreConfigV2ray(config)).GenerateClientSpeedtestConfig(selecteds, out V2rayConfig? v2rayConfig, out msg) != 0)
+                {
+                    return -1;
+                }
+                JsonUtile.ToFile(v2rayConfig, fileName, false);
+            }
+            return 0;
         }
     }
 }

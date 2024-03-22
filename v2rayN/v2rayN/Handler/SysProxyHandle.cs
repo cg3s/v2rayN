@@ -1,5 +1,5 @@
 ﻿using PacLib;
-using v2rayN.Mode;
+using v2rayN.Model;
 
 namespace v2rayN.Handler
 {
@@ -41,19 +41,19 @@ namespace v2rayN.Handler
 
             try
             {
-                int port = LazyConfig.Instance.GetLocalPort(Global.InboundHttp);
-                int portSocks = LazyConfig.Instance.GetLocalPort(Global.InboundSocks);
-                int portPac = LazyConfig.Instance.GetLocalPort(ESysProxyType.Pac.ToString());
+                int port = LazyConfig.Instance.GetLocalPort(EInboundProtocol.http);
+                int portSocks = LazyConfig.Instance.GetLocalPort(EInboundProtocol.socks);
+                int portPac = LazyConfig.Instance.GetLocalPort(EInboundProtocol.pac);
                 if (port <= 0)
                 {
                     return false;
                 }
                 if (type == ESysProxyType.ForcedChange)
                 {
-                    var strExceptions = $"{config.constItem.defIEProxyExceptions};{config.systemProxyExceptions}";
+                    var strExceptions = $"<local>;{config.constItem.defIEProxyExceptions};{config.systemProxyExceptions}";
 
                     var strProxy = string.Empty;
-                    if (Utils.IsNullOrEmpty(config.systemProxyAdvancedProtocol))
+                    if (Utile.IsNullOrEmpty(config.systemProxyAdvancedProtocol))
                     {
                         strProxy = $"{Global.Loopback}:{port}";
                     }
@@ -75,8 +75,8 @@ namespace v2rayN.Handler
                 }
                 else if (type == ESysProxyType.Pac)
                 {
-                    PacHandler.Start(Utils.GetConfigPath(), port, portPac);
-                    var strProxy = $"{Global.httpProtocol}{Global.Loopback}:{portPac}/pac?t={DateTime.Now.Ticks}";
+                    PacHandler.Start(Utile.GetConfigPath(), port, portPac);
+                    var strProxy = $"{Global.HttpProtocol}{Global.Loopback}:{portPac}/pac?t={DateTime.Now.Ticks}";
                     ProxySetting.SetProxy(strProxy, "", 4); // use pac script url for auto-config proxy
                 }
 
@@ -87,7 +87,7 @@ namespace v2rayN.Handler
             }
             catch (Exception ex)
             {
-                Utils.SaveLog(ex.Message, ex);
+                Logging.SaveLog(ex.Message, ex);
             }
             return true;
         }
@@ -97,7 +97,7 @@ namespace v2rayN.Handler
             try
             {
                 //TODO To be verified
-                Utils.RegWriteValue(@"Software\Microsoft\Windows\CurrentVersion\Internet Settings", "ProxyEnable", 0);
+                Utile.RegWriteValue(@"Software\Microsoft\Windows\CurrentVersion\Internet Settings", "ProxyEnable", 0);
             }
             catch
             {

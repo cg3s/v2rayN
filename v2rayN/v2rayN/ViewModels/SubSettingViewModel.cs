@@ -6,9 +6,8 @@ using ReactiveUI.Fody.Helpers;
 using Splat;
 using System.Reactive;
 using System.Windows;
-using v2rayN.Base;
 using v2rayN.Handler;
-using v2rayN.Mode;
+using v2rayN.Model;
 using v2rayN.Resx;
 using v2rayN.Views;
 
@@ -63,7 +62,7 @@ namespace v2rayN.ViewModels
                 SubShare();
             }, canEditRemove);
 
-            Utils.SetDarkBorder(view, _config.uiItem.colorModeDark);
+            Utile.SetDarkBorder(view, _config.uiItem.colorModeDark);
         }
 
         public void RefreshSubItems()
@@ -104,7 +103,7 @@ namespace v2rayN.ViewModels
 
             foreach (var it in SelectedSources)
             {
-                ConfigHandler.DeleteSubItem(ref _config, it?.id);
+                ConfigHandler.DeleteSubItem(_config, it.id);
             }
             RefreshSubItems();
             _noticeHandler?.Enqueue(ResUI.OperationSuccess);
@@ -113,7 +112,7 @@ namespace v2rayN.ViewModels
 
         private async void SubShare()
         {
-            if (Utils.IsNullOrEmpty(SelectedSource?.url))
+            if (Utile.IsNullOrEmpty(SelectedSource?.url))
             {
                 return;
             }
