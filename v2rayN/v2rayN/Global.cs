@@ -11,7 +11,7 @@ namespace v2rayN
         public const string V2flyCoreUrl = "https://github.com/v2fly/v2ray-core/releases";
         public const string XrayCoreUrl = "https://github.com/XTLS/Xray-core/releases";
         public const string SagerNetCoreUrl = "https://github.com/SagerNet/v2ray-core/releases";
-        public const string NUrl = @"https://github.com/2dust/v2rayN/releases";
+        public const string NUrl = @"https://github.com/cg3s/v2rayN/releases";
         public const string ClashCoreUrl = "https://github.com/Dreamacro/clash/releases";
         public const string ClashMetaCoreUrl = "https://github.com/MetaCubeX/Clash.Meta/releases";
         public const string MihomoCoreUrl = "https://github.com/MetaCubeX/mihomo/releases";
