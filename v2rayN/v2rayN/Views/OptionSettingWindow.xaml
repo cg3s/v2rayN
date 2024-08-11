@@ -528,6 +528,7 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
@@ -830,6 +831,21 @@
                             materialDesign:HintAssist.Hint="Convert Url"
                             IsEditable="True"
                             Style="{StaticResource DefComboBox}" />
+
+                        <TextBlock
+                            Grid.Row="21"
+                            Grid.Column="0"
+                            Margin="{StaticResource SettingItemMargin}"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource ToolbarTextBlock}"
+                            Text="{x:Static resx:ResUI.TbSettingsMainGirdOrientation}" />
+                        <ComboBox
+                            x:Name="cmbMainGirdOrientation"
+                            Grid.Row="21"
+                            Grid.Column="1"
+                            Width="300"
+                            Margin="{StaticResource SettingItemMargin}"
+                            Style="{StaticResource DefComboBox}" />
                     </Grid>
                 </ScrollViewer>
             </TabItem>
@@ -837,19 +853,31 @@
             <TabItem Header="{x:Static resx:ResUI.TbSettingsSystemproxy}">
                 <DockPanel Margin="{StaticResource SettingItemMargin}">
                     <StackPanel DockPanel.Dock="Bottom" Orientation="Vertical">
-                        <TextBlock
-                            Grid.Row="3"
-                            Margin="{StaticResource SettingItemMargin}"
-                            VerticalAlignment="Center"
-                            Style="{StaticResource ToolbarTextBlock}"
-                            Text="{x:Static resx:ResUI.TbSettingsAdvancedProtocol}" />
-                        <ComboBox
-                            x:Name="cmbsystemProxyAdvancedProtocol"
-                            Grid.Row="4"
-                            MinWidth="200"
-                            Margin="{StaticResource SettingItemMargin}"
-                            materialDesign:HintAssist.Hint="Protocol"
-                            Style="{StaticResource DefComboBox}" />
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock
+                                Margin="{StaticResource SettingItemMargin}"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource ToolbarTextBlock}"
+                                Text="{x:Static resx:ResUI.TbSettingsNotProxyLocalAddress}" />
+                            <ToggleButton
+                                x:Name="tognotProxyLocalAddress"
+                                Margin="{StaticResource SettingItemMargin}"
+                                HorizontalAlignment="Left" />
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock
+                                Margin="{StaticResource SettingItemMargin}"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource ToolbarTextBlock}"
+                                Text="{x:Static resx:ResUI.TbSettingsAdvancedProtocol}" />
+                            <ComboBox
+                                x:Name="cmbsystemProxyAdvancedProtocol"
+                                MinWidth="400"
+                                Margin="{StaticResource SettingItemMargin}"
+                                materialDesign:HintAssist.Hint="Protocol"
+                                Style="{StaticResource DefComboBox}" />
+                        </StackPanel>
                     </StackPanel>
 
                     <TextBlock

@@ -1,6 +1,8 @@
 ﻿using ReactiveUI;
 using System.Reactive.Disposables;
 using System.Windows;
+using v2rayN.Enums;
+using v2rayN.Handler;
 using v2rayN.Models;
 using v2rayN.ViewModels;
 
@@ -12,19 +14,9 @@ namespace v2rayN.Views
         {
             InitializeComponent();
 
-            // 设置窗口的尺寸不大于屏幕的尺寸
-            if (this.Width > SystemParameters.WorkArea.Width)
-            {
-                this.Width = SystemParameters.WorkArea.Width;
-            }
-            if (this.Height > SystemParameters.WorkArea.Height)
-            {
-                this.Height = SystemParameters.WorkArea.Height;
-            }
-
             this.Owner = Application.Current.MainWindow;
             this.Loaded += Window_Loaded;
-            ViewModel = new AddServer2ViewModel(profileItem, this);
+            ViewModel = new AddServer2ViewModel(profileItem, UpdateViewHandler);
 
             foreach (ECoreType it in Enum.GetValues(typeof(ECoreType)))
             {
@@ -46,6 +38,17 @@ namespace v2rayN.Views
                 this.BindCommand(ViewModel, vm => vm.EditServerCmd, v => v.btnEdit).DisposeWith(disposables);
                 this.BindCommand(ViewModel, vm => vm.SaveServerCmd, v => v.btnSave).DisposeWith(disposables);
             });
+
+            Utils.SetDarkBorder(this, LazyConfig.Instance.GetConfig().uiItem.followSystemTheme ? !Utils.IsLightTheme() : LazyConfig.Instance.GetConfig().uiItem.colorModeDark);
+        }
+
+        private bool UpdateViewHandler(EViewAction action, object? obj)
+        {
+            if (action == EViewAction.CloseWindow)
+            {
+                this.DialogResult = true;
+            }
+            return true;
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)

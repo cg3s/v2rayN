@@ -4,7 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Sockets;
-using v2rayN.Models;
+using v2rayN.Enums;
 using v2rayN.Resx;
 
 namespace v2rayN.Handler
@@ -286,8 +286,6 @@ namespace v2rayN.Handler
             int responseTime = -1;
             try
             {
-                Stopwatch timer = Stopwatch.StartNew();
-
                 using var cts = new CancellationTokenSource();
                 cts.CancelAfter(TimeSpan.FromSeconds(downloadTimeout));
                 using var client = new HttpClient(new SocketsHttpHandler()
@@ -295,9 +293,17 @@ namespace v2rayN.Handler
                     Proxy = webProxy,
                     UseProxy = webProxy != null
                 });
-                await client.GetAsync(url, cts.Token);
 
-                responseTime = timer.Elapsed.Milliseconds;
+                List<int> oneTime = [];
+                for (int i = 0; i < 2; i++)
+                {
+                    var timer = Stopwatch.StartNew();
+                    await client.GetAsync(url, cts.Token);
+                    timer.Stop();
+                    oneTime.Add((int)timer.Elapsed.TotalMilliseconds);
+                    await Task.Delay(100);
+                }
+                responseTime = oneTime.Where(x => x > 0).OrderBy(x => x).FirstOrDefault();
             }
             catch //(Exception ex)
             {

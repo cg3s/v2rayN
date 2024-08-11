@@ -117,9 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="BatchExportSubscriptionSuccessfully" xml:space="preserve">
-    <value>Batch export subscription to clipboard successfully</value>
-  </data>
   <data name="BatchExportURLSuccessfully" xml:space="preserve">
     <value>Batch export share URL to clipboard successfully</value>
   </data>
@@ -159,9 +156,6 @@
   <data name="FillCorrectServerPort" xml:space="preserve">
     <value>Please fill in the correct format server port</value>
   </data>
-  <data name="FillKcpParameters" xml:space="preserve">
-    <value>Please fill in the KCP parameters correctly</value>
-  </data>
   <data name="FillLocalListeningPort" xml:space="preserve">
     <value>Please fill in the local listening port</value>
   </data>
@@ -174,14 +168,8 @@
   <data name="FillUUID" xml:space="preserve">
     <value>Please fill in the user ID</value>
   </data>
-  <data name="IncorrectClientConfiguration" xml:space="preserve">
-    <value>Is not the correct client configuration file, please check</value>
-  </data>
   <data name="Incorrectconfiguration" xml:space="preserve">
     <value>Is not the correct configuration, please check</value>
-  </data>
-  <data name="IncorrectServerConfiguration" xml:space="preserve">
-    <value>Is not the correct server configuration file, please check</value>
   </data>
   <data name="InitialConfiguration" xml:space="preserve">
     <value>Initial Configuration</value>
@@ -253,10 +241,10 @@
     <value>Is unpacking......</value>
   </data>
   <data name="MsgUpdateSubscriptionEnd" xml:space="preserve">
-    <value>Update subscription end</value>
+    <value>Update subscriptions end</value>
   </data>
   <data name="MsgUpdateSubscriptionStart" xml:space="preserve">
-    <value>Update subscription starts</value>
+    <value>Update subscriptions start</value>
   </data>
   <data name="MsgUpdateV2rayCoreSuccessfully" xml:space="preserve">
     <value>Update Core successfully</value>
@@ -266,9 +254,6 @@
   </data>
   <data name="NonvmessOrssProtocol" xml:space="preserve">
     <value>Non-VMess or ss protocol</value>
-  </data>
-  <data name="NonVmessService" xml:space="preserve">
-    <value>Non-standard service, this feature is invalid</value>
   </data>
   <data name="NotFoundCore" xml:space="preserve">
     <value>The Core file (file name: {1}) was not found under the folder ({0}), please download and put it in the folder, download address: {2}</value>
@@ -359,7 +344,7 @@
     <value>Please fill in the correct custom DNS</value>
   </data>
   <data name="TransportPathTip1" xml:space="preserve">
-    <value>*ws/httpupgrade path</value>
+    <value>*ws/httpupgrade/splithttp path</value>
   </data>
   <data name="TransportPathTip2" xml:space="preserve">
     <value>*h2 path</value>
@@ -374,7 +359,7 @@
     <value>*http host Separated by commas (,)</value>
   </data>
   <data name="TransportRequestHostTip2" xml:space="preserve">
-    <value>*ws/httpupgrade host</value>
+    <value>*ws/httpupgrade/splithttp host</value>
   </data>
   <data name="TransportRequestHostTip3" xml:space="preserve">
     <value>*h2 host Separated by commas (,)</value>
@@ -415,14 +400,8 @@
   <data name="FillServerAddressCustom" xml:space="preserve">
     <value>Please browse to import server configuration</value>
   </data>
-  <data name="SystemProxy" xml:space="preserve">
-    <value>System proxy</value>
-  </data>
   <data name="Speedtesting" xml:space="preserve">
     <value>Testing...</value>
-  </data>
-  <data name="TooManyServersTip" xml:space="preserve">
-    <value>Too many servers, please open the main interface</value>
   </data>
   <data name="LabLAN" xml:space="preserve">
     <value>LAN</value>
@@ -473,16 +452,16 @@
     <value>Update current subscription with proxy</value>
   </data>
   <data name="menuSubscription" xml:space="preserve">
-    <value>Subscription group</value>
+    <value>Subscription Group</value>
   </data>
   <data name="menuSubSetting" xml:space="preserve">
     <value>Subscription group settings</value>
   </data>
   <data name="menuSubUpdate" xml:space="preserve">
-    <value>Update subscription without proxy</value>
+    <value>Update subscriptions without proxy</value>
   </data>
   <data name="menuSubUpdateViaProxy" xml:space="preserve">
-    <value>Update subscription with proxy</value>
+    <value>Update subscriptions with proxy</value>
   </data>
   <data name="menuSystemproxy" xml:space="preserve">
     <value>System proxy</value>
@@ -544,17 +523,11 @@
   <data name="menuTcpingServer" xml:space="preserve">
     <value>Test servers with tcping (Ctrl+O)</value>
   </data>
-  <data name="menuTestMe" xml:space="preserve">
-    <value>Test current service status</value>
-  </data>
   <data name="menuExport2ClientConfig" xml:space="preserve">
     <value>Export selected server for client configuration</value>
   </data>
   <data name="menuExport2ShareUrl" xml:space="preserve">
     <value>Export share URLs to clipboard (Ctrl+C)</value>
-  </data>
-  <data name="menuExport2SubContent" xml:space="preserve">
-    <value>Export subscription (base64) share to clipboard</value>
   </data>
   <data name="menuAddCustomServer" xml:space="preserve">
     <value>Add a custom configuration server</value>
@@ -586,9 +559,6 @@
   <data name="menuMsgViewCopyAll" xml:space="preserve">
     <value>Copy all</value>
   </data>
-  <data name="menuMsgViewFilter" xml:space="preserve">
-    <value>Set message filters</value>
-  </data>
   <data name="menuMsgViewSelectAll" xml:space="preserve">
     <value>Select all (Ctrl+A)</value>
   </data>
@@ -605,7 +575,7 @@
     <value>Share</value>
   </data>
   <data name="LvEnabled" xml:space="preserve">
-    <value>Enabled Update</value>
+    <value>Enable update</value>
   </data>
   <data name="LvSort" xml:space="preserve">
     <value>Sort</value>
@@ -947,7 +917,7 @@
     <value>Support DnsObject, Click to view the document</value>
   </data>
   <data name="SubUrlTips" xml:space="preserve">
-    <value>Group please leave blank here</value>
+    <value>For group please leave blank here</value>
   </data>
   <data name="TipChangeRouting" xml:space="preserve">
     <value>Routing setting is changed</value>
@@ -957,6 +927,9 @@
   </data>
   <data name="TbSettingsRouteOnly" xml:space="preserve">
     <value>RouteOnly</value>
+  </data>
+  <data name="TbSettingsNotProxyLocalAddress" xml:space="preserve">
+    <value>Do not use proxy servers for local (intranet) addresses</value>
   </data>
   <data name="menuMixedTestServer" xml:space="preserve">
     <value>One-click multi test Latency and speed (Ctrl+E)</value>
@@ -988,20 +961,8 @@
   <data name="TbSettingsTunMode" xml:space="preserve">
     <value>TunMode settings</value>
   </data>
-  <data name="TbSettingsTunModeDirectIP" xml:space="preserve">
-    <value>Direct IP CIDR, separated by commas (,)</value>
-  </data>
-  <data name="TbSettingsTunModeDirectProcess" xml:space="preserve">
-    <value>Direct Process name, separated by commas (,)</value>
-  </data>
-  <data name="TbSettingsTunModeShowWindow" xml:space="preserve">
-    <value>Show console</value>
-  </data>
   <data name="menuMoveToGroup" xml:space="preserve">
     <value>Move to group</value>
-  </data>
-  <data name="TbSettingsTunModeCustomTemplate" xml:space="preserve">
-    <value>Custom Template</value>
   </data>
   <data name="TbSettingsEnableDragDropSort" xml:space="preserve">
     <value>Enable Server Drag Drop Sort(Require restart)</value>
@@ -1037,7 +998,7 @@
     <value>Copy the font TTF/TTC file to the directory guiFonts, restart the settings</value>
   </data>
   <data name="TbSettingsSocksPortTip" xml:space="preserve">
-    <value>HTTP port=SOCKS port+1;Pac port=SOCKS port+4;API port=SOCKS port+5;</value>
+    <value>http port = +1; Pac port = +4; *ray API port = +5; mihomo API port = +6;</value>
   </data>
   <data name="TbSettingsStartBootTip" xml:space="preserve">
     <value>Set this with admin privileges, get admin privileges after startup</value>
@@ -1045,23 +1006,11 @@
   <data name="TbSettingsFontSize" xml:space="preserve">
     <value>Font Size</value>
   </data>
-  <data name="TbSettingsTunModeProxyIP" xml:space="preserve">
-    <value>Proxy IP CIDR, separated by commas (,)</value>
-  </data>
-  <data name="TbSettingsTunModeProxyProcess" xml:space="preserve">
-    <value>Proxy Process name, separated by commas (,)</value>
-  </data>
-  <data name="TbSettingsTunModeBypassMode" xml:space="preserve">
-    <value>Bypass Mode</value>
-  </data>
   <data name="TbSettingsSpeedTestTimeout" xml:space="preserve">
     <value>SpeedTest Single Timeout Value</value>
   </data>
   <data name="TbSettingsSpeedTestUrl" xml:space="preserve">
     <value>SpeedTest URL</value>
-  </data>
-  <data name="TbSettingsTunModeDNS" xml:space="preserve">
-    <value>DNS object, e.g. {"servers":[]}</value>
   </data>
   <data name="menuMoveTo" xml:space="preserve">
     <value>Move up and down</value>
@@ -1091,13 +1040,13 @@
     <value>Restart as Administrator</value>
   </data>
   <data name="LvMoreUrl" xml:space="preserve">
-    <value>More urls, separated by commas;Subscription conversion will be invalid</value>
+    <value>More URLs, separated by commas; Subscription conversion will be invalid</value>
   </data>
   <data name="SpeedDisplayText" xml:space="preserve">
     <value>{0} : {1}/s↑ | {2}/s↓</value>
   </data>
   <data name="LvAutoUpdateInterval" xml:space="preserve">
-    <value>Automatic update interval(minutes)</value>
+    <value>Automatic update interval (minutes)</value>
   </data>
   <data name="TbSettingsLogEnabledToFile" xml:space="preserve">
     <value>Enable logging to file</value>
@@ -1218,5 +1167,101 @@
   </data>
   <data name="menuOpenTheFileLocation" xml:space="preserve">
     <value>Open the storage location</value>
+  </data>
+  <data name="TbSorting" xml:space="preserve">
+    <value>Sorting</value>
+  </data>
+  <data name="TbSortingChain" xml:space="preserve">
+    <value>Chain</value>
+  </data>
+  <data name="TbSortingDefault" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="TbSortingDelay" xml:space="preserve">
+    <value>Delay</value>
+  </data>
+  <data name="TbSortingDownSpeed" xml:space="preserve">
+    <value>Download Speed</value>
+  </data>
+  <data name="TbSortingDownTraffic" xml:space="preserve">
+    <value>Download Traffic</value>
+  </data>
+  <data name="TbSortingHost" xml:space="preserve">
+    <value>Host</value>
+  </data>
+  <data name="TbSortingName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="TbSortingNetwork" xml:space="preserve">
+    <value>Network</value>
+  </data>
+  <data name="TbSortingTime" xml:space="preserve">
+    <value>Time</value>
+  </data>
+  <data name="TbSortingType" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="TbSortingUpSpeed" xml:space="preserve">
+    <value>Upload Speed</value>
+  </data>
+  <data name="TbSortingUpTraffic" xml:space="preserve">
+    <value>Upload Traffic</value>
+  </data>
+  <data name="TbConnections" xml:space="preserve">
+    <value>Connections</value>
+  </data>
+  <data name="menuConnectionClose" xml:space="preserve">
+    <value>Close Connection</value>
+  </data>
+  <data name="menuConnectionCloseAll" xml:space="preserve">
+    <value>Close All Connection</value>
+  </data>
+  <data name="TbProxies" xml:space="preserve">
+    <value>Proxies</value>
+  </data>
+  <data name="menuRulemode" xml:space="preserve">
+    <value>Rule mode</value>
+  </data>
+  <data name="menuModeDirect" xml:space="preserve">
+    <value>Direct</value>
+  </data>
+  <data name="menuModeGlobal" xml:space="preserve">
+    <value>Global</value>
+  </data>
+  <data name="menuModeNothing" xml:space="preserve">
+    <value>Do not change</value>
+  </data>
+  <data name="menuModeRule" xml:space="preserve">
+    <value>Rule</value>
+  </data>
+  <data name="menuProxiesDelaytest" xml:space="preserve">
+    <value>Latency Test</value>
+  </data>
+  <data name="menuProxiesDelaytestPart" xml:space="preserve">
+    <value>Part Node Latency Test</value>
+  </data>
+  <data name="menuProxiesReload" xml:space="preserve">
+    <value>Refresh Proxies</value>
+  </data>
+  <data name="menuProxiesSelectActivity" xml:space="preserve">
+    <value>Select active node (Enter)</value>
+  </data>
+  <data name="TbSettingsDomainStrategy4Out" xml:space="preserve">
+    <value>Default domain strategy for outbound</value>
+  </data>
+  <data name="menuSetDefaultMultipleServer" xml:space="preserve">
+    <value>Multi-Server lowest latency</value>
+  </data>
+  <data name="TbSettingsMainGirdOrientation" xml:space="preserve">
+    <value>Main layout orientation(Require restart)</value>
+  </data>
+  <data name="menuSetDefaultLoadBalanceServer" xml:space="preserve">
+    <value>Multi-server load balancing</value>
+  </data>
+  <data name="TbSettingsDomainDNSAddress" xml:space="preserve">
+    <value>Outbound DNS address</value>
+  </data>
+  <data name="menuProfileAutofitColumnWidth" xml:space="preserve">
+    <value>Auto column width adjustment</value>
   </data>
 </root>

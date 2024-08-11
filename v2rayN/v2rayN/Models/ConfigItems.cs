@@ -1,4 +1,5 @@
 ﻿using System.Windows.Input;
+using v2rayN.Enums;
 
 namespace v2rayN.Models
 {
@@ -118,6 +119,7 @@ namespace v2rayN.Models
         public double mainHeight { get; set; }
         public double mainGirdHeight1 { get; set; }
         public double mainGirdHeight2 { get; set; }
+        public EGirdOrientation mainGirdOrientation { get; set; } = EGirdOrientation.Vertical;
         public bool colorModeDark { get; set; }
         public bool followSystemTheme { get; set; }
         public string? colorPrimaryName { get; set; }
@@ -129,6 +131,7 @@ namespace v2rayN.Models
         public bool autoHideStartup { get; set; }
         public string mainMsgFilter { get; set; }
         public List<ColumnItem> mainColumnItem { get; set; }
+        public bool showInTaskbar { get; set; }
     }
 
     [Serializable]
@@ -168,7 +171,7 @@ namespace v2rayN.Models
         public string stack { get; set; }
         public int mtu { get; set; }
         public bool enableExInbound { get; set; }
-        public bool enableIPv6Address { get; set; } = true;
+        public bool enableIPv6Address { get; set; }
     }
 
     [Serializable]
@@ -186,7 +189,7 @@ namespace v2rayN.Models
         public string domainStrategy4Singbox { get; set; }
         public string domainMatcher { get; set; }
         public string routingIndexId { get; set; }
-        public bool enableRoutingAdvanced { get; set; }        
+        public bool enableRoutingAdvanced { get; set; }
     }
 
     [Serializable]
@@ -209,5 +212,28 @@ namespace v2rayN.Models
     {
         public int up_mbps { get; set; }
         public int down_mbps { get; set; }
+    }
+
+    [Serializable]
+    public class ClashUIItem
+    {
+        public ERuleMode ruleMode { get; set; }
+        public bool enableIPv6 { get; set; }
+        public bool enableMixinContent { get; set; }
+        public int proxiesSorting { get; set; }
+        public bool proxiesAutoRefresh { get; set; }
+        public int proxiesAutoDelayTestInterval { get; set; } = 10;
+        public int connectionsSorting { get; set; }
+        public bool connectionsAutoRefresh { get; set; }
+        public int connectionsRefreshInterval { get; set; } = 2;
+    }
+
+    [Serializable]
+    public class SystemProxyItem
+    {
+        public ESysProxyType sysProxyType { get; set; }
+        public string systemProxyExceptions { get; set; }
+        public bool notProxyLocalAddress { get; set; } = true;
+        public string systemProxyAdvancedProtocol { get; set; }
     }
 }

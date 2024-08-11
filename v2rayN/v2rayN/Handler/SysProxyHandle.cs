@@ -1,38 +1,17 @@
 ﻿using PacLib;
+using v2rayN.Common;
+using v2rayN.Enums;
 using v2rayN.Models;
 
 namespace v2rayN.Handler
 {
     public static class SysProxyHandle
     {
-        //private const string _userWininetConfigFile = "user-wininet.json";
-
-        //private static string _queryStr;
-
-        // In general, this won't change
-        // format:
-        //  <flags><CR-LF>
-        //  <proxy-server><CR-LF>
-        //  <bypass-list><CR-LF>
-        //  <pac-url>
-
-        private enum RET_ERRORS : int
-        {
-            RET_NO_ERROR = 0,
-            INVALID_FORMAT = 1,
-            NO_PERMISSION = 2,
-            SYSCALL_FAILED = 3,
-            NO_MEMORY = 4,
-            INVAILD_OPTION_COUNT = 5,
-        };
-
-        static SysProxyHandle()
-        {
-        }
+        private const string _regPath = @"Software\Microsoft\Windows\CurrentVersion\Internet Settings";
 
         public static bool UpdateSysProxy(Config config, bool forceDisable)
         {
-            var type = config.sysProxyType;
+            var type = config.systemProxyItem.sysProxyType;
 
             if (forceDisable && type != ESysProxyType.Unchanged)
             {
@@ -50,25 +29,29 @@ namespace v2rayN.Handler
                 }
                 if (type == ESysProxyType.ForcedChange)
                 {
-                    var strExceptions = $"<local>;{config.constItem.defIEProxyExceptions};{config.systemProxyExceptions}";
+                    var strExceptions = "";
+                    if (config.systemProxyItem.notProxyLocalAddress)
+                    {
+                        strExceptions = $"<local>;{config.constItem.defIEProxyExceptions};{config.systemProxyItem.systemProxyExceptions}";
+                    }
 
                     var strProxy = string.Empty;
-                    if (Utils.IsNullOrEmpty(config.systemProxyAdvancedProtocol))
+                    if (Utils.IsNullOrEmpty(config.systemProxyItem.systemProxyAdvancedProtocol))
                     {
                         strProxy = $"{Global.Loopback}:{port}";
                     }
                     else
                     {
-                        strProxy = config.systemProxyAdvancedProtocol
+                        strProxy = config.systemProxyItem.systemProxyAdvancedProtocol
                             .Replace("{ip}", Global.Loopback)
                             .Replace("{http_port}", port.ToString())
                             .Replace("{socks_port}", portSocks.ToString());
                     }
-                    ProxySetting.SetProxy(strProxy, strExceptions, 2); // set a named proxy
+                    ProxySetting.SetProxy(strProxy, strExceptions, 2);
                 }
                 else if (type == ESysProxyType.ForcedClear)
                 {
-                    ProxySetting.UnsetProxy(); // set to no proxy
+                    ProxySetting.UnsetProxy();
                 }
                 else if (type == ESysProxyType.Unchanged)
                 {
@@ -77,7 +60,7 @@ namespace v2rayN.Handler
                 {
                     PacHandler.Start(Utils.GetConfigPath(), port, portPac);
                     var strProxy = $"{Global.HttpProtocol}{Global.Loopback}:{portPac}/pac?t={DateTime.Now.Ticks}";
-                    ProxySetting.SetProxy(strProxy, "", 4); // use pac script url for auto-config proxy
+                    ProxySetting.SetProxy(strProxy, "", 4);
                 }
 
                 if (type != ESysProxyType.Pac)
@@ -94,14 +77,7 @@ namespace v2rayN.Handler
 
         public static void ResetIEProxy4WindowsShutDown()
         {
-            try
-            {
-                //TODO To be verified
-                Utils.RegWriteValue(@"Software\Microsoft\Windows\CurrentVersion\Internet Settings", "ProxyEnable", 0);
-            }
-            catch
-            {
-            }
+            ProxySetting.UnsetProxy();
         }
     }
 }

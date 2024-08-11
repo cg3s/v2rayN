@@ -8,6 +8,11 @@
   },
   {
     "outboundTag": "block",
+    "port": "443",
+    "network": "udp"
+  },
+  {
+    "outboundTag": "block",
     "domain": [
       "geosite:category-ads-all"
     ]
@@ -22,6 +27,10 @@
   {
     "outboundTag": "direct",
     "ip": [
+      "223.5.5.5/32",
+      "119.29.29.29/32",
+      "180.76.76.76/32",
+      "114.114.114.114/32",
       "geoip:private",
       "geoip:cn"
     ]

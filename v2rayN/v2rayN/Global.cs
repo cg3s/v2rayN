@@ -1,4 +1,4 @@
-﻿using v2rayN.Models;
+﻿using v2rayN.Enums;
 
 namespace v2rayN
 {
@@ -23,13 +23,15 @@ namespace v2rayN
         public const string SpeedPingTestUrl = @"https://www.google.com/generate_204";
         public const string JuicityCoreUrl = "https://github.com/juicity/juicity/releases";
         public const string CustomRoutingListUrl = @"https://raw.githubusercontent.com/2dust/v2rayCustomRoutingList/master/";
-        public const string SingboxRulesetUrl = @"https://raw.githubusercontent.com/SagerNet/sing-{0}/rule-set/{1}.srs";
+        public const string SingboxRulesetUrl = @"https://raw.githubusercontent.com/2dust/sing-box-rules/rule-set-{0}/{1}.srs";
 
         public const string PromotionUrl = @"aHR0cHM6Ly85LjIzNDQ1Ni54eXovYWJjLmh0bWw=";
         public const string ConfigFileName = "guiNConfig.json";
         public const string CoreConfigFileName = "config.json";
         public const string CorePreConfigFileName = "configPre.json";
         public const string CoreSpeedtestConfigFileName = "configSpeedtest.json";
+        public const string CoreMultipleLoadConfigFileName = "configMultipleLoad.json";
+        public const string ClashMixinConfigFileName = "Mixin.yaml";
         public const string V2raySampleClient = "v2rayN.Sample.SampleClientConfig";
         public const string SingboxSampleClient = "v2rayN.Sample.SingboxSampleClientConfig";
         public const string V2raySampleHttpRequestFileName = "v2rayN.Sample.SampleHttpRequest";
@@ -43,6 +45,8 @@ namespace v2rayN
         public const string TunSingboxRulesFileName = "v2rayN.Sample.tun_singbox_rules";
         public const string DNSV2rayNormalFileName = "v2rayN.Sample.dns_v2ray_normal";
         public const string DNSSingboxNormalFileName = "v2rayN.Sample.dns_singbox_normal";
+        public const string ClashMixinYaml = "v2rayN.Sample.clash_mixin_yaml";
+        public const string ClashTunYaml = "v2rayN.Sample.clash_tun_yaml";
 
         public const string DefaultSecurity = "auto";
         public const string DefaultNetwork = "tcp";
@@ -70,6 +74,7 @@ namespace v2rayN
         public const string CommandClearMsg = "CommandClearMsg";
         public const string CommandSendMsgView = "CommandSendMsgView";
         public const string CommandStopSpeedTest = "CommandStopSpeedTest";
+        public const string CommandRefreshProfiles = "CommandRefreshProfiles";
         public const string DelayUnit = "";
         public const string SpeedUnit = "";
         public const int MinFontSize = 10;
@@ -106,12 +111,12 @@ namespace v2rayN
             @"https://speed.cloudflare.com/__down?bytes=100000000",
             @"https://speed.cloudflare.com/__down?bytes=10000000",
             @"http://cachefly.cachefly.net/50mb.test",
-            @"http://cachefly.cachefly.net/100mb.test",
             @"http://cachefly.cachefly.net/10mb.test"
         };
 
         public static readonly List<string> SpeedPingTestUrls = new() {
             @"https://www.google.com/generate_204",
+            @"https://www.gstatic.com/generate_204",
             @"https://www.apple.com/library/test/success.html",
             @"http://www.msftconnecttest.com/connecttest.txt",
         };
@@ -158,7 +163,7 @@ namespace v2rayN
         public static readonly List<string> SsSecuritiesInXray = new() { "aes-256-gcm", "aes-128-gcm", "chacha20-poly1305", "chacha20-ietf-poly1305", "xchacha20-poly1305", "xchacha20-ietf-poly1305", "none", "plain", "2022-blake3-aes-128-gcm", "2022-blake3-aes-256-gcm", "2022-blake3-chacha20-poly1305" };
         public static readonly List<string> SsSecuritiesInSingbox = new() { "aes-256-gcm", "aes-192-gcm", "aes-128-gcm", "chacha20-ietf-poly1305", "xchacha20-ietf-poly1305", "none", "2022-blake3-aes-128-gcm", "2022-blake3-aes-256-gcm", "2022-blake3-chacha20-poly1305", "aes-128-ctr", "aes-192-ctr", "aes-256-ctr", "aes-128-cfb", "aes-192-cfb", "aes-256-cfb", "rc4-md5", "chacha20-ietf", "xchacha20" };
         public static readonly List<string> Flows = new() { "", "xtls-rprx-vision", "xtls-rprx-vision-udp443" };
-        public static readonly List<string> Networks = new() { "tcp", "kcp", "ws", "httpupgrade", "h2", "quic", "grpc" };
+        public static readonly List<string> Networks = new() { "tcp", "kcp", "ws", "httpupgrade", "splithttp", "h2", "quic", "grpc" };
         public static readonly List<string> KcpHeaderTypes = new() { "srtp", "utp", "wechat-video", "dtls", "wireguard" };
         public static readonly List<string> CoreTypes = new() { "v2fly", "SagerNet", "Xray", "sing_box" };
         public static readonly List<string> CoreTypes4VLESS = new() { "Xray", "sing_box" };
@@ -170,17 +175,25 @@ namespace v2rayN
 
         public static readonly List<string> AllowInsecure = new() { "true", "false", "" };
         public static readonly List<string> DomainStrategy4Freedoms = new() { "AsIs", "UseIP", "UseIPv4", "UseIPv6", "" };
+        public static readonly List<string> SingboxDomainStrategy4Out = new() { "ipv4_only", "prefer_ipv4", "prefer_ipv6", "ipv6_only", "" };
+        public static readonly List<string> DomainDNSAddress = ["223.5.5.5", "223.6.6.6", "localhost"];
+        public static readonly List<string> SingboxDomainDNSAddress = ["223.5.5.5", "223.6.6.6", "dhcp://auto"];
         public static readonly List<string> Languages = new() { "zh-Hans", "zh-Hant", "en", "fa-Ir", "ru" };
-        public static readonly List<string> Alpns = new() { "h3", "h2", "http/1.1", "h3,h2,http/1.1", "h3,h2", "h2,http/1.1", "" };
+        public static readonly List<string> Alpns = new() { "h3", "h2", "http/1.1", "h3,h2", "h2,http/1.1", "h3,h2,http/1.1", "" };
         public static readonly List<string> LogLevels = new() { "debug", "info", "warning", "error", "none" };
         public static readonly List<string> InboundTags = new() { "socks", "http", "socks2", "http2" };
         public static readonly List<string> RuleProtocols = new() { "http", "tls", "bittorrent" };
+        public static readonly List<string> RuleNetworks = new() { "", "tcp", "udp", "tcp,udp" };
         public static readonly List<string> destOverrideProtocols = ["http", "tls", "quic", "fakedns", "fakedns+others"];
         public static readonly List<string> TunMtus = new() { "1280", "1408", "1500", "9000" };
         public static readonly List<string> TunStacks = new() { "gvisor", "system" };
         public static readonly List<string> PresetMsgFilters = new() { "proxy", "direct", "block", "" };
         public static readonly List<string> SingboxMuxs = new() { "h2mux", "smux", "yamux", "" };
         public static readonly List<string> TuicCongestionControls = new() { "cubic", "new_reno", "bbr" };
+
+        public static readonly List<string> allowSelectType = new List<string> { "selector", "urltest", "loadbalance", "fallback" };
+        public static readonly List<string> notAllowTestType = new List<string> { "selector", "urltest", "direct", "reject", "compatible", "pass", "loadbalance", "fallback" };
+        public static readonly List<string> proxyVehicleType = new List<string> { "file", "http" };
 
         #endregion const
     }

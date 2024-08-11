@@ -1,6 +1,7 @@
 ﻿using ReactiveUI;
 using System.Reactive.Disposables;
 using System.Windows;
+using v2rayN.Enums;
 using v2rayN.Models;
 using v2rayN.ViewModels;
 
@@ -12,22 +13,12 @@ namespace v2rayN.Views
         {
             InitializeComponent();
 
-            // 设置窗口的尺寸不大于屏幕的尺寸
-            if (this.Width > SystemParameters.WorkArea.Width)
-            {
-                this.Width = SystemParameters.WorkArea.Width;
-            }
-            if (this.Height > SystemParameters.WorkArea.Height)
-            {
-                this.Height = SystemParameters.WorkArea.Height;
-            }
-
             this.Owner = Application.Current.MainWindow;
             this.Loaded += Window_Loaded;
             clbProtocol.SelectionChanged += ClbProtocol_SelectionChanged;
             clbInboundTag.SelectionChanged += ClbInboundTag_SelectionChanged;
 
-            ViewModel = new RoutingRuleDetailsViewModel(rulesItem, this);
+            ViewModel = new RoutingRuleDetailsViewModel(rulesItem, UpdateViewHandler);
             cmbOutboundTag.Items.Add(Global.ProxyTag);
             cmbOutboundTag.Items.Add(Global.DirectTag);
             cmbOutboundTag.Items.Add(Global.BlockTag);
@@ -38,6 +29,10 @@ namespace v2rayN.Views
             Global.InboundTags.ForEach(it =>
             {
                 clbInboundTag.Items.Add(it);
+            });
+            Global.RuleNetworks.ForEach(it =>
+            {
+                cmbNetwork.Items.Add(it);
             });
 
             if (!rulesItem.id.IsNullOrEmpty())
@@ -56,6 +51,7 @@ namespace v2rayN.Views
             {
                 this.Bind(ViewModel, vm => vm.SelectedSource.outboundTag, v => v.cmbOutboundTag.Text).DisposeWith(disposables);
                 this.Bind(ViewModel, vm => vm.SelectedSource.port, v => v.txtPort.Text).DisposeWith(disposables);
+                this.Bind(ViewModel, vm => vm.SelectedSource.network, v => v.cmbNetwork.Text).DisposeWith(disposables);
                 this.Bind(ViewModel, vm => vm.SelectedSource.enabled, v => v.togEnabled.IsChecked).DisposeWith(disposables);
                 this.Bind(ViewModel, vm => vm.Domain, v => v.txtDomain.Text).DisposeWith(disposables);
                 this.Bind(ViewModel, vm => vm.IP, v => v.txtIP.Text).DisposeWith(disposables);
@@ -64,6 +60,15 @@ namespace v2rayN.Views
 
                 this.BindCommand(ViewModel, vm => vm.SaveCmd, v => v.btnSave).DisposeWith(disposables);
             });
+        }
+
+        private bool UpdateViewHandler(EViewAction action, object? obj)
+        {
+            if (action == EViewAction.CloseWindow)
+            {
+                this.DialogResult = true;
+            }
+            return true;
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)

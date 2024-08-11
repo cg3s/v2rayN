@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using v2rayN.Enums;
 using v2rayN.Models;
 using v2rayN.Resx;
 
@@ -13,14 +14,14 @@ namespace v2rayN.Handler
         private CoreHandler _coreHandler;
         private List<ServerTestItem> _selecteds;
         private ESpeedActionType _actionType;
-        private Action<string, string, string> _updateFunc;
+        private Action<SpeedTestResult> _updateFunc;
 
         public SpeedtestHandler(Config config)
         {
             _config = config;
         }
 
-        public SpeedtestHandler(Config config, CoreHandler coreHandler, List<ProfileItem> selecteds, ESpeedActionType actionType, Action<string, string, string> update)
+        public SpeedtestHandler(Config config, CoreHandler coreHandler, List<ProfileItem> selecteds, ESpeedActionType actionType, Action<SpeedTestResult> update)
         {
             _config = config;
             _coreHandler = coreHandler;
@@ -376,19 +377,18 @@ namespace v2rayN.Handler
                     ipAddress = ipHostInfo.AddressList[0];
                 }
 
-                Stopwatch timer = new();
-                timer.Start();
+                var timer = Stopwatch.StartNew();
 
                 IPEndPoint endPoint = new(ipAddress, port);
                 using Socket clientSocket = new(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
-                IAsyncResult result = clientSocket.BeginConnect(endPoint, null, null);
+                var result = clientSocket.BeginConnect(endPoint, null, null);
                 if (!result.AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(5)))
                     throw new TimeoutException("connect timeout (5s): " + url);
                 clientSocket.EndConnect(result);
 
                 timer.Stop();
-                responseTime = timer.Elapsed.Milliseconds;
+                responseTime = (int)timer.Elapsed.TotalMilliseconds;
             }
             catch (Exception ex)
             {
@@ -408,7 +408,7 @@ namespace v2rayN.Handler
 
         private void UpdateFunc(string indexId, string delay, string speed = "")
         {
-            _updateFunc(indexId, delay, speed);
+            _updateFunc(new() { IndexId = indexId, Delay = delay, Speed = speed });
         }
     }
 }

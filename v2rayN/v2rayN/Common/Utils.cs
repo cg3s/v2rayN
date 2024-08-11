@@ -79,7 +79,7 @@ namespace v2rayN
         /// </summary>
         /// <param name="lst"></param>
         /// <returns></returns>
-        public static string List2String(List<string> lst, bool wrap = false)
+        public static string List2String(List<string>? lst, bool wrap = false)
         {
             try
             {
@@ -1084,8 +1084,10 @@ namespace v2rayN
         {
             try
             {
+                var sum = MD5.HashData(Encoding.UTF8.GetBytes("wintunsingbox_tun"));
+                var guid = new Guid(sum);
                 string pnputilPath = @"C:\Windows\System32\pnputil.exe";
-                string arg = $" /remove-device /deviceid \"wintun\"";
+                string arg = $$""" /remove-device  "SWD\Wintun\{{{guid}}}" """;
 
                 // Try to remove the device
                 Process proc = new()

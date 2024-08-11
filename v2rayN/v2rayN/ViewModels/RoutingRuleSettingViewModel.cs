@@ -3,20 +3,16 @@ using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Splat;
 using System.Reactive;
-using System.Windows;
+using v2rayN.Base;
+using v2rayN.Enums;
 using v2rayN.Handler;
 using v2rayN.Models;
 using v2rayN.Resx;
-using v2rayN.Views;
-using Application = System.Windows.Application;
 
 namespace v2rayN.ViewModels
 {
-    public class RoutingRuleSettingViewModel : ReactiveObject
+    public class RoutingRuleSettingViewModel : MyReactiveObject
     {
-        private static Config _config;
-        private NoticeHandler? _noticeHandler;
-        private Window _view;
         private List<RulesItem> _rules;
 
         [Reactive]
@@ -43,11 +39,11 @@ namespace v2rayN.ViewModels
 
         public ReactiveCommand<Unit, Unit> SaveCmd { get; }
 
-        public RoutingRuleSettingViewModel(RoutingItem routingItem, Window view)
+        public RoutingRuleSettingViewModel(RoutingItem routingItem, Func<EViewAction, object?, bool>? updateView)
         {
             _config = LazyConfig.Instance.GetConfig();
             _noticeHandler = Locator.Current.GetService<NoticeHandler>();
-            _view = view;
+            _updateView = updateView;
             SelectedSource = new();
 
             if (routingItem.id.IsNullOrEmpty())
@@ -79,9 +75,9 @@ namespace v2rayN.ViewModels
             {
                 ImportRulesFromClipboard();
             });
-            ImportRulesFromUrlCmd = ReactiveCommand.CreateFromTask(() =>
+            ImportRulesFromUrlCmd = ReactiveCommand.Create(() =>
             {
-                return ImportRulesFromUrl();
+                ImportRulesFromUrl();
             });
 
             RuleRemoveCmd = ReactiveCommand.Create(() =>
@@ -114,8 +110,6 @@ namespace v2rayN.ViewModels
             {
                 SaveRouting();
             });
-
-            Utils.SetDarkBorder(view, _config.uiItem.followSystemTheme ? !Utils.IsLightTheme() : _config.uiItem.colorModeDark);
         }
 
         public void RefreshRulesItems()
@@ -129,6 +123,7 @@ namespace v2rayN.ViewModels
                     id = item.id,
                     outboundTag = item.outboundTag,
                     port = item.port,
+                    network = item.network,
                     protocols = Utils.List2String(item.protocol),
                     inboundTags = Utils.List2String(item.inboundTag),
                     domains = Utils.List2String(item.domain),
@@ -154,8 +149,7 @@ namespace v2rayN.ViewModels
                     return;
                 }
             }
-            var ret = (new RoutingRuleDetailsWindow(item)).ShowDialog();
-            if (ret == true)
+            if (_updateView?.Invoke(EViewAction.RoutingRuleDetailsWindow, item) == true)
             {
                 if (blNew)
                 {
@@ -172,7 +166,7 @@ namespace v2rayN.ViewModels
                 _noticeHandler?.Enqueue(ResUI.PleaseSelectRules);
                 return;
             }
-            if (UI.ShowYesNo(ResUI.RemoveRules) == MessageBoxResult.No)
+            if (_updateView?.Invoke(EViewAction.ShowYesNo, null) == false)
             {
                 return;
             }
@@ -252,7 +246,7 @@ namespace v2rayN.ViewModels
             if (ConfigHandler.SaveRoutingItem(_config, item) == 0)
             {
                 _noticeHandler?.Enqueue(ResUI.OperationSuccess);
-                _view.DialogResult = true;
+                _updateView?.Invoke(EViewAction.CloseWindow, null);
             }
             else
             {
@@ -289,7 +283,7 @@ namespace v2rayN.ViewModels
 
         private void ImportRulesFromClipboard()
         {
-            string clipboardData = Utils.GetClipboardData();
+            var clipboardData = Utils.GetClipboardData();
             if (AddBatchRoutingRules(SelectedRouting, clipboardData) == 0)
             {
                 RefreshRulesItems();
@@ -297,7 +291,7 @@ namespace v2rayN.ViewModels
             }
         }
 
-        private async Task ImportRulesFromUrl()
+        private void ImportRulesFromUrl()
         {
             var url = SelectedRouting.url;
             if (Utils.IsNullOrEmpty(url))
@@ -307,13 +301,10 @@ namespace v2rayN.ViewModels
             }
 
             DownloadHandle downloadHandle = new DownloadHandle();
-            var result = await downloadHandle.TryDownloadString(url, true, "");
+            var result = downloadHandle.TryDownloadString(url, true, "").Result;
             if (AddBatchRoutingRules(SelectedRouting, result) == 0)
             {
-                Application.Current.Dispatcher.Invoke((Action)(() =>
-                {
-                    RefreshRulesItems();
-                }));
+                RefreshRulesItems();
                 _noticeHandler?.Enqueue(ResUI.OperationSuccess);
             }
         }
@@ -321,7 +312,7 @@ namespace v2rayN.ViewModels
         private int AddBatchRoutingRules(RoutingItem routingItem, string? clipboardData)
         {
             bool blReplace = false;
-            if (UI.ShowYesNo(ResUI.AddBatchRoutingRulesYesNo) == MessageBoxResult.No)
+            if (_updateView?.Invoke(EViewAction.AddBatchRoutingRulesYesNo, null) == false)
             {
                 blReplace = true;
             }

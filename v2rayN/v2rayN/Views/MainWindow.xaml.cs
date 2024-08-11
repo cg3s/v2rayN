@@ -2,85 +2,43 @@
 using Splat;
 using System.ComponentModel;
 using System.Reactive.Disposables;
-using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
-using v2rayN.Base;
+using System.Windows.Threading;
+using v2rayN.Enums;
 using v2rayN.Handler;
 using v2rayN.Models;
 using v2rayN.Resx;
 using v2rayN.ViewModels;
-using Point = System.Windows.Point;
 
 namespace v2rayN.Views
 {
     public partial class MainWindow
     {
         private static Config _config;
+        private NoticeHandler _noticeHandler;
 
         public MainWindow()
         {
             InitializeComponent();
-
-            // 设置窗口的尺寸不大于屏幕的尺寸
-            if (this.Width > SystemParameters.WorkArea.Width)
-            {
-                this.Width = SystemParameters.WorkArea.Width;
-            }
-            if (this.Height > SystemParameters.WorkArea.Height)
-            {
-                this.Height = SystemParameters.WorkArea.Height;
-            }
-
-            lstGroup.MaxHeight = Math.Floor(SystemParameters.WorkArea.Height * 0.20 / 40) * 40;
 
             _config = LazyConfig.Instance.GetConfig();
 
             App.Current.SessionEnding += Current_SessionEnding;
             this.Closing += MainWindow_Closing;
             this.PreviewKeyDown += MainWindow_PreviewKeyDown;
-            btnAutofitColumnWidth.Click += BtnAutofitColumnWidth_Click;
-            txtServerFilter.PreviewKeyDown += TxtServerFilter_PreviewKeyDown;
-            lstProfiles.PreviewKeyDown += LstProfiles_PreviewKeyDown;
-            lstProfiles.SelectionChanged += lstProfiles_SelectionChanged;
-            lstProfiles.LoadingRow += LstProfiles_LoadingRow;
-            if (_config.uiItem.enableDragDropSort)
-            {
-                lstProfiles.AllowDrop = true;
-                lstProfiles.PreviewMouseLeftButtonDown += LstProfiles_PreviewMouseLeftButtonDown;
-                lstProfiles.MouseMove += LstProfiles_MouseMove;
-                lstProfiles.DragEnter += LstProfiles_DragEnter;
-                lstProfiles.Drop += LstProfiles_Drop;
-            }
 
-            ViewModel = new MainWindowViewModel(MainSnackbar.MessageQueue!, UpdateViewHandler);
+            _noticeHandler = new NoticeHandler(MainSnackbar.MessageQueue);
+            Locator.CurrentMutable.RegisterLazySingleton(() => _noticeHandler, typeof(NoticeHandler));
+
+            ViewModel = new MainWindowViewModel(UpdateViewHandler);
             Locator.CurrentMutable.RegisterLazySingleton(() => ViewModel, typeof(MainWindowViewModel));
-
-            for (int i = Global.MinFontSize; i <= Global.MinFontSize + 8; i++)
-            {
-                cmbCurrentFontSize.Items.Add(i.ToString());
-            }
-
-            Global.Languages.ForEach(it =>
-            {
-                cmbCurrentLanguage.Items.Add(it);
-            });
 
             this.WhenActivated(disposables =>
             {
-                this.OneWayBind(ViewModel, vm => vm.ProfileItems, v => v.lstProfiles.ItemsSource).DisposeWith(disposables);
-                this.Bind(ViewModel, vm => vm.SelectedProfile, v => v.lstProfiles.SelectedItem).DisposeWith(disposables);
-
-                this.OneWayBind(ViewModel, vm => vm.SubItems, v => v.lstGroup.ItemsSource).DisposeWith(disposables);
-                this.Bind(ViewModel, vm => vm.SelectedSub, v => v.lstGroup.SelectedItem).DisposeWith(disposables);
-                this.Bind(ViewModel, vm => vm.ServerFilter, v => v.txtServerFilter.Text).DisposeWith(disposables);
-                this.BindCommand(ViewModel, vm => vm.AddSubCmd, v => v.btnAddSub).DisposeWith(disposables);
-                this.BindCommand(ViewModel, vm => vm.EditSubCmd, v => v.btnEditSub).DisposeWith(disposables);
-
                 //servers
                 this.BindCommand(ViewModel, vm => vm.AddVmessServerCmd, v => v.menuAddVmessServer).DisposeWith(disposables);
                 this.BindCommand(ViewModel, vm => vm.AddVlessServerCmd, v => v.menuAddVlessServer).DisposeWith(disposables);
@@ -94,35 +52,6 @@ namespace v2rayN.Views
                 this.BindCommand(ViewModel, vm => vm.AddCustomServerCmd, v => v.menuAddCustomServer).DisposeWith(disposables);
                 this.BindCommand(ViewModel, vm => vm.AddServerViaClipboardCmd, v => v.menuAddServerViaClipboard).DisposeWith(disposables);
                 this.BindCommand(ViewModel, vm => vm.AddServerViaScanCmd, v => v.menuAddServerViaScan).DisposeWith(disposables);
-
-                //servers delete
-                this.BindCommand(ViewModel, vm => vm.EditServerCmd, v => v.menuEditServer).DisposeWith(disposables);
-                this.BindCommand(ViewModel, vm => vm.RemoveServerCmd, v => v.menuRemoveServer).DisposeWith(disposables);
-                this.BindCommand(ViewModel, vm => vm.RemoveDuplicateServerCmd, v => v.menuRemoveDuplicateServer).DisposeWith(disposables);
-                this.BindCommand(ViewModel, vm => vm.CopyServerCmd, v => v.menuCopyServer).DisposeWith(disposables);
-                this.BindCommand(ViewModel, vm => vm.SetDefaultServerCmd, v => v.menuSetDefaultServer).DisposeWith(disposables);
-                this.BindCommand(ViewModel, vm => vm.ShareServerCmd, v => v.menuShareServer).DisposeWith(disposables);
-
-                //servers move
-                this.OneWayBind(ViewModel, vm => vm.SubItems, v => v.cmbMoveToGroup.ItemsSource).DisposeWith(disposables);
-                this.Bind(ViewModel, vm => vm.SelectedMoveToGroup, v => v.cmbMoveToGroup.SelectedItem).DisposeWith(disposables);
-
-                this.BindCommand(ViewModel, vm => vm.MoveTopCmd, v => v.menuMoveTop).DisposeWith(disposables);
-                this.BindCommand(ViewModel, vm => vm.MoveUpCmd, v => v.menuMoveUp).DisposeWith(disposables);
-                this.BindCommand(ViewModel, vm => vm.MoveDownCmd, v => v.menuMoveDown).DisposeWith(disposables);
-                this.BindCommand(ViewModel, vm => vm.MoveBottomCmd, v => v.menuMoveBottom).DisposeWith(disposables);
-
-                //servers ping
-                this.BindCommand(ViewModel, vm => vm.MixedTestServerCmd, v => v.menuMixedTestServer).DisposeWith(disposables);
-                this.BindCommand(ViewModel, vm => vm.TcpingServerCmd, v => v.menuTcpingServer).DisposeWith(disposables);
-                this.BindCommand(ViewModel, vm => vm.RealPingServerCmd, v => v.menuRealPingServer).DisposeWith(disposables);
-                this.BindCommand(ViewModel, vm => vm.SpeedServerCmd, v => v.menuSpeedServer).DisposeWith(disposables);
-                this.BindCommand(ViewModel, vm => vm.SortServerResultCmd, v => v.menuSortServerResult).DisposeWith(disposables);
-
-                //servers export
-                this.BindCommand(ViewModel, vm => vm.Export2ClientConfigCmd, v => v.menuExport2ClientConfig).DisposeWith(disposables);
-                this.BindCommand(ViewModel, vm => vm.Export2ShareUrlCmd, v => v.menuExport2ShareUrl).DisposeWith(disposables);
-                this.BindCommand(ViewModel, vm => vm.Export2SubContentCmd, v => v.menuExport2SubContent).DisposeWith(disposables);
 
                 //sub
                 this.BindCommand(ViewModel, vm => vm.SubSettingCmd, v => v.menuSubSetting).DisposeWith(disposables);
@@ -143,11 +72,8 @@ namespace v2rayN.Views
 
                 //check update
                 this.BindCommand(ViewModel, vm => vm.CheckUpdateNCmd, v => v.menuCheckUpdateN).DisposeWith(disposables);
-                //this.BindCommand(ViewModel, vm => vm.CheckUpdateV2flyCoreCmd, v => v.menuCheckUpdateV2flyCore).DisposeWith(disposables);
-                //this.BindCommand(ViewModel, vm => vm.CheckUpdateSagerNetCoreCmd, v => v.menuCheckUpdateSagerNetCore).DisposeWith(disposables);
                 this.BindCommand(ViewModel, vm => vm.CheckUpdateXrayCoreCmd, v => v.menuCheckUpdateXrayCore).DisposeWith(disposables);
-                //this.BindCommand(ViewModel, vm => vm.CheckUpdateClashCoreCmd, v => v.menuCheckUpdateClashCore).DisposeWith(disposables);
-                //this.BindCommand(ViewModel, vm => vm.CheckUpdateClashMetaCoreCmd, v => v.menuCheckUpdateClashMetaCore).DisposeWith(disposables);
+                this.BindCommand(ViewModel, vm => vm.CheckUpdateClashMetaCoreCmd, v => v.menuCheckUpdateMihomoCore).DisposeWith(disposables);
                 this.BindCommand(ViewModel, vm => vm.CheckUpdateSingBoxCoreCmd, v => v.menuCheckUpdateSingBoxCore).DisposeWith(disposables);
                 this.BindCommand(ViewModel, vm => vm.CheckUpdateGeoCmd, v => v.menuCheckUpdateGeo).DisposeWith(disposables);
 
@@ -184,7 +110,6 @@ namespace v2rayN.Views
                 this.OneWayBind(ViewModel, vm => vm.RunningServerToolTipText, v => v.tbNotify.ToolTipText).DisposeWith(disposables);
                 this.OneWayBind(ViewModel, vm => vm.NotifyLeftClickCmd, v => v.tbNotify.LeftClickCommand).DisposeWith(disposables);
                 this.OneWayBind(ViewModel, vm => vm.AppIcon, v => v.Icon).DisposeWith(disposables);
-                //this.OneWayBind(ViewModel, vm => vm.BlShowTrayTip, v => v.borTrayToolTip.Visibility).DisposeWith(disposables);
 
                 //status bar
                 this.OneWayBind(ViewModel, vm => vm.InboundDisplay, v => v.txtInboundDisplay.Text).DisposeWith(disposables);
@@ -200,76 +125,144 @@ namespace v2rayN.Views
                 this.Bind(ViewModel, vm => vm.SelectedRouting, v => v.cmbRoutings2.SelectedItem).DisposeWith(disposables);
                 this.OneWayBind(ViewModel, vm => vm.BlRouting, v => v.cmbRoutings2.Visibility).DisposeWith(disposables);
 
-                //UI
-                this.Bind(ViewModel, vm => vm.ColorModeDark, v => v.togDarkMode.IsChecked).DisposeWith(disposables);
-                this.Bind(ViewModel, vm => vm.FollowSystemTheme, v => v.followSystemTheme.IsChecked).DisposeWith(disposables);
-                this.OneWayBind(ViewModel, vm => vm.Swatches, v => v.cmbSwatches.ItemsSource).DisposeWith(disposables);
-                this.Bind(ViewModel, vm => vm.SelectedSwatch, v => v.cmbSwatches.SelectedItem).DisposeWith(disposables);
-                this.Bind(ViewModel, vm => vm.CurrentFontSize, v => v.cmbCurrentFontSize.Text).DisposeWith(disposables);
-                this.Bind(ViewModel, vm => vm.CurrentLanguage, v => v.cmbCurrentLanguage.Text).DisposeWith(disposables);
+                if (_config.uiItem.mainGirdOrientation == EGirdOrientation.Horizontal)
+                {
+                    gridMain.Visibility = Visibility.Visible;
+                    this.OneWayBind(ViewModel, vm => vm.ShowClashUI, v => v.tabClashProxies.Visibility).DisposeWith(disposables);
+                    this.OneWayBind(ViewModel, vm => vm.ShowClashUI, v => v.tabClashConnections.Visibility).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.TabMainSelectedIndex, v => v.tabMain.SelectedIndex).DisposeWith(disposables);
+                }
+                else if (_config.uiItem.mainGirdOrientation == EGirdOrientation.Vertical)
+                {
+                    gridMain1.Visibility = Visibility.Visible;
+                    this.OneWayBind(ViewModel, vm => vm.ShowClashUI, v => v.tabClashProxies1.Visibility).DisposeWith(disposables);
+                    this.OneWayBind(ViewModel, vm => vm.ShowClashUI, v => v.tabClashConnections1.Visibility).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.TabMainSelectedIndex, v => v.tabMain1.SelectedIndex).DisposeWith(disposables);
+                }
+                else
+                {
+                    gridMain2.Visibility = Visibility.Visible;
+                    this.OneWayBind(ViewModel, vm => vm.ShowClashUI, v => v.tabClashProxies2.Visibility).DisposeWith(disposables);
+                    this.OneWayBind(ViewModel, vm => vm.ShowClashUI, v => v.tabClashConnections2.Visibility).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.TabMainSelectedIndex, v => v.tabMain2.SelectedIndex).DisposeWith(disposables);
+                }
             });
-
-            RestoreUI();
-            AddHelpMenuItem();
 
             var IsAdministrator = Utils.IsAdministrator();
             this.Title = $"{Utils.GetVersion()} - {(IsAdministrator ? ResUI.RunAsAdmin : ResUI.NotRunAsAdmin)}";
-
-            //if (_config.uiItem.autoHideStartup)
-            //{
-            //    WindowState = WindowState.Minimized;
-            //}
 
             if (!_config.guiItem.enableHWA)
             {
                 RenderOptions.ProcessRenderMode = RenderMode.SoftwareOnly;
             }
 
-            var helper = new WindowInteropHelper(this);
-            var hwndSource = HwndSource.FromHwnd(helper.EnsureHandle());
-            hwndSource.AddHook((IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled) =>
+            if (_config.uiItem.mainGirdOrientation == EGirdOrientation.Horizontal)
             {
-                if (_config.uiItem.followSystemTheme)
-                {
-                    const int WM_SETTINGCHANGE = 0x001A;
-                    if (msg == WM_SETTINGCHANGE)
-                    {
-                        if (wParam == IntPtr.Zero && Marshal.PtrToStringUni(lParam) == "ImmersiveColorSet")
-                        {
-                            ViewModel?.ModifyTheme(!Utils.IsLightTheme());
-                        }
-                    }
-                }
+                tabProfiles.Content ??= new ProfilesView();
+                tabMsgView.Content ??= new MsgView();
+                tabClashProxies.Content ??= new ClashProxiesView();
+                tabClashConnections.Content ??= new ClashConnectionsView();
+            }
+            else if (_config.uiItem.mainGirdOrientation == EGirdOrientation.Vertical)
+            {
+                tabProfiles1.Content ??= new ProfilesView();
+                tabMsgView1.Content ??= new MsgView();
+                tabClashProxies1.Content ??= new ClashProxiesView();
+                tabClashConnections1.Content ??= new ClashConnectionsView();
+            }
+            else
+            {
+                tabProfiles2.Content ??= new ProfilesView();
+                tabMsgView2.Content ??= new MsgView();
+                tabClashProxies2.Content ??= new ClashProxiesView();
+                tabClashConnections2.Content ??= new ClashConnectionsView();
+            }
+            pbTheme.Content ??= new ThemeSettingView();
 
-                return IntPtr.Zero;
-            });
+            RestoreUI();
+            AddHelpMenuItem();
+        }
+
+        private bool UpdateViewHandler(EViewAction action, object? obj)
+        {
+            switch (action)
+            {
+                case EViewAction.AddServerWindow:
+                    if (obj is null) return false;
+                    return (new AddServerWindow((ProfileItem)obj)).ShowDialog() ?? false;
+
+                case EViewAction.AddServer2Window:
+                    if (obj is null) return false;
+                    return (new AddServer2Window((ProfileItem)obj)).ShowDialog() ?? false;
+
+                case EViewAction.DNSSettingWindow:
+                    return (new DNSSettingWindow().ShowDialog() ?? false);
+
+                case EViewAction.RoutingSettingWindow:
+                    return (new RoutingSettingWindow().ShowDialog() ?? false);
+
+                case EViewAction.OptionSettingWindow:
+                    return (new OptionSettingWindow().ShowDialog() ?? false);
+
+                case EViewAction.GlobalHotkeySettingWindow:
+                    return (new GlobalHotkeySettingWindow().ShowDialog() ?? false);
+
+                case EViewAction.SubSettingWindow:
+                    return (new SubSettingWindow().ShowDialog() ?? false);
+
+                case EViewAction.ShowHideWindow:
+                    Application.Current?.Dispatcher.Invoke((() =>
+                    {
+                        ShowHideWindow((bool?)obj);
+                    }), DispatcherPriority.Normal);
+                    break;
+
+                case EViewAction.DispatcherStatistics:
+                    if (obj is null) return false;
+                    Application.Current?.Dispatcher.Invoke((() =>
+                    {
+                        ViewModel?.SetStatisticsResult((ServerSpeedItem)obj);
+                    }), DispatcherPriority.Normal);
+                    break;
+
+                case EViewAction.DispatcherServerAvailability:
+                    if (obj is null) return false;
+                    Application.Current?.Dispatcher.Invoke((() =>
+                    {
+                        ViewModel?.TestServerAvailabilityResult((string)obj);
+                    }), DispatcherPriority.Normal);
+                    break;
+
+                case EViewAction.DispatcherReload:
+                    Application.Current?.Dispatcher.Invoke((() =>
+                    {
+                        ViewModel?.ReloadResult();
+                    }), DispatcherPriority.Normal);
+                    break;
+
+                case EViewAction.DispatcherRefreshServersBiz:
+                    Application.Current?.Dispatcher.Invoke((() =>
+                    {
+                        ViewModel?.RefreshServersBiz();
+                    }), DispatcherPriority.Normal);
+                    break;
+            }
+
+            return true;
         }
 
         #region Event
 
-        private void UpdateViewHandler(EViewAction action)
-        {
-            if (action == EViewAction.AdjustMainLvColWidth)
-            {
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    AutofitColumnWidth();
-                });
-            }
-            else if (action == EViewAction.ProfilesFocus)
-            {
-                lstProfiles.Focus();
-            }
-        }
-
         private void MainWindow_Closing(object? sender, CancelEventArgs e)
         {
             e.Cancel = true;
-            ViewModel?.ShowHideWindow(false);
+            ShowHideWindow(false);
         }
 
         private void menuExit_Click(object sender, RoutedEventArgs e)
         {
+            tabProfiles = null;
+
             tbNotify.Dispose();
             StorageUI();
             ViewModel?.MyAppExit(false);
@@ -282,45 +275,6 @@ namespace v2rayN.Views
             ViewModel?.MyAppExit(true);
         }
 
-        private void lstProfiles_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
-        {
-            ViewModel.SelectedProfiles = lstProfiles.SelectedItems.Cast<ProfileItemModel>().ToList();
-        }
-
-        private void LstProfiles_LoadingRow(object? sender, DataGridRowEventArgs e)
-        {
-            e.Row.Header = $" {e.Row.GetIndex() + 1}";
-        }
-
-        private void LstProfiles_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            if (_config.uiItem.doubleClick2Activate)
-            {
-                ViewModel?.SetDefaultServer();
-            }
-            else
-            {
-                ViewModel?.EditServer(false, EConfigType.Custom);
-            }
-        }
-
-        private void LstProfiles_ColumnHeader_Click(object sender, RoutedEventArgs e)
-        {
-            var colHeader = sender as DataGridColumnHeader;
-            if (colHeader == null || colHeader.TabIndex < 0 || colHeader.Column == null)
-            {
-                return;
-            }
-
-            var colName = ((MyDGTextColumn)colHeader.Column).ExName;
-            ViewModel?.SortServer(colName);
-        }
-
-        private void menuSelectAll_Click(object sender, RoutedEventArgs e)
-        {
-            lstProfiles.SelectAll();
-        }
-
         private void MainWindow_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
@@ -331,24 +285,8 @@ namespace v2rayN.Views
                         ViewModel?.AddServerViaClipboard();
                         break;
 
-                    case Key.O:
-                        ViewModel?.ServerSpeedtest(ESpeedActionType.Tcping);
-                        break;
-
-                    case Key.R:
-                        ViewModel?.ServerSpeedtest(ESpeedActionType.Realping);
-                        break;
-
                     case Key.S:
                         ViewModel?.ScanScreenTaskAsync().ContinueWith(_ => { });
-                        break;
-
-                    case Key.T:
-                        ViewModel?.ServerSpeedtest(ESpeedActionType.Speedtest);
-                        break;
-
-                    case Key.E:
-                        ViewModel?.ServerSpeedtest(ESpeedActionType.Mixedtest);
                         break;
                 }
             }
@@ -358,67 +296,13 @@ namespace v2rayN.Views
                 {
                     ViewModel?.Reload();
                 }
-                else if (e.Key == Key.Escape)
-                {
-                    MessageBus.Current.SendMessage("true", Global.CommandStopSpeedTest);
-                }
-            }
-        }
-
-        private void LstProfiles_PreviewKeyDown(object sender, KeyEventArgs e)
-        {
-            if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
-            {
-                if (e.Key == Key.A)
-                {
-                    menuSelectAll_Click(null, null);
-                }
-                else if (e.Key == Key.C)
-                {
-                    ViewModel?.Export2ShareUrl();
-                }
-                else if (e.Key == Key.D)
-                {
-                    ViewModel?.EditServer(false, EConfigType.Custom);
-                }
-                else if (e.Key == Key.F)
-                {
-                    ViewModel?.ShareServer();
-                }
-            }
-            else
-            {
-                if (e.Key is Key.Enter or Key.Return)
-                {
-                    ViewModel?.SetDefaultServer();
-                }
-                else if (e.Key == Key.Delete)
-                {
-                    ViewModel?.RemoveServer();
-                }
-                else if (e.Key == Key.T)
-                {
-                    ViewModel?.MoveServer(EMove.Top);
-                }
-                else if (e.Key == Key.U)
-                {
-                    ViewModel?.MoveServer(EMove.Up);
-                }
-                else if (e.Key == Key.D)
-                {
-                    ViewModel?.MoveServer(EMove.Down);
-                }
-                else if (e.Key == Key.B)
-                {
-                    ViewModel?.MoveServer(EMove.Bottom);
-                }
             }
         }
 
         private void menuClose_Click(object sender, RoutedEventArgs e)
         {
             StorageUI();
-            ViewModel?.ShowHideWindow(false);
+            ShowHideWindow(false);
         }
 
         private void menuPromotion_Click(object sender, RoutedEventArgs e)
@@ -436,30 +320,29 @@ namespace v2rayN.Views
             Utils.ProcessStart(Utils.GetBinPath("EnableLoopback.exe"));
         }
 
-        private void BtnAutofitColumnWidth_Click(object sender, RoutedEventArgs e)
-        {
-            AutofitColumnWidth();
-        }
-
-        private void AutofitColumnWidth()
-        {
-            foreach (var it in lstProfiles.Columns)
-            {
-                it.Width = new DataGridLength(1, DataGridLengthUnitType.Auto);
-            }
-        }
-
-        private void TxtServerFilter_PreviewKeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key is Key.Enter or Key.Return)
-            {
-                ViewModel?.RefreshServers();
-            }
-        }
-
         #endregion Event
 
         #region UI
+
+        public void ShowHideWindow(bool? blShow)
+        {
+            var bl = blShow ?? !_config.uiItem.showInTaskbar;
+            if (bl)
+            {
+                Application.Current.MainWindow.Show();
+                if (Application.Current.MainWindow.WindowState == WindowState.Minimized)
+                {
+                    Application.Current.MainWindow.WindowState = WindowState.Normal;
+                }
+                Application.Current.MainWindow.Activate();
+                Application.Current.MainWindow.Focus();
+            }
+            else
+            {
+                Application.Current.MainWindow.Hide();
+            }
+            _config.uiItem.showInTaskbar = bl;
+        }
 
         private void RestoreUI()
         {
@@ -475,44 +358,16 @@ namespace v2rayN.Views
             if (Height > maxHeight) Height = maxHeight;
             if (_config.uiItem.mainGirdHeight1 > 0 && _config.uiItem.mainGirdHeight2 > 0)
             {
-                gridMain.RowDefinitions[0].Height = new GridLength(_config.uiItem.mainGirdHeight1, GridUnitType.Star);
-                gridMain.RowDefinitions[2].Height = new GridLength(_config.uiItem.mainGirdHeight2, GridUnitType.Star);
-            }
-
-            var lvColumnItem = _config.uiItem.mainColumnItem.OrderBy(t => t.Index).ToList();
-            var displayIndex = 0;
-            foreach (var item in lvColumnItem)
-            {
-                foreach (MyDGTextColumn item2 in lstProfiles.Columns)
+                if (_config.uiItem.mainGirdOrientation == EGirdOrientation.Horizontal)
                 {
-                    if (item2.ExName == item.Name)
-                    {
-                        if (item.Width < 0)
-                        {
-                            item2.Visibility = Visibility.Hidden;
-                        }
-                        else
-                        {
-                            item2.Width = item.Width;
-                            item2.DisplayIndex = displayIndex++;
-                        }
-                    }
+                    gridMain.ColumnDefinitions[0].Width = new GridLength(_config.uiItem.mainGirdHeight1, GridUnitType.Star);
+                    gridMain.ColumnDefinitions[2].Width = new GridLength(_config.uiItem.mainGirdHeight2, GridUnitType.Star);
                 }
-            }
-
-            if (!_config.guiItem.enableStatistics)
-            {
-                colTodayUp.Visibility =
-                colTodayDown.Visibility =
-                colTotalUp.Visibility =
-                colTotalDown.Visibility = Visibility.Hidden;
-            }
-            else
-            {
-                colTodayUp.Visibility =
-                colTodayDown.Visibility =
-                colTotalUp.Visibility =
-                colTotalDown.Visibility = Visibility.Visible;
+                else if (_config.uiItem.mainGirdOrientation == EGirdOrientation.Vertical)
+                {
+                    gridMain1.RowDefinitions[0].Height = new GridLength(_config.uiItem.mainGirdHeight1, GridUnitType.Star);
+                    gridMain1.RowDefinitions[2].Height = new GridLength(_config.uiItem.mainGirdHeight2, GridUnitType.Star);
+                }
             }
         }
 
@@ -521,21 +376,16 @@ namespace v2rayN.Views
             _config.uiItem.mainWidth = Utils.ToInt(this.Width);
             _config.uiItem.mainHeight = Utils.ToInt(this.Height);
 
-            List<ColumnItem> lvColumnItem = new();
-            for (int k = 0; k < lstProfiles.Columns.Count; k++)
+            if (_config.uiItem.mainGirdOrientation == EGirdOrientation.Horizontal)
             {
-                var item2 = (MyDGTextColumn)lstProfiles.Columns[k];
-                lvColumnItem.Add(new()
-                {
-                    Name = item2.ExName,
-                    Width = item2.Visibility == Visibility.Visible ? Utils.ToInt(item2.ActualWidth) : -1,
-                    Index = item2.DisplayIndex
-                });
+                _config.uiItem.mainGirdHeight1 = Math.Ceiling(gridMain.ColumnDefinitions[0].ActualWidth + 0.1);
+                _config.uiItem.mainGirdHeight2 = Math.Ceiling(gridMain.ColumnDefinitions[2].ActualWidth + 0.1);
             }
-            _config.uiItem.mainColumnItem = lvColumnItem;
-
-            _config.uiItem.mainGirdHeight1 = Math.Ceiling(gridMain.RowDefinitions[0].ActualHeight + 0.1);
-            _config.uiItem.mainGirdHeight2 = Math.Ceiling(gridMain.RowDefinitions[2].ActualHeight + 0.1);
+            else if (_config.uiItem.mainGirdOrientation == EGirdOrientation.Vertical)
+            {
+                _config.uiItem.mainGirdHeight1 = Math.Ceiling(gridMain1.RowDefinitions[0].ActualHeight + 0.1);
+                _config.uiItem.mainGirdHeight2 = Math.Ceiling(gridMain1.RowDefinitions[2].ActualHeight + 0.1);
+            }
         }
 
         private void AddHelpMenuItem()
@@ -566,97 +416,5 @@ namespace v2rayN.Views
         }
 
         #endregion UI
-
-        #region Drag and Drop
-
-        private Point startPoint = new();
-        private int startIndex = -1;
-        private string formatData = "ProfileItemModel";
-
-        /// <summary>
-        /// Helper to search up the VisualTree
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="current"></param>
-        /// <returns></returns>
-        private static T? FindAncestor<T>(DependencyObject current) where T : DependencyObject
-        {
-            do
-            {
-                if (current is T)
-                {
-                    return (T)current;
-                }
-                current = VisualTreeHelper.GetParent(current);
-            }
-            while (current != null);
-            return null;
-        }
-
-        private void LstProfiles_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            // Get current mouse position
-            startPoint = e.GetPosition(null);
-        }
-
-        private void LstProfiles_MouseMove(object sender, MouseEventArgs e)
-        {
-            // Get the current mouse position
-            Point mousePos = e.GetPosition(null);
-            Vector diff = startPoint - mousePos;
-
-            if (e.LeftButton == MouseButtonState.Pressed &&
-                (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance ||
-                       Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance))
-            {
-                // Get the dragged Item
-                if (sender is not DataGrid listView) return;
-                var listViewItem = FindAncestor<DataGridRow>((DependencyObject)e.OriginalSource);
-                if (listViewItem == null) return;           // Abort
-                                                            // Find the data behind the ListViewItem
-                ProfileItemModel item = (ProfileItemModel)listView.ItemContainerGenerator.ItemFromContainer(listViewItem);
-                if (item == null) return;                   // Abort
-                                                            // Initialize the drag & drop operation
-                startIndex = lstProfiles.SelectedIndex;
-                DataObject dragData = new(formatData, item);
-                DragDrop.DoDragDrop(listViewItem, dragData, DragDropEffects.Copy | DragDropEffects.Move);
-            }
-        }
-
-        private void LstProfiles_DragEnter(object sender, DragEventArgs e)
-        {
-            if (!e.Data.GetDataPresent(formatData) || sender != e.Source)
-            {
-                e.Effects = DragDropEffects.None;
-            }
-        }
-
-        private void LstProfiles_Drop(object sender, DragEventArgs e)
-        {
-            if (e.Data.GetDataPresent(formatData) && sender == e.Source)
-            {
-                // Get the drop Item destination
-                if (sender is not DataGrid listView) return;
-                var listViewItem = FindAncestor<DataGridRow>((DependencyObject)e.OriginalSource);
-                if (listViewItem == null)
-                {
-                    // Abort
-                    e.Effects = DragDropEffects.None;
-                    return;
-                }
-                // Find the data behind the Item
-                ProfileItemModel item = (ProfileItemModel)listView.ItemContainerGenerator.ItemFromContainer(listViewItem);
-                if (item == null) return;
-                // Move item into observable collection
-                // (this will be automatically reflected to lstView.ItemsSource)
-                e.Effects = DragDropEffects.Move;
-
-                ViewModel?.MoveServerTo(startIndex, item);
-
-                startIndex = -1;
-            }
-        }
-
-        #endregion Drag and Drop
     }
 }

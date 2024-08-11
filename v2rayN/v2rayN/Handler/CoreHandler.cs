@@ -1,7 +1,8 @@
 ﻿using System.Diagnostics;
 using System.IO;
-using System.Reactive.Linq;
 using System.Text;
+using v2rayN.Enums;
+using v2rayN.Handler.CoreConfig;
 using v2rayN.Models;
 using v2rayN.Resx;
 
@@ -26,9 +27,8 @@ namespace v2rayN.Handler
             Environment.SetEnvironmentVariable("xray.location.asset", Utils.GetBinPath(""), EnvironmentVariableTarget.Process);
         }
 
-        public void LoadCore()
+        public void LoadCore(ProfileItem? node)
         {
-            var node = ConfigHandler.GetDefaultServer(_config);
             if (node == null)
             {
                 ShowMsg(false, ResUI.CheckServerSettings);
@@ -39,6 +39,7 @@ namespace v2rayN.Handler
             if (CoreConfigHandler.GenerateClientConfig(node, fileName, out string msg, out string content) != 0)
             {
                 ShowMsg(false, msg);
+                return;
             }
             else
             {
@@ -54,22 +55,22 @@ namespace v2rayN.Handler
                 CoreStart(node);
 
                 //In tun mode, do a delay check and restart the core
-                if (_config.tunModeItem.enableTun)
-                {
-                    Observable.Range(1, 1)
-                    .Delay(TimeSpan.FromSeconds(15))
-                    .Subscribe(x =>
-                    {
-                        {
-                            if (_process == null || _process.HasExited)
-                            {
-                                CoreStart(node);
-                                ShowMsg(false, "Tun mode restart the core once");
-                                Logging.SaveLog("Tun mode restart the core once");
-                            }
-                        }
-                    });
-                }
+                //if (_config.tunModeItem.enableTun)
+                //{
+                //    Observable.Range(1, 1)
+                //    .Delay(TimeSpan.FromSeconds(15))
+                //    .Subscribe(x =>
+                //    {
+                //        {
+                //            if (_process == null || _process.HasExited)
+                //            {
+                //                CoreStart(node);
+                //                ShowMsg(false, "Tun mode restart the core once");
+                //                Logging.SaveLog("Tun mode restart the core once");
+                //            }
+                //        }
+                //    });
+                //}
             }
         }
 
@@ -183,15 +184,16 @@ namespace v2rayN.Handler
             ShowMsg(false, $"{Environment.OSVersion} - {(Environment.Is64BitOperatingSystem ? 64 : 32)}");
             ShowMsg(false, string.Format(ResUI.StartService, DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss")));
 
-            ECoreType coreType;
-            if (node.configType != EConfigType.Custom && _config.tunModeItem.enableTun)
-            {
-                coreType = ECoreType.sing_box;
-            }
-            else
-            {
-                coreType = LazyConfig.Instance.GetCoreType(node, node.configType);
-            }
+            //ECoreType coreType;
+            //if (node.configType != EConfigType.Custom && _config.tunModeItem.enableTun)
+            //{
+            //    coreType = ECoreType.sing_box;
+            //}
+            //else
+            //{
+            //    coreType = LazyConfig.Instance.GetCoreType(node, node.configType);
+            //}
+            var coreType = LazyConfig.Instance.GetCoreType(node, node.configType);
             _config.runningCoreType = coreType;
             var coreInfo = LazyConfig.Instance.GetCoreInfo(coreType);
 
@@ -203,13 +205,26 @@ namespace v2rayN.Handler
             }
             _process = proc;
 
-            //start a socks service
+            //start a pre service
             if (_process != null && !_process.HasExited)
             {
-                if ((node.configType == EConfigType.Custom && node.preSocksPort > 0))
+                ProfileItem? itemSocks = null;
+                var preCoreType = ECoreType.sing_box;
+                if (node.configType != EConfigType.Custom && coreType != ECoreType.sing_box && _config.tunModeItem.enableTun)
                 {
-                    var preCoreType = _config.tunModeItem.enableTun ? ECoreType.sing_box : ECoreType.Xray;
-                    var itemSocks = new ProfileItem()
+                    itemSocks = new ProfileItem()
+                    {
+                        coreType = preCoreType,
+                        configType = EConfigType.Socks,
+                        address = Global.Loopback,
+                        sni = node.address, //Tun2SocksAddress
+                        port = LazyConfig.Instance.GetLocalPort(EInboundProtocol.socks)
+                    };
+                }
+                else if ((node.configType == EConfigType.Custom && node.preSocksPort > 0))
+                {
+                    preCoreType = _config.tunModeItem.enableTun ? ECoreType.sing_box : ECoreType.Xray;
+                    itemSocks = new ProfileItem()
                     {
                         coreType = preCoreType,
                         configType = EConfigType.Socks,
@@ -217,6 +232,9 @@ namespace v2rayN.Handler
                         port = node.preSocksPort
                     };
                     _config.runningCoreType = preCoreType;
+                }
+                if (itemSocks != null)
+                {
                     string fileName2 = Utils.GetConfigPath(Global.CorePreConfigFileName);
                     if (CoreConfigHandler.GenerateClientConfig(itemSocks, fileName2, out string msg2, out string configStr) == 0)
                     {

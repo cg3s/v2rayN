@@ -2,6 +2,7 @@
 using System.Reactive.Disposables;
 using System.Windows;
 using System.Windows.Controls;
+using v2rayN.Enums;
 using v2rayN.Handler;
 using v2rayN.Models;
 using v2rayN.Resx;
@@ -15,22 +16,12 @@ namespace v2rayN.Views
         {
             InitializeComponent();
 
-            // 设置窗口的尺寸不大于屏幕的尺寸
-            if (this.Width > SystemParameters.WorkArea.Width)
-            {
-                this.Width = SystemParameters.WorkArea.Width;
-            }
-            if (this.Height > SystemParameters.WorkArea.Height)
-            {
-                this.Height = SystemParameters.WorkArea.Height;
-            }
-
             this.Owner = Application.Current.MainWindow;
             this.Loaded += Window_Loaded;
             cmbNetwork.SelectionChanged += CmbNetwork_SelectionChanged;
             cmbStreamSecurity.SelectionChanged += CmbStreamSecurity_SelectionChanged;
 
-            ViewModel = new AddServerViewModel(profileItem, this);
+            ViewModel = new AddServerViewModel(profileItem, UpdateViewHandler);
 
             if (profileItem.configType == EConfigType.VLESS)
             {
@@ -233,6 +224,15 @@ namespace v2rayN.Views
             this.Title = $"{profileItem.configType}";
         }
 
+        private bool UpdateViewHandler(EViewAction action, object? obj)
+        {
+            if (action == EViewAction.CloseWindow)
+            {
+                this.DialogResult = true;
+            }
+            return true;
+        }
+
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             txtRemarks.Focus();
@@ -332,6 +332,7 @@ namespace v2rayN.Views
 
                 case nameof(ETransport.ws):
                 case nameof(ETransport.httpupgrade):
+                case nameof(ETransport.splithttp):
                     tipRequestHost.Text = ResUI.TransportRequestHostTip2;
                     tipPath.Text = ResUI.TransportPathTip1;
                     break;
