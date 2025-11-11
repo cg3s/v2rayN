@@ -314,17 +314,10 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
         }
     }
 
-<<<<<<< HEAD
-    //private void menuPromotion_Click(object? sender, RoutedEventArgs e)
-    //{
-    //    ProcUtils.ProcessStart($"{Utils.Base64Decode(Global.PromotionUrl)}?t={DateTime.Now.Ticks}");
-    //}
-=======
-    private void MenuPromotion_Click(object? sender, RoutedEventArgs e)
-    {
-        ProcUtils.ProcessStart($"{Utils.Base64Decode(Global.PromotionUrl)}?t={DateTime.Now.Ticks}");
-    }
->>>>>>> upstream/master
+    // private void MenuPromotion_Click(object? sender, RoutedEventArgs e)
+    // {
+    //     ProcUtils.ProcessStart($"{Utils.Base64Decode(Global.PromotionUrl)}?t={DateTime.Now.Ticks}");
+    // }
 
     private void MenuSettingsSetUWP_Click(object? sender, RoutedEventArgs e)
     {
