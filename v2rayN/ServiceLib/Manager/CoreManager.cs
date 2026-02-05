@@ -167,7 +167,7 @@ public class CoreManager
 
     private async Task CoreStart(ProfileItem node)
     {
-        var coreType = _config.RunningCoreType = AppManager.Instance.GetCoreType(node, node.ConfigType);
+        var coreType = AppManager.Instance.RunningCoreType = AppManager.Instance.GetCoreType(node, node.ConfigType);
         var coreInfo = CoreInfoManager.Instance.GetCoreInfo(coreType);
 
         var displayLog = node.ConfigType != EConfigType.Custom || node.DisplayLog;
@@ -226,7 +226,7 @@ public class CoreManager
         {
             if (mayNeedSudo
                 && _config.TunModeItem.EnableTun
-                && coreInfo.CoreType == ECoreType.sing_box
+                && (coreInfo.CoreType is ECoreType.sing_box or ECoreType.mihomo)
                 && Utils.IsNonWindows())
             {
                 _linuxSudo = true;

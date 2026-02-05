@@ -56,7 +56,8 @@ public class ProfilesViewModel : MyReactiveObject
 
     public ReactiveCommand<Unit, Unit> MoveUpCmd { get; }
     public ReactiveCommand<Unit, Unit> MoveDownCmd { get; }
-    public ReactiveCommand<Unit, Unit> MoveBottomCmd { get; }
+    public ReactiveCommand<Unit, Unit> MoveBottomCmd { get; } 
+    public ReactiveCommand<SubItem, Unit> MoveToGroupCmd { get; }
 
     //servers ping
     public ReactiveCommand<Unit, Unit> MixedTestServerCmd { get; }
@@ -77,6 +78,7 @@ public class ProfilesViewModel : MyReactiveObject
 
     public ReactiveCommand<Unit, Unit> AddSubCmd { get; }
     public ReactiveCommand<Unit, Unit> EditSubCmd { get; }
+    public ReactiveCommand<Unit, Unit> DeleteSubCmd { get; }
 
     #endregion Menu
 
@@ -178,6 +180,10 @@ public class ProfilesViewModel : MyReactiveObject
         {
             await MoveServer(EMove.Bottom);
         }, canEditRemove);
+        MoveToGroupCmd = ReactiveCommand.CreateFromTask<SubItem>(async sub =>
+        {
+            SelectedMoveToGroup = sub;
+        });
 
         //servers ping
         FastRealPingCmd = ReactiveCommand.CreateFromTask(async () =>
@@ -234,6 +240,10 @@ public class ProfilesViewModel : MyReactiveObject
         EditSubCmd = ReactiveCommand.CreateFromTask(async () =>
         {
             await EditSubAsync(false);
+        });
+        DeleteSubCmd = ReactiveCommand.CreateFromTask(async () =>
+        {
+            await DeleteSubAsync();
         });
 
         #endregion WhenAnyValue && ReactiveCommand
@@ -436,7 +446,7 @@ public class ProfilesViewModel : MyReactiveObject
                         Remarks = t.Remarks,
                         Address = t.Address,
                         Port = t.Port,
-                        Security = t.Security,
+                        //Security = t.Security,
                         Network = t.Network,
                         StreamSecurity = t.StreamSecurity,
                         Subid = t.Subid,
@@ -553,6 +563,11 @@ public class ProfilesViewModel : MyReactiveObject
 
     private async Task RemoveDuplicateServer()
     {
+        if (await _updateView?.Invoke(EViewAction.ShowYesNo, null) == false)
+        {
+            return;
+        }
+
         var tuple = await ConfigHandler.DedupServerList(_config, _config.SubIndexId);
         if (tuple.Item1 > 0 || tuple.Item2 > 0)
         {
@@ -877,6 +892,24 @@ public class ProfilesViewModel : MyReactiveObject
             await RefreshSubscriptions();
             await SubSelectedChangedAsync(true);
         }
+    }
+
+    private async Task DeleteSubAsync()
+    {
+        var item = await AppManager.Instance.GetSubItem(_config.SubIndexId);
+        if (item is null)
+        {
+            return;
+        }
+
+        if (await _updateView?.Invoke(EViewAction.ShowYesNo, null) == false)
+        {
+            return;
+        }
+        await ConfigHandler.DeleteSubItem(_config, item.Id);
+
+        await RefreshSubscriptions();
+        await SubSelectedChangedAsync(true);
     }
 
     #endregion Subscription

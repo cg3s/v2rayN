@@ -6,6 +6,7 @@ public partial class CoreConfigV2rayService
     {
         try
         {
+            var protocolExtra = node.GetProtocolExtra();
             var muxEnabled = node.MuxEnabled ?? _config.CoreBasicItem.MuxEnabled;
             switch (node.ConfigType)
             {
@@ -35,12 +36,12 @@ public partial class CoreConfigV2rayService
                             usersItem = vnextItem.users.First();
                         }
 
-                        usersItem.id = node.Id;
-                        usersItem.alterId = node.AlterId;
+                        usersItem.id = node.Password;
+                        usersItem.alterId = int.TryParse(protocolExtra?.AlterId, out var result) ? result : 0;
                         usersItem.email = Global.UserEMail;
-                        if (Global.VmessSecurities.Contains(node.Security))
+                        if (Global.VmessSecurities.Contains(protocolExtra.VmessSecurity))
                         {
-                            usersItem.security = node.Security;
+                            usersItem.security = protocolExtra.VmessSecurity;
                         }
                         else
                         {
@@ -66,8 +67,9 @@ public partial class CoreConfigV2rayService
                         }
                         serversItem.address = node.Address;
                         serversItem.port = node.Port;
-                        serversItem.password = node.Id;
-                        serversItem.method = AppManager.Instance.GetShadowsocksSecurities(node).Contains(node.Security) ? node.Security : "none";
+                        serversItem.password = node.Password;
+                        serversItem.method = AppManager.Instance.GetShadowsocksSecurities(node).Contains(protocolExtra.SsMethod)
+                            ? protocolExtra.SsMethod : "none";
 
                         serversItem.ota = false;
                         serversItem.level = 1;
@@ -95,13 +97,13 @@ public partial class CoreConfigV2rayService
                         serversItem.method = null;
                         serversItem.password = null;
 
-                        if (node.Security.IsNotEmpty()
-                            && node.Id.IsNotEmpty())
+                        if (node.Username.IsNotEmpty()
+                            && node.Password.IsNotEmpty())
                         {
                             SocksUsersItem4Ray socksUsersItem = new()
                             {
-                                user = node.Security,
-                                pass = node.Id,
+                                user = node.Username ?? "",
+                                pass = node.Password,
                                 level = 1
                             };
 
@@ -138,17 +140,16 @@ public partial class CoreConfigV2rayService
                         {
                             usersItem = vnextItem.users.First();
                         }
-                        usersItem.id = node.Id;
+                        usersItem.id = node.Password;
                         usersItem.email = Global.UserEMail;
-                        usersItem.encryption = node.Security;
+                        usersItem.encryption = protocolExtra.VlessEncryption;
 
-                        if (node.Flow.IsNullOrEmpty())
+                        if (!protocolExtra.Flow.IsNullOrEmpty())
                         {
-                            await GenOutboundMux(node, outbound, muxEnabled, muxEnabled);
+                            usersItem.flow = protocolExtra.Flow;
                         }
                         else
                         {
-                            usersItem.flow = node.Flow;
                             await GenOutboundMux(node, outbound, false, muxEnabled);
                         }
                         outbound.settings.servers = null;
@@ -168,7 +169,7 @@ public partial class CoreConfigV2rayService
                         }
                         serversItem.address = node.Address;
                         serversItem.port = node.Port;
-                        serversItem.password = node.Id;
+                        serversItem.password = node.Password;
 
                         serversItem.ota = false;
                         serversItem.level = 1;
@@ -178,20 +179,37 @@ public partial class CoreConfigV2rayService
                         outbound.settings.vnext = null;
                         break;
                     }
+                case EConfigType.Hysteria2:
+                    {
+                        outbound.settings = new()
+                        {
+                            version = 2,
+                            address = node.Address,
+                            port = node.Port,
+                        };
+                        outbound.settings.vnext = null;
+                        outbound.settings.servers = null;
+                        break;
+                    }
                 case EConfigType.WireGuard:
                     {
+                        var address = node.Address;
+                        if (Utils.IsIpv6(address))
+                        {
+                            address = $"[{address}]";
+                        }
                         var peer = new WireguardPeer4Ray
                         {
-                            publicKey = node.PublicKey,
-                            endpoint = node.Address + ":" + node.Port.ToString()
+                            publicKey = protocolExtra.WgPublicKey ?? "",
+                            endpoint = address + ":" + node.Port.ToString()
                         };
                         var setting = new Outboundsettings4Ray
                         {
-                            address = Utils.String2List(node.RequestHost),
-                            secretKey = node.Id,
-                            reserved = Utils.String2List(node.Path)?.Select(int.Parse).ToList(),
-                            mtu = node.ShortId.IsNullOrEmpty() ? Global.TunMtus.First() : node.ShortId.ToInt(),
-                            peers = new List<WireguardPeer4Ray> { peer }
+                            address = Utils.String2List(protocolExtra.WgInterfaceAddress),
+                            secretKey = node.Password,
+                            reserved = Utils.String2List(protocolExtra.WgReserved)?.Select(int.Parse).ToList(),
+                            mtu = protocolExtra.WgMtu > 0 ? protocolExtra.WgMtu : Global.TunMtus.First(),
+                            peers = [peer]
                         };
                         outbound.settings = setting;
                         outbound.settings.vnext = null;
@@ -201,6 +219,10 @@ public partial class CoreConfigV2rayService
             }
 
             outbound.protocol = Global.ProtocolTypes[node.ConfigType];
+            if (node.ConfigType == EConfigType.Hysteria2)
+            {
+                outbound.protocol = "hysteria";
+            }
             await GenBoundStreamSettings(node, outbound);
         }
         catch (Exception ex)
@@ -241,7 +263,12 @@ public partial class CoreConfigV2rayService
         try
         {
             var streamSettings = outbound.streamSettings;
-            streamSettings.network = node.GetNetwork();
+            var network = node.GetNetwork();
+            if (node.ConfigType == EConfigType.Hysteria2)
+            {
+                network = "hysteria";
+            }
+            streamSettings.network = network;
             var host = node.RequestHost.TrimEx();
             var path = node.Path.TrimEx();
             var sni = node.Sni.TrimEx();
@@ -267,7 +294,9 @@ public partial class CoreConfigV2rayService
                 {
                     allowInsecure = Utils.ToBool(node.AllowInsecure.IsNullOrEmpty() ? _config.CoreBasicItem.DefAllowInsecure.ToString().ToLower() : node.AllowInsecure),
                     alpn = node.GetAlpn(),
-                    fingerprint = node.Fingerprint.IsNullOrEmpty() ? _config.CoreBasicItem.DefFingerprint : node.Fingerprint
+                    fingerprint = node.Fingerprint.IsNullOrEmpty() ? _config.CoreBasicItem.DefFingerprint : node.Fingerprint,
+                    echConfigList = node.EchConfigList.NullIfEmpty(),
+                    echForceQuery = node.EchForceQuery.NullIfEmpty()
                 };
                 if (sni.IsNotEmpty())
                 {
@@ -294,6 +323,11 @@ public partial class CoreConfigV2rayService
                     tlsSettings.disableSystemRoot = true;
                     tlsSettings.allowInsecure = false;
                 }
+                else if (!node.CertSha.IsNullOrEmpty())
+                {
+                    tlsSettings.pinnedPeerCertSha256 = node.CertSha;
+                    tlsSettings.allowInsecure = false;
+                }
                 streamSettings.tlsSettings = tlsSettings;
             }
 
@@ -317,7 +351,7 @@ public partial class CoreConfigV2rayService
             }
 
             //streamSettings
-            switch (node.GetNetwork())
+            switch (network)
             {
                 case nameof(ETransport.kcp):
                     KcpSettings4Ray kcpSettings = new()
@@ -332,14 +366,33 @@ public partial class CoreConfigV2rayService
                     kcpSettings.congestion = _config.KcpItem.Congestion;
                     kcpSettings.readBufferSize = _config.KcpItem.ReadBufferSize;
                     kcpSettings.writeBufferSize = _config.KcpItem.WriteBufferSize;
-                    kcpSettings.header = new Header4Ray
+                    streamSettings.finalmask ??= new();
+                    if (Global.KcpHeaderMaskMap.TryGetValue(node.HeaderType, out var header))
                     {
-                        type = node.HeaderType,
-                        domain = host.IsNullOrEmpty() ? null : host
-                    };
-                    if (path.IsNotEmpty())
+                        streamSettings.finalmask.udp =
+                        [
+                            new Mask4Ray
+                            {
+                                type = header,
+                                settings = node.HeaderType == "dns" && !host.IsNullOrEmpty() ? new MaskSettings4Ray { domain = host } : null
+                            }
+                        ];
+                    }
+                    streamSettings.finalmask.udp ??= [];
+                    if (path.IsNullOrEmpty())
                     {
-                        kcpSettings.seed = path;
+                        streamSettings.finalmask.udp.Add(new Mask4Ray
+                        {
+                            type = "mkcp-original"
+                        });
+                    }
+                    else
+                    {
+                        streamSettings.finalmask.udp.Add(new Mask4Ray
+                        {
+                            type = "mkcp-aes128gcm",
+                            settings = new MaskSettings4Ray { password = path }
+                        });
                     }
                     streamSettings.kcpSettings = kcpSettings;
                     break;
@@ -351,7 +404,6 @@ public partial class CoreConfigV2rayService
                     if (host.IsNotEmpty())
                     {
                         wsSettings.host = host;
-                        wsSettings.headers.Host = host;
                     }
                     if (path.IsNotEmpty())
                     {
@@ -446,7 +498,7 @@ public partial class CoreConfigV2rayService
                 case nameof(ETransport.grpc):
                     GrpcSettings4Ray grpcSettings = new()
                     {
-                        authority = host.IsNullOrEmpty() ? null : host,
+                        authority = host.NullIfEmpty(),
                         serviceName = path,
                         multiMode = node.HeaderType == Global.GrpcMultiMode,
                         idle_timeout = _config.GrpcItem.IdleTimeout,
@@ -455,6 +507,52 @@ public partial class CoreConfigV2rayService
                         initial_windows_size = _config.GrpcItem.InitialWindowsSize,
                     };
                     streamSettings.grpcSettings = grpcSettings;
+                    break;
+
+                case "hysteria":
+                    var protocolExtra = node.GetProtocolExtra();
+                    var ports = protocolExtra?.Ports;
+                    int? upMbps = protocolExtra?.UpMbps is { } su and >= 0
+                        ? su
+                        : _config.HysteriaItem.UpMbps;
+                    int? downMbps = protocolExtra?.DownMbps is { } sd and >= 0
+                        ? sd
+                        : _config.HysteriaItem.UpMbps;
+                    var hopInterval = !protocolExtra.HopInterval.IsNullOrEmpty()
+                        ? protocolExtra.HopInterval
+                        : (_config.HysteriaItem.HopInterval >= 5
+                            ? _config.HysteriaItem.HopInterval
+                            : Global.Hysteria2DefaultHopInt).ToString();
+                    HysteriaUdpHop4Ray? udpHop = null;
+                    if (!ports.IsNullOrEmpty() &&
+                        (ports.Contains(':') || ports.Contains('-') || ports.Contains(',')))
+                    {
+                        udpHop = new HysteriaUdpHop4Ray
+                        {
+                            ports = ports.Replace(':', '-'),
+                            interval = hopInterval,
+                        };
+                    }
+                    streamSettings.hysteriaSettings = new()
+                    {
+                        version = 2,
+                        auth = node.Password,
+                        up = upMbps > 0 ? $"{upMbps}mbps" : null,
+                        down = downMbps > 0 ? $"{downMbps}mbps" : null,
+                        udphop = udpHop,
+                    };
+                    if (!protocolExtra.SalamanderPass.IsNullOrEmpty())
+                    {
+                        streamSettings.finalmask ??= new();
+                        streamSettings.finalmask.udp =
+                        [
+                            new Mask4Ray
+                            {
+                                type = "salamander",
+                                settings = new MaskSettings4Ray { password = protocolExtra.SalamanderPass.TrimEx(), }
+                            }
+                        ];
+                    }
                     break;
 
                 default:
@@ -505,13 +603,13 @@ public partial class CoreConfigV2rayService
             {
                 return -1;
             }
-            var hasCycle = ProfileGroupItemManager.HasCycle(node.IndexId);
+            var hasCycle = await GroupProfileManager.HasCycle(node);
             if (hasCycle)
             {
                 return -1;
             }
 
-            var (childProfiles, profileGroupItem) = await ProfileGroupItemManager.GetChildProfileItems(node.IndexId);
+            var (childProfiles, profileExtraItem) = await GroupProfileManager.GetChildProfileItems(node);
             if (childProfiles.Count <= 0)
             {
                 return -1;
@@ -540,8 +638,9 @@ public partial class CoreConfigV2rayService
             //add balancers
             if (node.ConfigType == EConfigType.PolicyGroup)
             {
-                await GenObservatory(v2rayConfig, profileGroupItem.MultipleLoad, baseTagName);
-                await GenBalancer(v2rayConfig, profileGroupItem.MultipleLoad, baseTagName);
+                var multipleLoad = profileExtraItem?.MultipleLoad ?? EMultipleLoad.LeastPing;
+                await GenObservatory(v2rayConfig, multipleLoad, baseTagName);
+                await GenBalancer(v2rayConfig, multipleLoad, baseTagName);
             }
         }
         catch (Exception ex)
@@ -560,7 +659,7 @@ public partial class CoreConfigV2rayService
             var fragmentOutbound = new Outbounds4Ray
             {
                 protocol = "freedom",
-                tag = $"{Global.ProxyTag}3",
+                tag = $"frag-{Global.ProxyTag}",
                 settings = new()
                 {
                     fragment = new()
@@ -650,7 +749,7 @@ public partial class CoreConfigV2rayService
 
                 if (node.ConfigType.IsGroupType())
                 {
-                    var (childProfiles, _) = await ProfileGroupItemManager.GetChildProfileItems(node.IndexId);
+                    var (childProfiles, _) = await GroupProfileManager.GetChildProfileItems(node);
                     if (childProfiles.Count <= 0)
                     {
                         continue;
@@ -804,7 +903,7 @@ public partial class CoreConfigV2rayService
 
             if (node.ConfigType.IsGroupType())
             {
-                var (childProfiles, _) = await ProfileGroupItemManager.GetChildProfileItems(node.IndexId);
+                var (childProfiles, _) = await GroupProfileManager.GetChildProfileItems(node);
                 if (childProfiles.Count <= 0)
                 {
                     continue;

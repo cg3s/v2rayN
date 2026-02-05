@@ -4,7 +4,7 @@ namespace ServiceLib.Handler.Fmt;
 
 public class BaseFmt
 {
-    private static readonly string[] _allowInsecureArray = new[] { "insecure", "allowInsecure", "allow_insecure", "verify" };
+    private static readonly string[] _allowInsecureArray = new[] { "insecure", "allowInsecure", "allow_insecure" };
 
     protected static string GetIpv6(string address)
     {
@@ -21,11 +21,6 @@ public class BaseFmt
 
     protected static int ToUriQuery(ProfileItem item, string? securityDef, ref Dictionary<string, string> dicQuery)
     {
-        if (item.Flow.IsNotEmpty())
-        {
-            dicQuery.Add("flow", item.Flow);
-        }
-
         if (item.StreamSecurity.IsNotEmpty())
         {
             dicQuery.Add("security", item.StreamSecurity);
@@ -69,6 +64,14 @@ public class BaseFmt
                 dicQuery.Add("alpn", Utils.UrlEncode(item.Alpn));
             }
             ToUriQueryAllowInsecure(item, ref dicQuery);
+        }
+        if (item.EchConfigList.IsNotEmpty())
+        {
+            dicQuery.Add("ech", Utils.UrlEncode(item.EchConfigList));
+        }
+        if (item.CertSha.IsNotEmpty())
+        {
+            dicQuery.Add("pcs", Utils.UrlEncode(item.CertSha));
         }
 
         dicQuery.Add("type", item.Network.IsNotEmpty() ? item.Network : nameof(ETransport.tcp));
@@ -118,7 +121,16 @@ public class BaseFmt
                 }
                 if (item.Extra.IsNotEmpty())
                 {
-                    dicQuery.Add("extra", Utils.UrlEncode(item.Extra));
+                    var node = JsonUtils.ParseJson(item.Extra);
+                    var extra = node != null
+                        ? JsonUtils.Serialize(node, new JsonSerializerOptions
+                        {
+                            WriteIndented = false,
+                            DefaultIgnoreCondition = JsonIgnoreCondition.Never,
+                            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                        })
+                        : item.Extra;
+                    dicQuery.Add("extra", Utils.UrlEncode(extra));
                 }
                 break;
 
@@ -191,7 +203,6 @@ public class BaseFmt
 
     protected static int ResolveUriQuery(NameValueCollection query, ref ProfileItem item)
     {
-        item.Flow = GetQueryValue(query, "flow");
         item.StreamSecurity = GetQueryValue(query, "security");
         item.Sni = GetQueryValue(query, "sni");
         item.Alpn = GetQueryDecoded(query, "alpn");
@@ -200,6 +211,8 @@ public class BaseFmt
         item.ShortId = GetQueryDecoded(query, "sid");
         item.SpiderX = GetQueryDecoded(query, "spx");
         item.Mldsa65Verify = GetQueryDecoded(query, "pqv");
+        item.EchConfigList = GetQueryDecoded(query, "ech");
+        item.CertSha = GetQueryDecoded(query, "pcs");
 
         if (_allowInsecureArray.Any(k => GetQueryDecoded(query, k) == "1"))
         {
@@ -237,7 +250,21 @@ public class BaseFmt
                 item.RequestHost = GetQueryDecoded(query, "host");
                 item.Path = GetQueryDecoded(query, "path", "/");
                 item.HeaderType = GetQueryDecoded(query, "mode");
-                item.Extra = GetQueryDecoded(query, "extra");
+                var extraDecoded = GetQueryDecoded(query, "extra");
+                if (extraDecoded.IsNotEmpty())
+                {
+                    var node = JsonUtils.ParseJson(extraDecoded);
+                    if (node != null)
+                    {
+                        extraDecoded = JsonUtils.Serialize(node, new JsonSerializerOptions
+                        {
+                            WriteIndented = true,
+                            DefaultIgnoreCondition = JsonIgnoreCondition.Never,
+                            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                        });
+                    }
+                }
+                item.Extra = extraDecoded;
                 break;
 
             case nameof(ETransport.http):

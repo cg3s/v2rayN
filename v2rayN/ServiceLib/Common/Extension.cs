@@ -6,17 +6,17 @@ public static class Extension
 {
     public static bool IsNullOrEmpty([NotNullWhen(false)] this string? value)
     {
-        return string.IsNullOrEmpty(value) || string.IsNullOrWhiteSpace(value);
-    }
-
-    public static bool IsNullOrWhiteSpace([NotNullWhen(false)] this string? value)
-    {
-        return string.IsNullOrWhiteSpace(value);
+        return string.IsNullOrWhiteSpace(value) || string.IsNullOrEmpty(value);
     }
 
     public static bool IsNotEmpty([NotNullWhen(false)] this string? value)
     {
-        return !string.IsNullOrEmpty(value);
+        return !string.IsNullOrWhiteSpace(value);
+    }
+
+    public static string? NullIfEmpty(this string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value;
     }
 
     public static bool BeginWithAny(this string s, IEnumerable<char> chars)
@@ -93,5 +93,29 @@ public static class Extension
     public static bool IsComplexType(this EConfigType configType)
     {
         return configType is EConfigType.Custom or EConfigType.PolicyGroup or EConfigType.ProxyChain;
+    }
+
+    /// <summary>
+    /// Safely adds elements from a collection to the list. Does nothing if the source is null.
+    /// </summary>
+    public static void AddRangeSafe<T>(this ICollection<T> destination, IEnumerable<T>? source)
+    {
+        ArgumentNullException.ThrowIfNull(destination);
+
+        if (source is null)
+        {
+            return;
+        }
+
+        if (destination is List<T> list)
+        {
+            list.AddRange(source);
+            return;
+        }
+
+        foreach (var item in source)
+        {
+            destination.Add(item);
+        }
     }
 }
