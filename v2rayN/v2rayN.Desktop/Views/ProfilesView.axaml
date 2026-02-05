@@ -7,6 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:resx="clr-namespace:ServiceLib.Resx;assembly=ServiceLib"
     xmlns:vms="clr-namespace:ServiceLib.ViewModels;assembly=ServiceLib"
+    x:Name="Root"
     d:DesignHeight="450"
     d:DesignWidth="800"
     x:DataType="vms:ProfilesViewModel"
@@ -28,6 +29,14 @@
                             <WrapPanel />
                         </ItemsPanelTemplate>
                     </ListBox.ItemsPanel>
+
+                    <ListBox.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem x:Name="menuSubEdit" Header="{x:Static resx:ResUI.menuSubEdit}" />
+                            <MenuItem x:Name="menuSubAdd" Header="{x:Static resx:ResUI.menuSubAdd}" />
+                            <MenuItem x:Name="menuSubDelete" Header="{x:Static resx:ResUI.menuSubDelete}" />
+                        </ContextMenu>
+                    </ListBox.ContextMenu>
                 </ListBox>
 
                 <Button
@@ -103,46 +112,84 @@
                 </DataGrid.KeyBindings>
                 <DataGrid.ContextMenu>
                     <ContextMenu>
-                        <MenuItem x:Name="menuSetDefaultServer" Header="{x:Static resx:ResUI.menuSetDefaultServer}" />
-                        <MenuItem x:Name="menuEditServer" Header="{x:Static resx:ResUI.menuEditServer}" />
+                        <MenuItem
+                            x:Name="menuSetDefaultServer"
+                            Header="{x:Static resx:ResUI.menuSetDefaultServer}"
+                            InputGesture="Enter" />
+                        <MenuItem
+                            x:Name="menuEditServer"
+                            Header="{x:Static resx:ResUI.menuEditServer}"
+                            InputGesture="Ctrl+D" />
                         <MenuItem x:Name="menuCopyServer" Header="{x:Static resx:ResUI.menuCopyServer}" />
-                        <MenuItem x:Name="menuRemoveServer" Header="{x:Static resx:ResUI.menuRemoveServer}" />
+                        <MenuItem
+                            x:Name="menuRemoveServer"
+                            Header="{x:Static resx:ResUI.menuRemoveServer}"
+                            InputGesture="Back" />
                         <MenuItem x:Name="menuRemoveDuplicateServer" Header="{x:Static resx:ResUI.menuRemoveDuplicateServer}" />
                         <MenuItem x:Name="menuRemoveInvalidServerResult" Header="{x:Static resx:ResUI.menuRemoveInvalidServerResult}" />
                         <Separator />
-                        <MenuItem x:Name="menuTcpingServer" Header="{x:Static resx:ResUI.menuTcpingServer}" />
-                        <MenuItem x:Name="menuRealPingServer" Header="{x:Static resx:ResUI.menuRealPingServer}" />
-                        <MenuItem x:Name="menuSpeedServer" Header="{x:Static resx:ResUI.menuSpeedServer}" />
+                        <MenuItem
+                            x:Name="menuTcpingServer"
+                            Header="{x:Static resx:ResUI.menuTcpingServer}"
+                            InputGesture="Ctrl+O" />
+                        <MenuItem
+                            x:Name="menuRealPingServer"
+                            Header="{x:Static resx:ResUI.menuRealPingServer}"
+                            InputGesture="Ctrl+R" />
+                        <MenuItem
+                            x:Name="menuSpeedServer"
+                            Header="{x:Static resx:ResUI.menuSpeedServer}"
+                            InputGesture="Ctrl+T" />
                         <MenuItem x:Name="menuSortServerResult" Header="{x:Static resx:ResUI.menuSortServerResult}" />
                         <Separator />
-                        <MenuItem x:Name="menuMoveToGroup" Header="{x:Static resx:ResUI.menuMoveToGroup}">
-                            <MenuItem>
-                                <MenuItem.Header>
-                                    <DockPanel>
-                                        <ComboBox
-                                            x:Name="cmbMoveToGroup"
-                                            Width="200"
-                                            DisplayMemberBinding="{Binding Remarks}"
-                                            ItemsSource="{Binding SubItems}"
-                                            ToolTip.Tip="{x:Static resx:ResUI.menuSubscription}" />
-                                    </DockPanel>
-                                </MenuItem.Header>
-                            </MenuItem>
+                        <MenuItem
+                            x:Name="menuMoveToGroup"
+                            Header="{x:Static resx:ResUI.menuMoveToGroup}"
+                            ItemsSource="{Binding DataContext.SubItems, ElementName=Root}">
+                            <MenuItem.ItemTemplate>
+                                <DataTemplate>
+                                    <MenuItem
+                                        Command="{Binding DataContext.MoveToGroupCmd, ElementName=Root}"
+                                        CommandParameter="{Binding}"
+                                        Header="{Binding Remarks}" />
+                                </DataTemplate>
+                            </MenuItem.ItemTemplate>
                         </MenuItem>
                         <MenuItem Header="{x:Static resx:ResUI.menuMoveTo}">
-                            <MenuItem x:Name="menuMoveTop" Header="{x:Static resx:ResUI.menuMoveTop}" />
-                            <MenuItem x:Name="menuMoveUp" Header="{x:Static resx:ResUI.menuMoveUp}" />
-                            <MenuItem x:Name="menuMoveDown" Header="{x:Static resx:ResUI.menuMoveDown}" />
-                            <MenuItem x:Name="menuMoveBottom" Header="{x:Static resx:ResUI.menuMoveBottom}" />
+                            <MenuItem
+                                x:Name="menuMoveTop"
+                                Header="{x:Static resx:ResUI.menuMoveTop}"
+                                InputGesture="T" />
+                            <MenuItem
+                                x:Name="menuMoveUp"
+                                Header="{x:Static resx:ResUI.menuMoveUp}"
+                                InputGesture="U" />
+                            <MenuItem
+                                x:Name="menuMoveDown"
+                                Header="{x:Static resx:ResUI.menuMoveDown}"
+                                InputGesture="D" />
+                            <MenuItem
+                                x:Name="menuMoveBottom"
+                                Header="{x:Static resx:ResUI.menuMoveBottom}"
+                                InputGesture="B" />
                         </MenuItem>
-                        <MenuItem x:Name="menuSelectAll" Header="{x:Static resx:ResUI.menuSelectAll}" />
+                        <MenuItem
+                            x:Name="menuSelectAll"
+                            Header="{x:Static resx:ResUI.menuSelectAll}"
+                            InputGesture="Ctrl+A" />
                         <Separator />
-                        <MenuItem x:Name="menuShareServer" Header="{x:Static resx:ResUI.menuShareServer}" />
+                        <MenuItem
+                            x:Name="menuShareServer"
+                            Header="{x:Static resx:ResUI.menuShareServer}"
+                            InputGesture="Ctrl+F" />
                         <MenuItem Header="{x:Static resx:ResUI.menuExportConfig}">
                             <MenuItem x:Name="menuExport2ClientConfig" Header="{x:Static resx:ResUI.menuExport2ClientConfig}" />
                             <MenuItem x:Name="menuExport2ClientConfigClipboard" Header="{x:Static resx:ResUI.menuExport2ClientConfigClipboard}" />
                             <Separator />
-                            <MenuItem x:Name="menuExport2ShareUrl" Header="{x:Static resx:ResUI.menuExport2ShareUrl}" />
+                            <MenuItem
+                                x:Name="menuExport2ShareUrl"
+                                Header="{x:Static resx:ResUI.menuExport2ShareUrl}"
+                                InputGesture="Ctrl+C" />
                             <MenuItem x:Name="menuExport2ShareUrlBase64" Header="{x:Static resx:ResUI.menuExport2ShareUrlBase64}" />
                         </MenuItem>
                         <Separator />

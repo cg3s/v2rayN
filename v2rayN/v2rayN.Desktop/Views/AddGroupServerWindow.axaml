@@ -34,8 +34,7 @@
         </StackPanel>
 
         <Grid
-            Grid.Row="0"
-            ColumnDefinitions="180,Auto,Auto"
+            ColumnDefinitions="300,Auto,Auto"
             DockPanel.Dock="Top"
             RowDefinitions="Auto,Auto,Auto,Auto">
             <TextBlock
@@ -75,7 +74,7 @@
                 Grid.Row="3"
                 Grid.Column="0"
                 Grid.ColumnSpan="3"
-                ColumnDefinitions="180,Auto,Auto">
+                ColumnDefinitions="300,Auto,Auto">
                 <TextBlock
                     Grid.Column="0"
                     Margin="{StaticResource Margin4}"
@@ -89,11 +88,11 @@
             </Grid>
         </Grid>
 
-        <TabControl DockPanel.Dock="Top">
+        <TabControl HorizontalContentAlignment="Stretch" DockPanel.Dock="Top">
             <TabItem HorizontalAlignment="Left" Header="{x:Static resx:ResUI.menuServerList}">
                 <Grid
                     Margin="{StaticResource Margin8}"
-                    ColumnDefinitions="180,Auto,Auto"
+                    ColumnDefinitions="300,Auto,Auto"
                     RowDefinitions="Auto,Auto,Auto">
 
                     <TextBlock
@@ -131,10 +130,8 @@
                         VerticalAlignment="Center" />
                 </Grid>
             </TabItem>
-        </TabControl>
 
-        <TabControl>
-            <TabItem HorizontalAlignment="Left" Header="{x:Static resx:ResUI.menuServerList}">
+            <TabItem HorizontalAlignment="Left" Header="{x:Static resx:ResUI.menuServerList2}">
                 <DataGrid
                     x:Name="lstChild"
                     Grid.Row="1"
@@ -152,13 +149,31 @@
                     <DataGrid.ContextMenu>
                         <ContextMenu>
                             <MenuItem x:Name="menuAddChildServer" Header="{x:Static resx:ResUI.menuAddChildServer}" />
-                            <MenuItem x:Name="menuRemoveChildServer" Header="{x:Static resx:ResUI.menuRemoveChildServer}" />
-                            <MenuItem x:Name="menuSelectAllChild" Header="{x:Static resx:ResUI.menuSelectAll}" />
+                            <MenuItem
+                                x:Name="menuRemoveChildServer"
+                                Header="{x:Static resx:ResUI.menuRemoveChildServer}"
+                                InputGesture="Back" />
+                            <MenuItem
+                                x:Name="menuSelectAllChild"
+                                Header="{x:Static resx:ResUI.menuSelectAll}"
+                                InputGesture="Ctrl+A" />
                             <Separator />
-                            <MenuItem x:Name="menuMoveTop" Header="{x:Static resx:ResUI.menuMoveTop}" />
-                            <MenuItem x:Name="menuMoveUp" Header="{x:Static resx:ResUI.menuMoveUp}" />
-                            <MenuItem x:Name="menuMoveDown" Header="{x:Static resx:ResUI.menuMoveDown}" />
-                            <MenuItem x:Name="menuMoveBottom" Header="{x:Static resx:ResUI.menuMoveBottom}" />
+                            <MenuItem
+                                x:Name="menuMoveTop"
+                                Header="{x:Static resx:ResUI.menuMoveTop}"
+                                InputGesture="T" />
+                            <MenuItem
+                                x:Name="menuMoveUp"
+                                Header="{x:Static resx:ResUI.menuMoveUp}"
+                                InputGesture="U" />
+                            <MenuItem
+                                x:Name="menuMoveDown"
+                                Header="{x:Static resx:ResUI.menuMoveDown}"
+                                InputGesture="D" />
+                            <MenuItem
+                                x:Name="menuMoveBottom"
+                                Header="{x:Static resx:ResUI.menuMoveBottom}"
+                                InputGesture="B" />
                         </ContextMenu>
                     </DataGrid.ContextMenu>
                     <DataGrid.Columns>

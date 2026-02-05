@@ -70,7 +70,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="300" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
@@ -87,7 +87,7 @@
                         Orientation="Horizontal">
                         <ComboBox
                             x:Name="cmbCoreType"
-                            Width="100"
+                            Width="200"
                             Margin="{StaticResource Margin4}"
                             materialDesign:HintAssist.Hint="{x:Static resx:ResUI.TbCoreType}"
                             Style="{StaticResource DefComboBox}" />
@@ -157,7 +157,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="300" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
@@ -241,7 +241,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="300" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
@@ -300,7 +300,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="300" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
@@ -346,7 +346,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="300" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
@@ -430,7 +430,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="300" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
@@ -487,9 +487,11 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="300" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
@@ -547,6 +549,47 @@
                         VerticalAlignment="Center"
                         Style="{StaticResource ToolbarTextBlock}"
                         Text="{x:Static resx:ResUI.TbPorts7Tips}" />
+
+                    <TextBlock
+                        Grid.Row="4"
+                        Grid.Column="0"
+                        Margin="{StaticResource Margin4}"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource ToolbarTextBlock}"
+                        Text="{x:Static resx:ResUI.TbHopInt7}" />
+                    <TextBox
+                        x:Name="txtHopInt7"
+                        Grid.Row="4"
+                        Grid.Column="1"
+                        Width="200"
+                        Margin="{StaticResource Margin4}"
+                        HorizontalAlignment="Left"
+                        Style="{StaticResource DefTextBox}" />
+
+                    <TextBlock
+                        Grid.Row="5"
+                        Grid.Column="0"
+                        Margin="{StaticResource Margin4}"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource ToolbarTextBlock}"
+                        Text="{x:Static resx:ResUI.TbSettingsHysteriaBandwidth}" />
+                    <StackPanel
+                        Grid.Row="5"
+                        Grid.Column="1"
+                        Orientation="Horizontal">
+                        <TextBox
+                            x:Name="txtUpMbps7"
+                            Width="90"
+                            Margin="{StaticResource Margin4}"
+                            materialDesign:HintAssist.Hint="Up"
+                            Style="{StaticResource DefTextBox}" />
+                        <TextBox
+                            x:Name="txtDownMbps7"
+                            Width="90"
+                            Margin="{StaticResource Margin4}"
+                            materialDesign:HintAssist.Hint="Down"
+                            Style="{StaticResource DefTextBox}" />
+                    </StackPanel>
                 </Grid>
                 <Grid
                     x:Name="gridTuic"
@@ -559,7 +602,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="300" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
@@ -621,7 +664,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="300" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
@@ -715,7 +758,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="300" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
@@ -753,7 +796,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="300" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
@@ -899,7 +942,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="300" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
@@ -929,9 +972,11 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="300" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
@@ -1003,9 +1048,40 @@
                         Margin="{StaticResource Margin4}"
                         VerticalAlignment="Center"
                         Style="{StaticResource ToolbarTextBlock}"
+                        Text="{x:Static resx:ResUI.TbEchConfigList}" />
+                    <TextBox
+                        x:Name="txtEchConfigList"
+                        Grid.Row="5"
+                        Grid.Column="1"
+                        Width="400"
+                        Margin="{StaticResource Margin4}"
+                        HorizontalAlignment="Left"
+                        Style="{StaticResource DefTextBox}" />
+
+                    <TextBlock
+                        Grid.Row="6"
+                        Grid.Column="0"
+                        Margin="{StaticResource Margin4}"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource ToolbarTextBlock}"
+                        Text="{x:Static resx:ResUI.TbEchForceQuery}" />
+                    <ComboBox
+                        x:Name="cmbEchForceQuery"
+                        Grid.Row="6"
+                        Grid.Column="1"
+                        Width="200"
+                        Margin="{StaticResource Margin4}"
+                        Style="{StaticResource DefComboBox}" />
+
+                    <TextBlock
+                        Grid.Row="7"
+                        Grid.Column="0"
+                        Margin="{StaticResource Margin4}"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource ToolbarTextBlock}"
                         Text="{x:Static resx:ResUI.TbCertPinning}" />
                     <StackPanel
-                        Grid.Row="5"
+                        Grid.Row="7"
                         Grid.Column="1"
                         VerticalAlignment="Center"
                         Orientation="Horizontal">
@@ -1039,6 +1115,26 @@
                                         Content="{x:Static resx:ResUI.TbFetchCertChain}"
                                         Style="{StaticResource DefButton}" />
                                 </StackPanel>
+                                <TextBlock
+                                    Width="400"
+                                    Margin="{StaticResource Margin4}"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource ToolbarTextBlock}"
+                                    Text="{x:Static resx:ResUI.TbCertSha256Tips}"
+                                    TextWrapping="Wrap" />
+                                <TextBox
+                                    x:Name="txtCertSha256Pinning"
+                                    Width="400"
+                                    Margin="{StaticResource Margin4}"
+                                    HorizontalAlignment="Left"
+                                    Style="{StaticResource DefTextBox}" />
+                                <TextBlock
+                                    Width="400"
+                                    Margin="{StaticResource Margin4}"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource ToolbarTextBlock}"
+                                    Text="{x:Static resx:ResUI.TbFullCertTips}"
+                                    TextWrapping="Wrap" />
                                 <TextBox
                                     x:Name="txtCert"
                                     Width="400"
@@ -1067,7 +1163,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="300" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 

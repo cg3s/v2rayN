@@ -17,7 +17,7 @@ public partial class RoutingSettingWindow
         ViewModel = new RoutingSettingViewModel(UpdateViewHandler);
 
         cmbdomainStrategy.ItemsSource = Global.DomainStrategies;
-        cmbdomainStrategy4Singbox.ItemsSource = Global.DomainStrategies4Singbox;
+        cmbdomainStrategy4Singbox.ItemsSource = Global.DomainStrategies4Sbox;
 
         this.WhenActivated(disposables =>
         {
@@ -78,18 +78,27 @@ public partial class RoutingSettingWindow
     {
         if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
         {
-            if (e.Key == Key.A)
+            switch (e.Key)
             {
-                lstRoutings.SelectAll();
+                case Key.A:
+                    lstRoutings.SelectAll();
+                    break;
             }
         }
-        else if (e.Key is Key.Enter or Key.Return)
+        else
         {
-            ViewModel?.RoutingAdvancedSetDefault();
-        }
-        else if (e.Key == Key.Delete)
-        {
-            ViewModel?.RoutingAdvancedRemoveAsync();
+            switch (e.Key)
+            {
+                case Key.Enter:
+                    //case Key.Return:
+                    ViewModel?.RoutingAdvancedSetDefault();
+                    break;
+
+                case Key.Delete:
+                case Key.Back:
+                    ViewModel?.RoutingAdvancedRemoveAsync();
+                    break;
+            }
         }
     }
 

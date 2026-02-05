@@ -469,10 +469,10 @@
     <value>语言 (需重启)</value>
   </data>
   <data name="menuAddServerViaClipboard" xml:space="preserve">
-    <value>从剪贴板导入分享链接 (Ctrl+V)</value>
+    <value>从剪贴板导入分享链接</value>
   </data>
   <data name="menuAddServerViaScan" xml:space="preserve">
-    <value>扫描屏幕上的二维码 (Ctrl+S)</value>
+    <value>扫描屏幕上的二维码</value>
   </data>
   <data name="menuCopyServer" xml:space="preserve">
     <value>克隆所选</value>
@@ -481,31 +481,31 @@
     <value>移除重复</value>
   </data>
   <data name="menuRemoveServer" xml:space="preserve">
-    <value>移除所选 (多选) (Delete)</value>
+    <value>移除所选 (多选)</value>
   </data>
   <data name="menuSetDefaultServer" xml:space="preserve">
-    <value>设为活动 (Enter)</value>
+    <value>设为活动</value>
   </data>
   <data name="menuClearServerStatistics" xml:space="preserve">
     <value>清除所有服务统计数据</value>
   </data>
   <data name="menuRealPingServer" xml:space="preserve">
-    <value>测试真连接延迟 (多选) (Ctrl+R)</value>
+    <value>测试真连接延迟 (多选)</value>
   </data>
   <data name="menuSortServerResult" xml:space="preserve">
     <value>按测试结果排序</value>
   </data>
   <data name="menuSpeedServer" xml:space="preserve">
-    <value>测试速度 (多选) (Ctrl+T)</value>
+    <value>测试速度 (多选)</value>
   </data>
   <data name="menuTcpingServer" xml:space="preserve">
-    <value>测试延迟 Tcping (多选) (Ctrl+O)</value>
+    <value>测试延迟 Tcping (多选)</value>
   </data>
   <data name="menuExport2ClientConfig" xml:space="preserve">
     <value>导出所选完整配置</value>
   </data>
   <data name="menuExport2ShareUrl" xml:space="preserve">
-    <value>导出分享链接至剪贴板 (多选) (Ctrl+C)</value>
+    <value>导出分享链接至剪贴板 (多选)</value>
   </data>
   <data name="menuAddCustomServer" xml:space="preserve">
     <value>添加自定义配置</value>
@@ -526,19 +526,19 @@
     <value>添加 [VMess] </value>
   </data>
   <data name="menuSelectAll" xml:space="preserve">
-    <value>全选 (Ctrl+A)</value>
+    <value>全选</value>
   </data>
   <data name="menuMsgViewClear" xml:space="preserve">
     <value>清除所有</value>
   </data>
   <data name="menuMsgViewCopy" xml:space="preserve">
-    <value>复制 (Ctrl+C)</value>
+    <value>复制</value>
   </data>
   <data name="menuMsgViewCopyAll" xml:space="preserve">
     <value>复制所有</value>
   </data>
   <data name="menuMsgViewSelectAll" xml:space="preserve">
-    <value>全选 (Ctrl+A)</value>
+    <value>全选</value>
   </data>
   <data name="menuSubAdd" xml:space="preserve">
     <value>添加</value>
@@ -778,7 +778,7 @@
     <value>Pac 模式</value>
   </data>
   <data name="menuShareServer" xml:space="preserve">
-    <value>分享 (Ctrl+F)</value>
+    <value>分享</value>
   </data>
   <data name="menuRouting" xml:space="preserve">
     <value>路由</value>
@@ -790,16 +790,16 @@
     <value>以管理员身份运行</value>
   </data>
   <data name="menuMoveBottom" xml:space="preserve">
-    <value>下移至底 (B)</value>
+    <value>下移至底</value>
   </data>
   <data name="menuMoveDown" xml:space="preserve">
-    <value>下移 (D)</value>
+    <value>下移</value>
   </data>
   <data name="menuMoveTop" xml:space="preserve">
-    <value>上移至顶 (T)</value>
+    <value>上移至顶</value>
   </data>
   <data name="menuMoveUp" xml:space="preserve">
-    <value>上移 (U)</value>
+    <value>上移</value>
   </data>
   <data name="MsgFilterTitle" xml:space="preserve">
     <value>过滤器 (支持正则)</value>
@@ -814,10 +814,10 @@
     <value>一键导入规则集</value>
   </data>
   <data name="menuRoutingAdvancedRemove" xml:space="preserve">
-    <value>移除所选规则 (Delete)</value>
+    <value>移除所选规则</value>
   </data>
   <data name="menuRoutingAdvancedSetDefault" xml:space="preserve">
-    <value>设为活动规则 (Enter)</value>
+    <value>设为活动规则</value>
   </data>
   <data name="TbdomainStrategy" xml:space="preserve">
     <value>域名解析策略</value>
@@ -850,7 +850,7 @@
     <value>规则列表</value>
   </data>
   <data name="menuRuleRemove" xml:space="preserve">
-    <value>移除所选规则 (Delete)</value>
+    <value>移除所选规则</value>
   </data>
   <data name="menuRoutingRuleDetailsSetting" xml:space="preserve">
     <value>路由规则详情设置</value>
@@ -919,7 +919,7 @@
     <value>跳过测试</value>
   </data>
   <data name="menuEditServer" xml:space="preserve">
-    <value>编辑 (Ctrl+D)</value>
+    <value>编辑</value>
   </data>
   <data name="TbSettingsDoubleClick2Activate" xml:space="preserve">
     <value>主界面双击设为活动</value>
@@ -973,7 +973,10 @@
     <value>启用硬件加速 (需重启)</value>
   </data>
   <data name="SpeedtestingWait" xml:space="preserve">
-    <value>等待测试中 (按 ESC 终止)...</value>
+    <value>等待测试...</value>
+  </data>
+  <data name="SpeedtestingPressEscToExit" xml:space="preserve">
+    <value>按 ESC 可终止测试</value>
   </data>
   <data name="TipDisplayLog" xml:space="preserve">
     <value>当有异常断流时请关闭</value>
@@ -1018,7 +1021,7 @@
     <value>sing-box Mux 多路复用协议</value>
   </data>
   <data name="TbRoutingRuleProcess" xml:space="preserve">
-    <value>进程名全称 (Tun 模式)</value>
+    <value>进程 (Tun 模式)</value>
   </data>
   <data name="TbRoutingRuleIP" xml:space="preserve">
     <value>IP 或 IP CIDR</value>
@@ -1198,7 +1201,7 @@
     <value>刷新</value>
   </data>
   <data name="menuProxiesSelectActivity" xml:space="preserve">
-    <value>设为活动 (Enter)</value>
+    <value>设为活动</value>
   </data>
   <data name="TbSettingsDomainStrategy4Out" xml:space="preserve">
     <value>Outbound 默认解析策略</value>
@@ -1410,17 +1413,11 @@
   <data name="TbDomesticDNS" xml:space="preserve">
     <value>直连 DNS</value>
   </data>
-  <data name="TbRemoteDNSTips" xml:space="preserve">
-    <value>通过代理，请确保远程可用</value>
+  <data name="TbDirectResolveStrategy" xml:space="preserve">
+    <value>直连目标解析策略</value>
   </data>
-  <data name="TbXrayFreedomStrategy" xml:space="preserve">
-    <value>xray freedom 解析策略</value>
-  </data>
-  <data name="TbSBDirectResolveStrategy" xml:space="preserve">
-    <value>sing-box 直连解析策略</value>
-  </data>
-  <data name="TbSBRemoteResolveStrategy" xml:space="preserve">
-    <value>sing-box 远程解析策略</value>
+  <data name="TbRemoteResolveStrategy" xml:space="preserve">
+    <value>代理目标解析策略</value>
   </data>
   <data name="TbAddCommonDNSHosts" xml:space="preserve">
     <value>添加常用 DNS Hosts</value>
@@ -1444,7 +1441,7 @@
     <value>校验相应地区域名 IP</value>
   </data>
   <data name="TbValidateDirectExpectedIPsDesc" xml:space="preserve">
-    <value>配置后，会对相应地区域名（如 geosite:cn）的返回 IP 进行校验，仅返回期望 IP</value>
+    <value>配置后，会对相应地区域名（如 geosite:cn - geoip:cn）的返回 IP 进行校验，仅返回期望 IP</value>
   </data>
   <data name="TbCustomDNSEnable" xml:space="preserve">
     <value>启用自定义 DNS</value>
@@ -1531,7 +1528,7 @@
     <value>删除子配置</value>
   </data>
   <data name="menuServerList" xml:space="preserve">
-    <value>子配置项</value>
+    <value>子配置项一，从订阅分组中自动添加</value>
   </data>
   <data name="TbFallback" xml:space="preserve">
     <value>故障转移</value>
@@ -1600,10 +1597,10 @@
     <value>固定证书</value>
   </data>
   <data name="TbCertPinningTips" xml:space="preserve">
-    <value>服务器证书（PEM 格式，可选）
+    <value>固定证书（二选一填写即可）
 当指定此证书后，将固定该证书，并禁用“跳过证书验证”选项。
 
-“获取证书”操作可能失败，原因可能是使用了自签证书，或系统中存在不受信任或恶意的 CA。</value>
+“获取证书”操作可能失败，原因包括使用了自签名证书，或系统中存在不受信任甚至恶意的 CA。</value>
   </data>
   <data name="TbFetchCert" xml:space="preserve">
     <value>获取证书</value>
@@ -1628,5 +1625,41 @@
   </data>
   <data name="TbSettingsMacOSShowInDock" xml:space="preserve">
     <value>macOS 在 Dock 栏中显示 (需重启)</value>
+  </data>
+  <data name="menuServerList2" xml:space="preserve">
+    <value>子配置项二，从自建中选择添加</value>
+  </data>
+  <data name="TbEchConfigList" xml:space="preserve">
+    <value>EchConfigList</value>
+  </data>
+  <data name="TbEchForceQuery" xml:space="preserve">
+    <value>EchForceQuery</value>
+  </data>
+  <data name="TbFullCertTips" xml:space="preserve">
+    <value>完整证书（链），PEM 格式</value>
+  </data>
+  <data name="TbCertSha256Tips" xml:space="preserve">
+    <value>证书指纹（SHA-256）</value>
+  </data>
+  <data name="TbServeStale" xml:space="preserve">
+    <value>乐观缓存</value>
+  </data>
+  <data name="TbParallelQuery" xml:space="preserve">
+    <value>并行查询</value>
+  </data>
+  <data name="TbDomesticDNSTips" xml:space="preserve">
+    <value>默认仅在路由阶段被调用解析</value>
+  </data>
+  <data name="TbRemoteDNSTips" xml:space="preserve">
+    <value>默认仅在路由阶段被调用解析；请确保远程服务器可访问该 DNS</value>
+  </data>
+  <data name="TbDirectResolveStrategyTips" xml:space="preserve">
+    <value>当未选择或 "AsIs" 时，使用系统 DNS 进行解析；否则，使用内部 DNS 模块解析。</value>
+  </data>
+  <data name="TbRemoteResolveStrategyTips" xml:space="preserve">
+    <value>当未选择或 "AsIs" 时，由远程服务器端 DNS 解析；否则，使用内部 DNS 模块解析。</value>
+  </data>
+  <data name="TbHopInt7" xml:space="preserve">
+    <value>端口跳跃间隔</value>
   </data>
 </root>

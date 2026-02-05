@@ -253,13 +253,12 @@ public class MainWindowViewModel : MyReactiveObject
 
     private async Task Init()
     {
-        _config.UiItem.ShowInTaskbar = true;
+        AppManager.Instance.ShowInTaskbar = true;
 
         //await ConfigHandler.InitBuiltinRouting(_config);
         await ConfigHandler.InitBuiltinDNS(_config);
         await ConfigHandler.InitBuiltinFullConfigTemplate(_config);
         await ProfileExManager.Instance.Init();
-        await ProfileGroupItemManager.Instance.Init();
         await CoreManager.Instance.Init(_config, UpdateHandler);
         TaskManager.Instance.RegUpdateTask(_config, UpdateTaskHandler);
 
@@ -306,7 +305,7 @@ public class MainWindowViewModel : MyReactiveObject
 
     private async Task UpdateStatisticsHandler(ServerSpeedItem update)
     {
-        if (!_config.UiItem.ShowInTaskbar)
+        if (!AppManager.Instance.ShowInTaskbar)
         {
             return;
         }
@@ -560,7 +559,7 @@ public class MainWindowViewModel : MyReactiveObject
             });
             AppEvents.TestServerRequested.Publish();
 
-            var showClashUI = _config.IsRunningCore(ECoreType.sing_box);
+            var showClashUI = AppManager.Instance.IsRunningCore(ECoreType.sing_box);
             if (showClashUI)
             {
                 AppEvents.ProxiesReloadRequested.Publish();

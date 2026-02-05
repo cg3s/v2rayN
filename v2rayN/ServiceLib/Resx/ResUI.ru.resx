@@ -469,10 +469,10 @@
     <value>Язык (требуется перезапуск)</value>
   </data>
   <data name="menuAddServerViaClipboard" xml:space="preserve">
-    <value>Импорт массива URL из буфера обмена (Ctrl+V)</value>
+    <value>Импорт массива URL из буфера обмена</value>
   </data>
   <data name="menuAddServerViaScan" xml:space="preserve">
-    <value>Сканировать QR-код с экрана (Ctrl+S)</value>
+    <value>Сканировать QR-код с экрана</value>
   </data>
   <data name="menuCopyServer" xml:space="preserve">
     <value>Клонировать выбранный сервер</value>
@@ -481,31 +481,31 @@
     <value>Удалить дубликаты серверов</value>
   </data>
   <data name="menuRemoveServer" xml:space="preserve">
-    <value>Удалить выбранные серверы (Delete)</value>
+    <value>Удалить выбранные серверы</value>
   </data>
   <data name="menuSetDefaultServer" xml:space="preserve">
-    <value>Установить как активный сервер (Enter)</value>
+    <value>Установить как активный сервер</value>
   </data>
   <data name="menuClearServerStatistics" xml:space="preserve">
     <value>Очистить всю статистику</value>
   </data>
   <data name="menuRealPingServer" xml:space="preserve">
-    <value>Тест на реальную задержку сервера (Ctrl+R)</value>
+    <value>Тест на реальную задержку сервера</value>
   </data>
   <data name="menuSortServerResult" xml:space="preserve">
     <value>Сортировать по результату теста</value>
   </data>
   <data name="menuSpeedServer" xml:space="preserve">
-    <value>Тест на скорость загрузки сервера (Ctrl+T)</value>
+    <value>Тест на скорость загрузки сервера</value>
   </data>
   <data name="menuTcpingServer" xml:space="preserve">
-    <value>Тест задержки с tcping (Ctrl+O)</value>
+    <value>Тест задержки с tcping</value>
   </data>
   <data name="menuExport2ClientConfig" xml:space="preserve">
     <value>Экспортировать выбранный сервер для клиента</value>
   </data>
   <data name="menuExport2ShareUrl" xml:space="preserve">
-    <value>Экспорт URL-адресов общего доступа в буфер обмена (Ctrl+C)</value>
+    <value>Экспорт URL-адресов общего доступа в буфер обмена</value>
   </data>
   <data name="menuAddCustomServer" xml:space="preserve">
     <value>Добавить сервер пользовательской конфигурации</value>
@@ -526,19 +526,19 @@
     <value>Добавить сервер [VMess]</value>
   </data>
   <data name="menuSelectAll" xml:space="preserve">
-    <value>Выбрать все (Ctrl+A)</value>
+    <value>Выбрать все</value>
   </data>
   <data name="menuMsgViewClear" xml:space="preserve">
     <value>Очистить все</value>
   </data>
   <data name="menuMsgViewCopy" xml:space="preserve">
-    <value>Скопировать (Ctrl+C)</value>
+    <value>Скопировать</value>
   </data>
   <data name="menuMsgViewCopyAll" xml:space="preserve">
     <value>Скопировать все</value>
   </data>
   <data name="menuMsgViewSelectAll" xml:space="preserve">
-    <value>Выбрать все (Ctrl+A)</value>
+    <value>Выбрать все</value>
   </data>
   <data name="menuSubAdd" xml:space="preserve">
     <value>Добавить</value>
@@ -778,7 +778,7 @@
     <value>Режим PAC</value>
   </data>
   <data name="menuShareServer" xml:space="preserve">
-    <value>Поделиться сервером (Ctrl+F)</value>
+    <value>Поделиться сервером</value>
   </data>
   <data name="menuRouting" xml:space="preserve">
     <value>Маршрутизация</value>
@@ -790,16 +790,16 @@
     <value>Администратор</value>
   </data>
   <data name="menuMoveBottom" xml:space="preserve">
-    <value>Спуститься вниз (B)</value>
+    <value>Спуститься вниз</value>
   </data>
   <data name="menuMoveDown" xml:space="preserve">
-    <value>Вниз (D)</value>
+    <value>Вниз</value>
   </data>
   <data name="menuMoveTop" xml:space="preserve">
-    <value>Подняться наверх (T)</value>
+    <value>Подняться наверх</value>
   </data>
   <data name="menuMoveUp" xml:space="preserve">
-    <value>Вверх (U)</value>
+    <value>Вверх</value>
   </data>
   <data name="MsgFilterTitle" xml:space="preserve">
     <value>Фильтр, поддерживает regex</value>
@@ -850,7 +850,7 @@
     <value>Список правил</value>
   </data>
   <data name="menuRuleRemove" xml:space="preserve">
-    <value>Удалить правила (Delete)</value>
+    <value>Удалить правила</value>
   </data>
   <data name="menuRoutingRuleDetailsSetting" xml:space="preserve">
     <value>Детальные настройки правил маршрутизации</value>
@@ -919,7 +919,7 @@
     <value>Пропустить тест</value>
   </data>
   <data name="menuEditServer" xml:space="preserve">
-    <value>Редактировать сервер (Ctrl+D)</value>
+    <value>Редактировать сервер</value>
   </data>
   <data name="TbSettingsDoubleClick2Activate" xml:space="preserve">
     <value>Двойной клик чтобы сделать сервер активным</value>
@@ -973,7 +973,10 @@
     <value>Включить аппаратное ускорение (требуется перезагрузка)</value>
   </data>
   <data name="SpeedtestingWait" xml:space="preserve">
-    <value>Ожидание тестирования (нажмите ESC для отмены)…</value>
+    <value>Ожидание тестирования…</value>
+  </data>
+  <data name="SpeedtestingPressEscToExit" xml:space="preserve">
+    <value>нажмите ESC для отмены</value>
   </data>
   <data name="TipDisplayLog" xml:space="preserve">
     <value>Отключите при аномальном разрыве соединения</value>
@@ -1021,7 +1024,7 @@
     <value>Протокол Mux для sing-box</value>
   </data>
   <data name="TbRoutingRuleProcess" xml:space="preserve">
-    <value>Полное имя процесса (режим TUN)</value>
+    <value>Process (Tun mode)</value>
   </data>
   <data name="TbRoutingRuleIP" xml:space="preserve">
     <value>IP-адрес или сеть CIDR</value>
@@ -1201,7 +1204,7 @@
     <value>Обновить прокси</value>
   </data>
   <data name="menuProxiesSelectActivity" xml:space="preserve">
-    <value>Сделать узел активным (Enter)</value>
+    <value>Сделать узел активным</value>
   </data>
   <data name="TbSettingsDomainStrategy4Out" xml:space="preserve">
     <value>Стратегия домена по умолчанию для исходящих</value>
@@ -1413,17 +1416,11 @@
   <data name="TbDomesticDNS" xml:space="preserve">
     <value>Внутренний DNS</value>
   </data>
-  <data name="TbRemoteDNSTips" xml:space="preserve">
-    <value>Via proxy — please ensure remote availability</value>
+  <data name="TbDirectResolveStrategy" xml:space="preserve">
+    <value>Direct Target Resolution Strategy</value>
   </data>
-  <data name="TbXrayFreedomStrategy" xml:space="preserve">
-    <value>Стратегия резолвинга Freedom (Xray)</value>
-  </data>
-  <data name="TbSBDirectResolveStrategy" xml:space="preserve">
-    <value>Стратегия прямого резолвинга (sing-box)</value>
-  </data>
-  <data name="TbSBRemoteResolveStrategy" xml:space="preserve">
-    <value>Стратегия удалённого резолвинга (sing-box)</value>
+  <data name="TbRemoteResolveStrategy" xml:space="preserve">
+    <value>Proxy Target Resolution Strategy</value>
   </data>
   <data name="TbAddCommonDNSHosts" xml:space="preserve">
     <value>Добавить стандартные записи hosts (DNS)</value>
@@ -1447,7 +1444,7 @@
     <value>Проверять IP-адреса региональных доменов</value>
   </data>
   <data name="TbValidateDirectExpectedIPsDesc" xml:space="preserve">
-    <value>При включении проверяет IP-адреса, возвращаемые для региональных доменов (например, geosite:cn), и оставляет только ожидаемые IP-адреса</value>
+    <value>При включении проверяет IP-адреса, возвращаемые для региональных доменов (например, geosite:cn - geoip:cn), и оставляет только ожидаемые IP-адреса</value>
   </data>
   <data name="TbCustomDNSEnable" xml:space="preserve">
     <value>Включить пользовательский DNS</value>
@@ -1534,7 +1531,7 @@
     <value>Remove Child Configuration</value>
   </data>
   <data name="menuServerList" xml:space="preserve">
-    <value>Configuration List</value>
+    <value>Configuration item 1, Auto add from subscription group</value>
   </data>
   <data name="TbFallback" xml:space="preserve">
     <value>Fallback</value>
@@ -1603,7 +1600,7 @@
     <value>Certificate Pinning</value>
   </data>
   <data name="TbCertPinningTips" xml:space="preserve">
-    <value>Server Certificate (PEM format, optional)
+    <value>Pinned certificate (fill in either one)
 When specified, the certificate will be pinned, and "Allow Insecure" will be disabled.
 
 The "Get Certificate" action may fail if a self-signed certificate is used or if the system contains an untrusted or malicious CA.</value>
@@ -1631,5 +1628,41 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
   </data>
   <data name="TbSettingsMacOSShowInDock" xml:space="preserve">
     <value>macOS displays this in the Dock (requires restart)</value>
+  </data>
+  <data name="menuServerList2" xml:space="preserve">
+    <value>Configuration Item 2, Select and add from self-built</value>
+  </data>
+  <data name="TbEchConfigList" xml:space="preserve">
+    <value>EchConfigList</value>
+  </data>
+  <data name="TbEchForceQuery" xml:space="preserve">
+    <value>EchForceQuery</value>
+  </data>
+  <data name="TbFullCertTips" xml:space="preserve">
+    <value>Full certificate (chain), PEM format</value>
+  </data>
+  <data name="TbCertSha256Tips" xml:space="preserve">
+    <value>Certificate fingerprint (SHA-256)</value>
+  </data>
+  <data name="TbServeStale" xml:space="preserve">
+    <value>Serve Stale</value>
+  </data>
+  <data name="TbParallelQuery" xml:space="preserve">
+    <value>Parallel Query</value>
+  </data>
+  <data name="TbDomesticDNSTips" xml:space="preserve">
+    <value>By default, invoked only during routing for resolution</value>
+  </data>
+  <data name="TbRemoteDNSTips" xml:space="preserve">
+    <value>By default, invoked only during routing for resolution; ensure the remote server can reach this DNS</value>
+  </data>
+  <data name="TbDirectResolveStrategyTips" xml:space="preserve">
+    <value>If unset or "AsIs", DNS resolution uses the system DNS; otherwise, the internal DNS module is used.</value>
+  </data>
+  <data name="TbRemoteResolveStrategyTips" xml:space="preserve">
+    <value>If unset or "AsIs", DNS resolution is performed by the remote server's DNS; otherwise, the internal DNS module is used.</value>
+  </data>
+  <data name="TbHopInt7" xml:space="preserve">
+    <value>Port hopping interval</value>
   </data>
 </root>

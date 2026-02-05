@@ -11,9 +11,9 @@
     xmlns:view="clr-namespace:v2rayN.Views"
     xmlns:vms="clr-namespace:ServiceLib.ViewModels;assembly=ServiceLib"
     Title="v2rayN"
-    Width="900"
-    Height="700"
-    MinWidth="900"
+    Width="1200"
+    Height="800"
+    MinWidth="800"
     x:TypeArguments="vms:MainWindowViewModel"
     Icon="/Resources/v2rayN.ico"
     ResizeMode="CanResizeWithGrip"
@@ -32,6 +32,7 @@
 
     <materialDesign:DialogHost
         materialDesign:TransitionAssist.DisableTransitions="True"
+        CloseOnClickAway="True"
         Identifier="RootDialog"
         SnackbarMessageQueue="{Binding ElementName=MainSnackbar, Path=MessageQueue}"
         Style="{StaticResource MaterialDesignEmbeddedDialogHost}">
@@ -58,11 +59,13 @@
                                 <MenuItem
                                     x:Name="menuAddServerViaClipboard"
                                     Height="{StaticResource MenuItemHeight}"
-                                    Header="{x:Static resx:ResUI.menuAddServerViaClipboard}" />
+                                    Header="{x:Static resx:ResUI.menuAddServerViaClipboard}"
+                                    InputGestureText="Ctrl+V" />
                                 <MenuItem
                                     x:Name="menuAddServerViaScan"
                                     Height="{StaticResource MenuItemHeight}"
-                                    Header="{x:Static resx:ResUI.menuAddServerViaScan}" />
+                                    Header="{x:Static resx:ResUI.menuAddServerViaScan}"
+                                    InputGestureText="Ctrl+S" />
                                 <MenuItem
                                     x:Name="menuAddServerViaImage"
                                     Height="{StaticResource MenuItemHeight}"
@@ -97,6 +100,10 @@
                                     Height="{StaticResource MenuItemHeight}"
                                     Header="{x:Static resx:ResUI.menuAddTrojanServer}" />
                                 <MenuItem
+                                    x:Name="menuAddHysteria2Server"
+                                    Height="{StaticResource MenuItemHeight}"
+                                    Header="{x:Static resx:ResUI.menuAddHysteria2Server}" />
+                                <MenuItem
                                     x:Name="menuAddWireguardServer"
                                     Height="{StaticResource MenuItemHeight}"
                                     Header="{x:Static resx:ResUI.menuAddWireguardServer}" />
@@ -109,10 +116,6 @@
                                     Height="{StaticResource MenuItemHeight}"
                                     Header="{x:Static resx:ResUI.menuAddHttpServer}" />
                                 <Separator Margin="-40,5" />
-                                <MenuItem
-                                    x:Name="menuAddHysteria2Server"
-                                    Height="{StaticResource MenuItemHeight}"
-                                    Header="{x:Static resx:ResUI.menuAddHysteria2Server}" />
                                 <MenuItem
                                     x:Name="menuAddTuicServer"
                                     Height="{StaticResource MenuItemHeight}"
@@ -231,40 +234,6 @@
                         <Separator />
                         <Menu Margin="0,1" Style="{StaticResource ToolbarMenu}">
                             <MenuItem
-                                x:Name="menuReload"
-                                Padding="{StaticResource MarginLeftRight8}"
-                                AutomationProperties.Name="{x:Static resx:ResUI.menuReload}">
-                                <MenuItem.Header>
-                                    <StackPanel Orientation="Horizontal">
-                                        <materialDesign:PackIcon
-                                            Margin="{StaticResource MarginRight8}"
-                                            VerticalAlignment="Center"
-                                            Kind="Reload" />
-                                        <TextBlock Text="{x:Static resx:ResUI.menuReload}" />
-                                    </StackPanel>
-                                </MenuItem.Header>
-                            </MenuItem>
-                        </Menu>
-                        <Separator />
-                        <Menu Margin="0,1" Style="{StaticResource ToolbarMenu}">
-                            <MenuItem
-                                Name="menuCheckUpdate"
-                                Padding="{StaticResource MarginLeftRight8}"
-                                AutomationProperties.Name="{x:Static resx:ResUI.menuCheckUpdate}">
-                                <MenuItem.Header>
-                                    <StackPanel Orientation="Horizontal">
-                                        <materialDesign:PackIcon
-                                            Margin="{StaticResource MarginRight8}"
-                                            VerticalAlignment="Center"
-                                            Kind="Update" />
-                                        <TextBlock Text="{x:Static resx:ResUI.menuCheckUpdate}" />
-                                    </StackPanel>
-                                </MenuItem.Header>
-                            </MenuItem>
-                        </Menu>
-                        <Separator />
-                        <Menu Margin="0,1" Style="{StaticResource ToolbarMenu}">
-                            <MenuItem
                                 x:Name="menuHelp"
                                 Padding="{StaticResource MarginLeftRight8}"
                                 AutomationProperties.Name="{x:Static resx:ResUI.menuHelp}">
@@ -275,6 +244,25 @@
                                             VerticalAlignment="Center"
                                             Kind="HelpCircleOutline" />
                                         <TextBlock Text="{x:Static resx:ResUI.menuHelp}" />
+                                    </StackPanel>
+                                </MenuItem.Header>
+                                <MenuItem x:Name="menuCheckUpdate" Header="{x:Static resx:ResUI.menuCheckUpdate}" />
+                                <Separator Margin="-40,5" />
+                            </MenuItem>
+                        </Menu>
+                        <Separator />
+                        <Menu Margin="0,1" Style="{StaticResource ToolbarMenu}">
+                            <MenuItem
+                                x:Name="menuReload"
+                                Padding="{StaticResource MarginLeftRight8}"
+                                AutomationProperties.Name="{x:Static resx:ResUI.menuReload}">
+                                <MenuItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon
+                                            Margin="{StaticResource MarginRight8}"
+                                            VerticalAlignment="Center"
+                                            Kind="Reload" />
+                                        <TextBlock Text="{x:Static resx:ResUI.menuReload}" />
                                     </StackPanel>
                                 </MenuItem.Header>
                             </MenuItem>

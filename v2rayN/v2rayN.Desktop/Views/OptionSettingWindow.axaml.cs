@@ -41,6 +41,7 @@ public partial class OptionSettingWindow : WindowBase<OptionSettingViewModel>
         cmbCoreType4.ItemsSource = Global.CoreTypes;
         cmbCoreType5.ItemsSource = Global.CoreTypes;
         cmbCoreType6.ItemsSource = Global.CoreTypes;
+        cmbCoreType7.ItemsSource = Global.CoreTypes;
         cmbCoreType9.ItemsSource = Global.CoreTypes;
 
         cmbMixedConcurrencyCount.ItemsSource = Enumerable.Range(2, 7).ToList();
@@ -101,7 +102,7 @@ public partial class OptionSettingWindow : WindowBase<OptionSettingViewModel>
             this.Bind(ViewModel, vm => vm.GeoFileSourceUrl, v => v.cmbGetFilesSourceUrl.SelectedValue).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.SrsFileSourceUrl, v => v.cmbSrsFilesSourceUrl.SelectedValue).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.RoutingRulesSourceUrl, v => v.cmbRoutingRulesSourceUrl.SelectedValue).DisposeWith(disposables);
-            this.Bind(ViewModel, vm => vm.IPAPIUrl, v => v.cmbIPAPIUrl.SelectedValue).DisposeWith(disposables);
+            this.Bind(ViewModel, vm => vm.IPAPIUrl, v => v.cmbIPAPIUrl.Text).DisposeWith(disposables);
 
             this.Bind(ViewModel, vm => vm.notProxyLocalAddress, v => v.tognotProxyLocalAddress.IsChecked).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.systemProxyAdvancedProtocol, v => v.cmbsystemProxyAdvancedProtocol.SelectedValue).DisposeWith(disposables);
@@ -122,6 +123,7 @@ public partial class OptionSettingWindow : WindowBase<OptionSettingViewModel>
             this.Bind(ViewModel, vm => vm.CoreType4, v => v.cmbCoreType4.SelectedValue).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.CoreType5, v => v.cmbCoreType5.SelectedValue).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.CoreType6, v => v.cmbCoreType6.SelectedValue).DisposeWith(disposables);
+            this.Bind(ViewModel, vm => vm.CoreType7, v => v.cmbCoreType7.SelectedValue).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.CoreType9, v => v.cmbCoreType9.SelectedValue).DisposeWith(disposables);
 
             this.BindCommand(ViewModel, vm => vm.SaveCmd, v => v.btnSave).DisposeWith(disposables);

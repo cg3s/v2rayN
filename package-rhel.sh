@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# == Require Red Hat Enterprise Linux/FedoraLinux/RockyLinux/AlmaLinux/CentOS OR Ubuntu/Debian ==
+# ====== Require Red Hat Enterprise Linux/FedoraLinux/RockyLinux/AlmaLinux/CentOS ======
 if [[ -r /etc/os-release ]]; then
   . /etc/os-release
   case "$ID" in
-    rhel|rocky|almalinux|fedora|centos|ubuntu|debian)
+    rhel|rocky|almalinux|fedora|centos)
       echo "[OK] Detected supported system: $NAME $VERSION_ID"
       ;;
     *)
@@ -30,7 +30,7 @@ echo "[INFO] Detected kernel version: $KERNEL_FULL"
 
 if (( KERNEL_MAJOR < MIN_KERNEL_MAJOR )) || { (( KERNEL_MAJOR == MIN_KERNEL_MAJOR )) && (( KERNEL_MINOR < MIN_KERNEL_MINOR )); }; then
   echo "[ERROR] Kernel $KERNEL_FULL is too old. Requires Linux >= ${MIN_KERNEL_MAJOR}.${MIN_KERNEL_MINOR}."
-  echo "Please upgrade your system or use a newer container (e.g. Fedora 42+, RHEL 10+, Debian 13+)."
+  echo "Please upgrade your system or use a newer container (e.g. Fedora 42+, RHEL 10+)."
   exit 1
 fi
 
@@ -80,7 +80,6 @@ host_arch="$(uname -m)"
 
 install_ok=0
 case "$ID" in
-  # ------------------------------ RHEL family (UNCHANGED) ------------------------------
   rhel|rocky|almalinux|centos)
     if command -v dnf >/dev/null 2>&1; then
       sudo dnf -y install dotnet-sdk-8.0 rpm-build rpmdevtools curl unzip tar rsync || \
@@ -92,58 +91,7 @@ case "$ID" in
       install_ok=1
     fi
     ;;
-  # ------------------------------ Ubuntu ----------------------------------------------
-  ubuntu)
-    sudo apt-get update
-    # Ensure 'universe' (Ubuntu) to get 'rpm'
-    if ! apt-cache policy | grep -q '^500 .*ubuntu.com/ubuntu.* universe'; then
-      sudo apt-get -y install software-properties-common || true
-      sudo add-apt-repository -y universe || true
-      sudo apt-get update
-    fi
-    # Base tools + rpm (provides rpmbuild)
-    sudo apt-get -y install curl unzip tar rsync rpm || true
-    # Cross-arch binutils so strip matches target arch + objdump for brp scripts
-    sudo apt-get -y install binutils binutils-x86-64-linux-gnu binutils-aarch64-linux-gnu || true
-    # rpmbuild presence check
-    if ! command -v rpmbuild >/dev/null 2>&1; then
-      echo "[ERROR] 'rpmbuild' not found after installing 'rpm'."
-      echo "        Please ensure the 'rpm' package is available from your repos (universe on Ubuntu)."
-      exit 1
-    fi
-    # .NET SDK 8 (best effort via apt)
-    if ! command -v dotnet >/dev/null 2>&1; then
-      sudo apt-get -y install dotnet-sdk-8.0 || true
-      sudo apt-get -y install dotnet-sdk-8 || true
-      sudo apt-get -y install dotnet-sdk || true
-    fi
-    install_ok=1
-    ;;
-  # ------------------------------ Debian (KEEP, with local dotnet install) ------------
-  debian)
-    sudo apt-get update
-    # Base tools + rpm (provides rpmbuild on Debian) + objdump/strip
-    sudo apt-get -y install curl unzip tar rsync rpm binutils || true
-    # rpmbuild presence check
-    if ! command -v rpmbuild >/dev/null 2>&1; then
-      echo "[ERROR] 'rpmbuild' not found after installing 'rpm'."
-      echo "        Please ensure 'rpm' is available from Debian repos."
-      exit 1
-    fi
-    # Try apt for dotnet; fallback to official installer into $HOME/.dotnet
-    if ! command -v dotnet >/dev/null 2>&1; then
-      echo "[INFO] 'dotnet' not found. Installing .NET 8 SDK locally to \$HOME/.dotnet ..."
-      tmp="$(mktemp -d)"; trap '[[ -n "${tmp:-}" ]] && rm -rf "$tmp"' RETURN
-      curl -fsSL https://dot.net/v1/dotnet-install.sh -o "$tmp/dotnet-install.sh"
-      bash "$tmp/dotnet-install.sh" --channel 8.0 --install-dir "$HOME/.dotnet"
-      export PATH="$HOME/.dotnet:$HOME/.dotnet/tools:$PATH"
-      export DOTNET_ROOT="$HOME/.dotnet"
-      if ! command -v dotnet >/dev/null 2>&1; then
-        echo "[ERROR] dotnet installation failed."
-        exit 1
-      fi
-    fi
-    install_ok=1
+  *)
     ;;
 esac
 
@@ -154,7 +102,7 @@ fi
 
 command -v curl >/dev/null
 
-# Root directory = the script's location
+# Root directory
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
@@ -164,14 +112,14 @@ if [[ -f .gitmodules ]]; then
   git submodule update --init --recursive || true
 fi
 
-# ===== Locate project ================================================================
+# Locate project
 PROJECT="v2rayN.Desktop/v2rayN.Desktop.csproj"
 if [[ ! -f "$PROJECT" ]]; then
   PROJECT="$(find . -maxdepth 3 -name 'v2rayN.Desktop.csproj' | head -n1 || true)"
 fi
 [[ -f "$PROJECT" ]] || { echo "v2rayN.Desktop.csproj not found"; exit 1; }
 
-# ===== Resolve GUI version & auto checkout ============================================
+# Resolve GUI version & auto checkout
 VERSION=""
 
 choose_channel() {
@@ -391,22 +339,6 @@ download_singbox() {
   install -Dm755 "$bin" "$outdir/sing-box"
 }
 
-# ---- NEW: download_mihomo (REQUIRED in --netcore mode) ----
-download_mihomo() {
-  # Download mihomo into outroot/bin/mihomo/mihomo
-  local outroot="$1"
-  local url=""
-  if [[ "$RID_DIR" == "linux-arm64" ]]; then
-    url="https://raw.githubusercontent.com/2dust/v2rayN-core-bin/refs/heads/master/v2rayN-linux-arm64/bin/mihomo/mihomo"
-  else
-    url="https://raw.githubusercontent.com/2dust/v2rayN-core-bin/refs/heads/master/v2rayN-linux-64/bin/mihomo/mihomo"
-  fi
-  echo "[+] Download mihomo: $url"
-  mkdir -p "$outroot/bin/mihomo"
-  curl -fL "$url" -o "$outroot/bin/mihomo/mihomo"
-  chmod +x "$outroot/bin/mihomo/mihomo" || true
-}
-
 # Move geo files to a unified path: outroot/bin
 unify_geo_layout() {
   local outroot="$1"
@@ -458,7 +390,7 @@ download_geo_assets() {
       "https://raw.githubusercontent.com/2dust/sing-box-rules/rule-set-geoip/$f" || true
   done
   for f in \
-    geosite-cn.srs geosite-gfw.srs geosite-greatfire.srs \
+    geosite-cn.srs geosite-gfw.srs geosite-google.srs geosite-greatfire.srs \
     geosite-geolocation-cn.srs geosite-category-ads-all.srs geosite-private.srs; do
     curl -fsSL -o "$srss_dir/$f" \
       "https://raw.githubusercontent.com/2dust/sing-box-rules/rule-set-geosite/$f" || true
@@ -491,8 +423,7 @@ download_v2rayn_bundle() {
   fi
 
   rm -f "$outroot/v2rayn.zip" 2>/dev/null || true
-  # keep mihomo
-  # find "$outroot" -type d -name "mihomo" -prune -exec rm -rf {} + 2>/dev/null || true
+  find "$outroot" -type d -name "mihomo" -prune -exec rm -rf {} + 2>/dev/null || true
 
   local nested_dir
   nested_dir="$(find "$outroot" -maxdepth 1 -type d -name 'v2rayN-linux-*' | head -n1 || true)"
@@ -603,7 +534,7 @@ build_for_arch() {
     fi
     download_geo_assets "$WORKDIR/$PKGROOT" || echo "[!] Geo rules download failed (skipped)"
     # ---- REQUIRED: always fetch mihomo in netcore mode, per-arch ----
-    download_mihomo "$WORKDIR/$PKGROOT" || echo "[!] mihomo download failed (skipped)"
+    # download_mihomo "$WORKDIR/$PKGROOT" || echo "[!] mihomo download failed (skipped)"
   fi
 
   # Tarball
@@ -631,13 +562,14 @@ ExclusiveArch:  aarch64 x86_64
 Source0:        __PKGROOT__.tar.gz
 
 # Runtime dependencies (Avalonia / X11 / Fonts / GL)
-Requires:       freetype, cairo, pango, openssl, mesa-libEGL, mesa-libGL
+Requires:       cairo, pango, openssl, mesa-libEGL, mesa-libGL
 Requires:       glibc >= 2.34
 Requires:       fontconfig >= 2.13.1
 Requires:       desktop-file-utils >= 0.26
 Requires:       xdg-utils >= 1.1.3
 Requires:       coreutils >= 8.32
 Requires:       bash >= 5.1
+Requires:       freetype >= 2.10
 
 %description
 v2rayN Linux for Red Hat Enterprise Linux

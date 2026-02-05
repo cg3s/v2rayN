@@ -23,6 +23,7 @@ public partial class AddServerWindow
         cmbFingerprint2.ItemsSource = Global.Fingerprints;
         cmbAllowInsecure.ItemsSource = Global.AllowInsecure;
         cmbAlpn.ItemsSource = Global.Alpns;
+        cmbEchForceQuery.ItemsSource = Global.EchForceQuerys;
 
         var lstStreamSecurity = new List<string>();
         lstStreamSecurity.Add(string.Empty);
@@ -33,10 +34,6 @@ public partial class AddServerWindow
             case EConfigType.VMess:
                 gridVMess.Visibility = Visibility.Visible;
                 cmbSecurity.ItemsSource = Global.VmessSecurities;
-                if (profileItem.Security.IsNullOrEmpty())
-                {
-                    profileItem.Security = Global.DefaultSecurity;
-                }
                 break;
 
             case EConfigType.Shadowsocks:
@@ -53,10 +50,6 @@ public partial class AddServerWindow
                 gridVLESS.Visibility = Visibility.Visible;
                 lstStreamSecurity.Add(Global.StreamSecurityReality);
                 cmbFlow5.ItemsSource = Global.Flows;
-                if (profileItem.Security.IsNullOrEmpty())
-                {
-                    profileItem.Security = Global.None;
-                }
                 break;
 
             case EConfigType.Trojan:
@@ -69,7 +62,6 @@ public partial class AddServerWindow
                 gridHysteria2.Visibility = Visibility.Visible;
                 sepa2.Visibility = Visibility.Collapsed;
                 gridTransport.Visibility = Visibility.Collapsed;
-                cmbCoreType.IsEnabled = false;
                 cmbFingerprint.IsEnabled = false;
                 cmbFingerprint.Text = string.Empty;
                 break;
@@ -114,59 +106,62 @@ public partial class AddServerWindow
             switch (profileItem.ConfigType)
             {
                 case EConfigType.VMess:
-                    this.Bind(ViewModel, vm => vm.SelectedSource.Id, v => v.txtId.Text).DisposeWith(disposables);
-                    this.Bind(ViewModel, vm => vm.SelectedSource.AlterId, v => v.txtAlterId.Text).DisposeWith(disposables);
-                    this.Bind(ViewModel, vm => vm.SelectedSource.Security, v => v.cmbSecurity.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.SelectedSource.Password, v => v.txtId.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.AlterId, v => v.txtAlterId.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.VmessSecurity, v => v.cmbSecurity.Text).DisposeWith(disposables);
                     this.Bind(ViewModel, vm => vm.SelectedSource.MuxEnabled, v => v.togmuxEnabled.IsChecked).DisposeWith(disposables);
                     break;
 
                 case EConfigType.Shadowsocks:
-                    this.Bind(ViewModel, vm => vm.SelectedSource.Id, v => v.txtId3.Text).DisposeWith(disposables);
-                    this.Bind(ViewModel, vm => vm.SelectedSource.Security, v => v.cmbSecurity3.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.SelectedSource.Password, v => v.txtId3.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.SsMethod, v => v.cmbSecurity3.Text).DisposeWith(disposables);
                     this.Bind(ViewModel, vm => vm.SelectedSource.MuxEnabled, v => v.togmuxEnabled3.IsChecked).DisposeWith(disposables);
                     break;
 
                 case EConfigType.SOCKS:
                 case EConfigType.HTTP:
-                    this.Bind(ViewModel, vm => vm.SelectedSource.Id, v => v.txtId4.Text).DisposeWith(disposables);
-                    this.Bind(ViewModel, vm => vm.SelectedSource.Security, v => v.txtSecurity4.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.SelectedSource.Password, v => v.txtId4.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.SelectedSource.Username, v => v.txtSecurity4.Text).DisposeWith(disposables);
                     break;
 
                 case EConfigType.VLESS:
-                    this.Bind(ViewModel, vm => vm.SelectedSource.Id, v => v.txtId5.Text).DisposeWith(disposables);
-                    this.Bind(ViewModel, vm => vm.SelectedSource.Flow, v => v.cmbFlow5.Text).DisposeWith(disposables);
-                    this.Bind(ViewModel, vm => vm.SelectedSource.Security, v => v.txtSecurity5.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.SelectedSource.Password, v => v.txtId5.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.Flow, v => v.cmbFlow5.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.VlessEncryption, v => v.txtSecurity5.Text).DisposeWith(disposables);
                     this.Bind(ViewModel, vm => vm.SelectedSource.MuxEnabled, v => v.togmuxEnabled5.IsChecked).DisposeWith(disposables);
                     break;
 
                 case EConfigType.Trojan:
-                    this.Bind(ViewModel, vm => vm.SelectedSource.Id, v => v.txtId6.Text).DisposeWith(disposables);
-                    this.Bind(ViewModel, vm => vm.SelectedSource.Flow, v => v.cmbFlow6.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.SelectedSource.Password, v => v.txtId6.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.Flow, v => v.cmbFlow6.Text).DisposeWith(disposables);
                     this.Bind(ViewModel, vm => vm.SelectedSource.MuxEnabled, v => v.togmuxEnabled6.IsChecked).DisposeWith(disposables);
                     break;
 
                 case EConfigType.Hysteria2:
-                    this.Bind(ViewModel, vm => vm.SelectedSource.Id, v => v.txtId7.Text).DisposeWith(disposables);
-                    this.Bind(ViewModel, vm => vm.SelectedSource.Path, v => v.txtPath7.Text).DisposeWith(disposables);
-                    this.Bind(ViewModel, vm => vm.SelectedSource.Ports, v => v.txtPorts7.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.SelectedSource.Password, v => v.txtId7.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.SalamanderPass, v => v.txtPath7.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.Ports, v => v.txtPorts7.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.HopInterval, v => v.txtHopInt7.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.UpMbps, v => v.txtUpMbps7.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.DownMbps, v => v.txtDownMbps7.Text).DisposeWith(disposables);
                     break;
 
                 case EConfigType.TUIC:
-                    this.Bind(ViewModel, vm => vm.SelectedSource.Id, v => v.txtId8.Text).DisposeWith(disposables);
-                    this.Bind(ViewModel, vm => vm.SelectedSource.Security, v => v.txtSecurity8.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.SelectedSource.Username, v => v.txtId8.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.SelectedSource.Password, v => v.txtSecurity8.Text).DisposeWith(disposables);
                     this.Bind(ViewModel, vm => vm.SelectedSource.HeaderType, v => v.cmbHeaderType8.Text).DisposeWith(disposables);
                     break;
 
                 case EConfigType.WireGuard:
-                    this.Bind(ViewModel, vm => vm.SelectedSource.Id, v => v.txtId9.Text).DisposeWith(disposables);
-                    this.Bind(ViewModel, vm => vm.SelectedSource.PublicKey, v => v.txtPublicKey9.Text).DisposeWith(disposables);
-                    this.Bind(ViewModel, vm => vm.SelectedSource.Path, v => v.txtPath9.Text).DisposeWith(disposables);
-                    this.Bind(ViewModel, vm => vm.SelectedSource.RequestHost, v => v.txtRequestHost9.Text).DisposeWith(disposables);
-                    this.Bind(ViewModel, vm => vm.SelectedSource.ShortId, v => v.txtShortId9.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.SelectedSource.Password, v => v.txtId9.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.WgPublicKey, v => v.txtPublicKey9.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.WgReserved, v => v.txtPath9.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.WgInterfaceAddress, v => v.txtRequestHost9.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.WgMtu, v => v.txtShortId9.Text).DisposeWith(disposables);
                     break;
 
                 case EConfigType.Anytls:
-                    this.Bind(ViewModel, vm => vm.SelectedSource.Id, v => v.txtId10.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.SelectedSource.Password, v => v.txtId10.Text).DisposeWith(disposables);
                     break;
             }
             this.Bind(ViewModel, vm => vm.SelectedSource.Network, v => v.cmbNetwork.Text).DisposeWith(disposables);
@@ -180,8 +175,13 @@ public partial class AddServerWindow
             this.Bind(ViewModel, vm => vm.SelectedSource.AllowInsecure, v => v.cmbAllowInsecure.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.SelectedSource.Fingerprint, v => v.cmbFingerprint.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.SelectedSource.Alpn, v => v.cmbAlpn.Text).DisposeWith(disposables);
+            this.Bind(ViewModel, vm => vm.CertSha, v => v.txtCertSha256Pinning.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.CertTip, v => v.labCertPinning.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.Cert, v => v.txtCert.Text).DisposeWith(disposables);
+            this.Bind(ViewModel, vm => vm.Cert, v => v.txtCert.Text).DisposeWith(disposables);
+            this.Bind(ViewModel, vm => vm.SelectedSource.EchConfigList, v => v.txtEchConfigList.Text).DisposeWith(disposables);
+            this.Bind(ViewModel, vm => vm.SelectedSource.EchForceQuery, v => v.cmbEchForceQuery.Text).DisposeWith(disposables);
+
             //reality
             this.Bind(ViewModel, vm => vm.SelectedSource.Sni, v => v.txtSNI2.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.SelectedSource.Fingerprint, v => v.cmbFingerprint2.Text).DisposeWith(disposables);
