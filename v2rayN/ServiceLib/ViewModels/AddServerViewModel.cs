@@ -27,10 +27,10 @@ public class AddServerViewModel : MyReactiveObject
     public string Ports { get; set; }
 
     [Reactive]
-    public int UpMbps { get; set; }
+    public int? UpMbps { get; set; }
 
     [Reactive]
-    public int DownMbps { get; set; }
+    public int? DownMbps { get; set; }
 
     [Reactive]
     public string HopInterval { get; set; }
@@ -49,14 +49,29 @@ public class AddServerViewModel : MyReactiveObject
 
     [Reactive]
     public string WgPublicKey { get; set; }
+
     //[Reactive]
     //public string WgPresharedKey { get; set; }
     [Reactive]
     public string WgInterfaceAddress { get; set; }
+
     [Reactive]
     public string WgReserved { get; set; }
+
     [Reactive]
     public int WgMtu { get; set; }
+
+    [Reactive]
+    public bool Uot { get; set; }
+
+    [Reactive]
+    public string CongestionControl { get; set; }
+
+    [Reactive]
+    public int? InsecureConcurrency { get; set; }
+
+    [Reactive]
+    public bool NaiveQuic { get; set; }
 
     public ReactiveCommand<Unit, Unit> FetchCertCmd { get; }
     public ReactiveCommand<Unit, Unit> FetchCertChainCmd { get; }
@@ -110,8 +125,8 @@ public class AddServerViewModel : MyReactiveObject
         AlterId = int.TryParse(protocolExtra?.AlterId, out var result) ? result : 0;
         Flow = protocolExtra?.Flow ?? string.Empty;
         SalamanderPass = protocolExtra?.SalamanderPass ?? string.Empty;
-        UpMbps = protocolExtra?.UpMbps ?? _config.HysteriaItem.UpMbps;
-        DownMbps = protocolExtra?.DownMbps ?? _config.HysteriaItem.DownMbps;
+        UpMbps = protocolExtra?.UpMbps;
+        DownMbps = protocolExtra?.DownMbps;
         HopInterval = protocolExtra?.HopInterval.IsNullOrEmpty() ?? true ? Global.Hysteria2DefaultHopInt.ToString() : protocolExtra.HopInterval;
         VmessSecurity = protocolExtra?.VmessSecurity?.IsNullOrEmpty() == false ? protocolExtra.VmessSecurity : Global.DefaultSecurity;
         VlessEncryption = protocolExtra?.VlessEncryption.IsNullOrEmpty() == false ? protocolExtra.VlessEncryption : Global.None;
@@ -120,6 +135,10 @@ public class AddServerViewModel : MyReactiveObject
         WgInterfaceAddress = protocolExtra?.WgInterfaceAddress ?? string.Empty;
         WgReserved = protocolExtra?.WgReserved ?? string.Empty;
         WgMtu = protocolExtra?.WgMtu ?? 1280;
+        Uot = protocolExtra?.Uot ?? false;
+        CongestionControl = protocolExtra?.CongestionControl ?? string.Empty;
+        InsecureConcurrency = protocolExtra?.InsecureConcurrency > 0 ? protocolExtra.InsecureConcurrency : null;
+        NaiveQuic = protocolExtra?.NaiveQuic ?? false;
     }
 
     private async Task SaveServerAsync()
@@ -172,8 +191,8 @@ public class AddServerViewModel : MyReactiveObject
             AlterId = AlterId > 0 ? AlterId.ToString() : null,
             Flow = Flow.NullIfEmpty(),
             SalamanderPass = SalamanderPass.NullIfEmpty(),
-            UpMbps = UpMbps >= 0 ? UpMbps : null,
-            DownMbps = DownMbps >= 0 ? DownMbps : null,
+            UpMbps = UpMbps,
+            DownMbps = DownMbps,
             HopInterval = HopInterval.NullIfEmpty(),
             VmessSecurity = VmessSecurity.NullIfEmpty(),
             VlessEncryption = VlessEncryption.NullIfEmpty(),
@@ -182,6 +201,10 @@ public class AddServerViewModel : MyReactiveObject
             WgInterfaceAddress = WgInterfaceAddress.NullIfEmpty(),
             WgReserved = WgReserved.NullIfEmpty(),
             WgMtu = WgMtu >= 576 ? WgMtu : null,
+            Uot = Uot ? true : null,
+            CongestionControl = CongestionControl.NullIfEmpty(),
+            InsecureConcurrency = InsecureConcurrency > 0 ? InsecureConcurrency : null,
+            NaiveQuic = NaiveQuic ? true : null,
         });
 
         if (await ConfigHandler.AddServer(_config, SelectedSource) == 0)
@@ -215,7 +238,7 @@ public class AddServerViewModel : MyReactiveObject
             return;
         }
 
-        List<string> shaList = new();
+        List<string> shaList = [];
         foreach (var cert in certList)
         {
             var sha = CertPemManager.GetCertSha256Thumbprint(cert);
@@ -225,7 +248,7 @@ public class AddServerViewModel : MyReactiveObject
             }
             shaList.Add(sha);
         }
-        CertSha = string.Join('~', shaList);
+        CertSha = string.Join(',', shaList);
     }
 
     private async Task FetchCert()
@@ -243,11 +266,6 @@ public class AddServerViewModel : MyReactiveObject
         if (serverName.IsNullOrEmpty())
         {
             serverName = SelectedSource.Address;
-        }
-        if (!Utils.IsDomain(serverName))
-        {
-            UpdateCertTip(ResUI.ServerNameMustBeValidDomain);
-            return;
         }
         if (SelectedSource.Port > 0)
         {
@@ -273,11 +291,6 @@ public class AddServerViewModel : MyReactiveObject
         if (serverName.IsNullOrEmpty())
         {
             serverName = SelectedSource.Address;
-        }
-        if (!Utils.IsDomain(serverName))
-        {
-            UpdateCertTip(ResUI.ServerNameMustBeValidDomain);
-            return;
         }
         if (SelectedSource.Port > 0)
         {

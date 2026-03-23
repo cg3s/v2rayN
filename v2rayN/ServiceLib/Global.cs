@@ -15,7 +15,6 @@ public class Global
     public const string CoreConfigFileName = "config.json";
     public const string CorePreConfigFileName = "configPre.json";
     public const string CoreSpeedtestConfigFileName = "configTest{0}.json";
-    public const string CoreMultipleLoadConfigFileName = "configMultipleLoad.json";
     public const string ClashMixinConfigFileName = "Mixin.yaml";
 
     public const string NamespaceSample = "ServiceLib.Sample.";
@@ -50,6 +49,7 @@ public class Global
     public const string DirectTag = "direct";
     public const string BlockTag = "block";
     public const string DnsTag = "dns-module";
+    public const string DirectDnsTag = "direct-dns";
     public const string BalancerTagSuffix = "-round";
     public const string StreamSecurity = "tls";
     public const string StreamSecurityReality = "reality";
@@ -88,9 +88,24 @@ public class Global
     public const string SingboxLocalDNSTag = "local_local";
     public const string SingboxHostsDNSTag = "hosts_dns";
     public const string SingboxFakeDNSTag = "fake_dns";
-    public const string SingboxEchDNSTag = "ech_dns";
 
     public const int Hysteria2DefaultHopInt = 10;
+
+    public const string PolicyGroupExcludeKeywords = @"剩余|过期|到期|重置|[Rr]emaining|[Ee]xpir|[Rr]eset";
+
+    public const string PolicyGroupDefaultAllFilter = $"^(?!.*(?:{PolicyGroupExcludeKeywords})).*$";
+
+    public static readonly List<string> PolicyGroupDefaultFilterList =
+    [
+        // All nodes (exclude traffic/expiry info)
+        PolicyGroupDefaultAllFilter,
+        // Low multiplier nodes, e.g. ×0.1, 0.5x, 0.1倍
+        @"^.*(?:[×xX✕*]\s*0\.[0-9]+|0\.[0-9]+\s*[×xX✕*倍]).*$",
+        // Dedicated line nodes, e.g. IPLC, IEPL
+        $@"^(?!.*(?:{PolicyGroupExcludeKeywords})).*(?:专线|IPLC|IEPL|中转).*$",
+        // Japan nodes
+        $@"^(?!.*(?:{PolicyGroupExcludeKeywords})).*(?:日本|\\b[Jj][Pp]\\b|🇯🇵|[Jj]apan).*$",
+    ];
 
     public static readonly List<string> IEProxyProtocols =
     [
@@ -178,6 +193,10 @@ public class Global
 
     public const string Hysteria2ProtocolShare = "hy2://";
 
+    public const string NaiveHttpsProtocolShare = "naive+https://";
+
+    public const string NaiveQuicProtocolShare = "naive+quic://";
+
     public static readonly Dictionary<EConfigType, string> ProtocolShares = new()
     {
         { EConfigType.VMess, "vmess://" },
@@ -188,7 +207,8 @@ public class Global
         { EConfigType.Hysteria2, "hysteria2://" },
         { EConfigType.TUIC, "tuic://" },
         { EConfigType.WireGuard, "wireguard://" },
-        { EConfigType.Anytls, "anytls://" }
+        { EConfigType.Anytls, "anytls://" },
+        { EConfigType.Naive, "naive://" }
     };
 
     public static readonly Dictionary<EConfigType, string> ProtocolTypes = new()
@@ -202,7 +222,8 @@ public class Global
         { EConfigType.Hysteria2, "hysteria2" },
         { EConfigType.TUIC, "tuic" },
         { EConfigType.WireGuard, "wireguard" },
-        { EConfigType.Anytls, "anytls" }
+        { EConfigType.Anytls, "anytls" },
+        { EConfigType.Naive, "naive" }
     };
 
     public static readonly List<string> VmessSecurities =
@@ -327,6 +348,7 @@ public class Global
         EConfigType.Hysteria2,
         EConfigType.TUIC,
         EConfigType.Anytls,
+        EConfigType.Naive,
         EConfigType.WireGuard,
         EConfigType.SOCKS,
         EConfigType.HTTP,
@@ -543,6 +565,14 @@ public class Global
         "bbr"
     ];
 
+    public static readonly List<string> NaiveCongestionControls =
+    [
+        "bbr",
+        "bbr2",
+        "cubic",
+        "reno"
+    ];
+
     public static readonly List<string> allowSelectType =
     [
         "selector",
@@ -643,6 +673,15 @@ public class Global
         "half",
         "full",
         ""
+    ];
+
+    public static readonly List<string> TunIcmpRoutingPolicies =
+    [
+        "rule",
+        "direct",
+        "unreachable",
+        "drop",
+        "reply",
     ];
 
     #endregion const

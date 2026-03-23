@@ -514,16 +514,16 @@
     <value>添加 [Shadowsocks]</value>
   </data>
   <data name="menuAddSocksServer" xml:space="preserve">
-    <value>添加 [SOCKS] </value>
+    <value>添加 [SOCKS]</value>
   </data>
   <data name="menuAddTrojanServer" xml:space="preserve">
-    <value>添加 [Trojan] </value>
+    <value>添加 [Trojan]</value>
   </data>
   <data name="menuAddVlessServer" xml:space="preserve">
-    <value>添加 [VLESS] </value>
+    <value>添加 [VLESS]</value>
   </data>
   <data name="menuAddVmessServer" xml:space="preserve">
-    <value>添加 [VMess] </value>
+    <value>添加 [VMess]</value>
   </data>
   <data name="menuSelectAll" xml:space="preserve">
     <value>全选</value>
@@ -1021,7 +1021,7 @@
     <value>sing-box Mux 多路复用协议</value>
   </data>
   <data name="TbRoutingRuleProcess" xml:space="preserve">
-    <value>进程 (Tun 模式)</value>
+    <value>进程 (Linux/Windows)</value>
   </data>
   <data name="TbRoutingRuleIP" xml:space="preserve">
     <value>IP 或 IP CIDR</value>
@@ -1030,7 +1030,7 @@
     <value>Domain</value>
   </data>
   <data name="menuAddHysteria2Server" xml:space="preserve">
-    <value>添加 [Hysteria2] </value>
+    <value>添加 [Hysteria2]</value>
   </data>
   <data name="TbSettingsHysteriaBandwidth" xml:space="preserve">
     <value>Hysteria 最大带宽 (Up/Dw)</value>
@@ -1039,7 +1039,7 @@
     <value>使用系统 hosts</value>
   </data>
   <data name="menuAddTuicServer" xml:space="preserve">
-    <value>添加 [TUIC] </value>
+    <value>添加 [TUIC]</value>
   </data>
   <data name="TbHeaderType8" xml:space="preserve">
     <value>拥塞控制算法</value>
@@ -1065,14 +1065,11 @@
   <data name="TbSettingsTunMtu" xml:space="preserve">
     <value>MTU</value>
   </data>
-  <data name="TbSettingsEnableExInbound" xml:space="preserve">
-    <value>启用额外监听端口</value>
-  </data>
   <data name="TbSettingsEnableIPv6Address" xml:space="preserve">
     <value>启用 IPv6</value>
   </data>
   <data name="menuAddWireguardServer" xml:space="preserve">
-    <value>添加 [WireGuard] </value>
+    <value>添加 [WireGuard]</value>
   </data>
   <data name="TbPrivateKey" xml:space="preserve">
     <value>PrivateKey</value>
@@ -1095,9 +1092,6 @@
   <data name="TbSettingsSpeedPingTestUrl" xml:space="preserve">
     <value>真连接测试地址</value>
   </data>
-  <data name="TbSettingsEnableUpdateSubOnlyRemarksExist" xml:space="preserve">
-    <value>更新订阅时只判断别名已存在否</value>
-  </data>
   <data name="SpeedtestingStop" xml:space="preserve">
     <value>测试终止中...</value>
   </data>
@@ -1105,10 +1099,7 @@
     <value>*grpc Authority</value>
   </data>
   <data name="menuAddHttpServer" xml:space="preserve">
-    <value>添加 [HTTP] </value>
-  </data>
-  <data name="TbSettingsEnableFragmentTips" xml:space="preserve">
-    <value>和分组前置代理冲突</value>
+    <value>添加 [HTTP]</value>
   </data>
   <data name="TbSettingsEnableFragment" xml:space="preserve">
     <value>启用分片 (Fragment)</value>
@@ -1371,24 +1362,6 @@
   <data name="TbPorts7Tips" xml:space="preserve">
     <value>会覆盖端口，多组时用逗号 (,) 隔开</value>
   </data>
-  <data name="menuGenGroupMultipleServer" xml:space="preserve">
-    <value>多选生成策略组</value>
-  </data>
-  <data name="menuGenGroupMultipleServerXrayRandom" xml:space="preserve">
-    <value>多选随机 Xray</value>
-  </data>
-  <data name="menuGenGroupMultipleServerXrayRoundRobin" xml:space="preserve">
-    <value>多选负载均衡 Xray</value>
-  </data>
-  <data name="menuGenGroupMultipleServerXrayLeastPing" xml:space="preserve">
-    <value>多选最低延迟 Xray</value>
-  </data>
-  <data name="menuGenGroupMultipleServerXrayLeastLoad" xml:space="preserve">
-    <value>多选最稳定 Xray</value>
-  </data>
-  <data name="menuGenGroupMultipleServerSingBoxLeastPing" xml:space="preserve">
-    <value>多选最低延迟 sing-box</value>
-  </data>
   <data name="menuExportConfig" xml:space="preserve">
     <value>导出</value>
   </data>
@@ -1405,7 +1378,7 @@
     <value>Mldsa65Verify</value>
   </data>
   <data name="menuAddAnytlsServer" xml:space="preserve">
-    <value>添加 [Anytls] </value>
+    <value>添加 [Anytls]</value>
   </data>
   <data name="TbRemoteDNS" xml:space="preserve">
     <value>远程 DNS</value>
@@ -1533,44 +1506,20 @@
   <data name="TbFallback" xml:space="preserve">
     <value>故障转移</value>
   </data>
-  <data name="menuGenGroupMultipleServerSingBoxFallback" xml:space="preserve">
-    <value>多选故障转移 sing-box</value>
+  <data name="MsgCoreNotSupportNetwork" xml:space="preserve">
+    <value>核心 '{0}' 不支持网络类型 '{1}'</value>
   </data>
-  <data name="menuGenGroupMultipleServerXrayFallback" xml:space="preserve">
-    <value>多选故障转移 Xray</value>
+  <data name="MsgCoreNotSupportProtocolTransport" xml:space="preserve">
+    <value>核心 '{0}' 在使用传输方式 '{2}' 时不支持协议 '{1}'</value>
   </data>
-  <data name="CoreNotSupportNetwork" xml:space="preserve">
-    <value>核心 '{0}' 不支持网络类型 '{1}'。</value>
+  <data name="MsgCoreNotSupportProtocol" xml:space="preserve">
+    <value>核心 '{0}' 不支持协议 '{1}'</value>
   </data>
-  <data name="CoreNotSupportProtocolTransport" xml:space="preserve">
-    <value>核心 '{0}' 在使用传输方式 '{2}' 时不支持协议 '{1}'。</value>
+  <data name="MsgInvalidProperty" xml:space="preserve">
+    <value>{0} 属性无效，请检查</value>
   </data>
-  <data name="CoreNotSupportProtocol" xml:space="preserve">
-    <value>核心 '{0}' 不支持协议 '{1}'。</value>
-  </data>
-  <data name="ProxyChainedPrefix" xml:space="preserve">
-    <value>代理链： </value>
-  </data>
-  <data name="RoutingRuleOutboundPrefix" xml:space="preserve">
-    <value>路由规则出站： </value>
-  </data>
-  <data name="PolicyGroupPrefix" xml:space="preserve">
-    <value>策略组： </value>
-  </data>
-  <data name="NodeTagNotExist" xml:space="preserve">
-    <value>别名 '{0}' 不存在。</value>
-  </data>
-  <data name="GroupEmpty" xml:space="preserve">
-    <value>组“{0}”为空。请至少添加一个配置。</value>
-  </data>
-  <data name="InvalidProperty" xml:space="preserve">
-    <value>{0}属性无效，请检查</value>
-  </data>
-  <data name="GroupSelfReference" xml:space="preserve">
-    <value>{0} 分组不能引用自身或循环引用</value>
-  </data>
-  <data name="NotSupportProtocol" xml:space="preserve">
-    <value>不支持协议 '{0}'。</value>
+  <data name="MsgNotSupportProtocol" xml:space="preserve">
+    <value>不支持协议 '{0}'</value>
   </data>
   <data name="TbSettingsHide2TrayWhenCloseTip" xml:space="preserve">
     <value>如果系统没有托盘功能，请不要开启</value>
@@ -1661,5 +1610,83 @@
   </data>
   <data name="TbHopInt7" xml:space="preserve">
     <value>端口跳跃间隔</value>
+  </data>
+  <data name="menuServerListPreview" xml:space="preserve">
+    <value>子配置项预览</value>
+  </data>
+  <data name="TbFinalmask" xml:space="preserve">
+    <value>Finalmask</value>
+  </data>
+  <data name="MsgRoutingRuleOutboundNodeWarning" xml:space="preserve">
+    <value>路由规则 {0} 出站节点 {1} 警告：{2}</value>
+  </data>
+  <data name="MsgRoutingRuleOutboundNodeError" xml:space="preserve">
+    <value>路由规则 {0} 出站节点 {1} 错误：{2}。已回退为仅使用代理节点。</value>
+  </data>
+  <data name="MsgGroupCycleDependency" xml:space="preserve">
+    <value>节点组 {0} 与子节点 {1} 存在循环依赖，已跳过该节点。</value>
+  </data>
+  <data name="MsgGroupChildNodeWarning" xml:space="preserve">
+    <value>节点组 {0} 子节点 {1} 警告：{2}</value>
+  </data>
+  <data name="MsgGroupChildNodeError" xml:space="preserve">
+    <value>节点组 {0} 子节点 {1} 错误：{2}。已跳过该节点。</value>
+  </data>
+  <data name="MsgGroupChildGroupNodeWarning" xml:space="preserve">
+    <value>节点组 {0} 子节点组 {1} 警告：{2}</value>
+  </data>
+  <data name="MsgGroupChildGroupNodeError" xml:space="preserve">
+    <value>节点组 {0} 子节点组 {1} 错误：{2}。已跳过该节点。</value>
+  </data>
+  <data name="MsgGroupNoValidChildNode" xml:space="preserve">
+    <value>节点组 {0} 下没有有效的子节点。</value>
+  </data>
+  <data name="MsgRoutingRuleEmptyOutboundTag" xml:space="preserve">
+    <value>路由规则 {0} 的出站标签为空，已回退为仅使用代理节点。</value>
+  </data>
+  <data name="MsgRoutingRuleOutboundNodeNotFound" xml:space="preserve">
+    <value>路由规则 {0} 的出站节点 {1} 未找到，已回退为仅使用代理节点。</value>
+  </data>
+  <data name="MsgSubscriptionPrevProfileNotFound" xml:space="preserve">
+    <value>订阅前置节点 {0} 未找到，已跳过。</value>
+  </data>
+  <data name="MsgSubscriptionNextProfileNotFound" xml:space="preserve">
+    <value>订阅后置节点 {0} 未找到，已跳过。</value>
+  </data>
+  <data name="menuGenGroupServer" xml:space="preserve">
+    <value>一键生成策略组</value>
+  </data>
+  <data name="menuAllServers" xml:space="preserve">
+    <value>全部配置项</value>
+  </data>
+  <data name="menuGenRegionGroup" xml:space="preserve">
+    <value>按地区分组</value>
+  </data>
+  <data name="menuEditCopy" xml:space="preserve">
+    <value>复制</value>
+  </data>
+  <data name="menuEditSelectAll" xml:space="preserve">
+    <value>全选</value>
+  </data>
+  <data name="menuEditPaste" xml:space="preserve">
+    <value>粘贴</value>
+  </data>
+  <data name="menuEditFormat" xml:space="preserve">
+    <value>格式化</value>
+  </data>
+  <data name="TbUot" xml:space="preserve">
+    <value>UDP over TCP</value>
+  </data>
+  <data name="menuAddNaiveServer" xml:space="preserve">
+    <value>添加 [NaïveProxy]</value>
+  </data>
+  <data name="TbInsecureConcurrency" xml:space="preserve">
+    <value>不安全并发</value>
+  </data>
+  <data name="TbUsername" xml:space="preserve">
+    <value>用户名</value>
+  </data>
+  <data name="TbIcmpRoutingPolicy" xml:space="preserve">
+    <value>ICMP 路由策略</value>
   </data>
 </root>

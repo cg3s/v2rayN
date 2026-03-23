@@ -339,13 +339,13 @@ public class Utils
             return new();
         }
         var userHostsMap = hostsContent
-            .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
+            .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
             .Select(line => line.Trim())
             // skip full-line comments
             .Where(line => !string.IsNullOrWhiteSpace(line) && !line.StartsWith('#'))
             // ensure line still contains valid parts
             .Where(line => !string.IsNullOrWhiteSpace(line) && line.Contains(' '))
-            .Select(line => line.Split([' ', '\t'], StringSplitOptions.RemoveEmptyEntries))
+            .Select(line => line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries))
             .Where(parts => parts.Length >= 2)
             .GroupBy(parts => parts[0])
             .ToDictionary(
@@ -497,6 +497,13 @@ public class Utils
             return false;
         }
 
+        var ext = Path.GetExtension(domain);
+        if (ext.IsNotEmpty()
+            && ext[1..].ToLowerInvariant() is "json" or "txt" or "xml" or "cfg" or "ini" or "log" or "yaml" or "yml" or "toml")
+        {
+            return false;
+        }
+
         return Uri.CheckHostName(domain) == UriHostNameType.Dns;
     }
 
@@ -629,12 +636,7 @@ public class Utils
     {
         try
         {
-            List<IPEndPoint> lstIpEndPoints = new();
-            List<TcpConnectionInformation> lstTcpConns = new();
-
-            lstIpEndPoints.AddRange(IPGlobalProperties.GetIPGlobalProperties().GetActiveTcpListeners());
-            lstIpEndPoints.AddRange(IPGlobalProperties.GetIPGlobalProperties().GetActiveUdpListeners());
-            lstTcpConns.AddRange(IPGlobalProperties.GetIPGlobalProperties().GetActiveTcpConnections());
+            var (lstIpEndPoints, lstTcpConns) = GetActiveNetworkInfo();
 
             if (lstIpEndPoints?.FindIndex(it => it.Port == port) >= 0)
             {
@@ -674,6 +676,27 @@ public class Utils
         }
 
         return 59090;
+    }
+
+    public static (List<IPEndPoint> endpoints, List<TcpConnectionInformation> connections) GetActiveNetworkInfo()
+    {
+        var endpoints = new List<IPEndPoint>();
+        var connections = new List<TcpConnectionInformation>();
+
+        try
+        {
+            var ipGlobalProperties = IPGlobalProperties.GetIPGlobalProperties();
+
+            endpoints.AddRange(ipGlobalProperties.GetActiveTcpListeners());
+            endpoints.AddRange(ipGlobalProperties.GetActiveUdpListeners());
+            connections.AddRange(ipGlobalProperties.GetActiveTcpConnections());
+        }
+        catch (Exception ex)
+        {
+            Logging.SaveLog(_tag, ex);
+        }
+
+        return (endpoints, connections);
     }
 
     #endregion Speed Test

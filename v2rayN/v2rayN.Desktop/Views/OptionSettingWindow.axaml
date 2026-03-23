@@ -325,12 +325,6 @@
                             Grid.Column="1"
                             Margin="{StaticResource Margin4}"
                             HorizontalAlignment="Left" />
-                        <TextBlock
-                            Grid.Row="20"
-                            Grid.Column="2"
-                            Margin="{StaticResource Margin4}"
-                            Text="{x:Static resx:ResUI.TbSettingsEnableFragmentTips}"
-                            TextWrapping="Wrap" />
                     </Grid>
                 </ScrollViewer>
             </TabItem>
@@ -412,19 +406,6 @@
                         <ToggleSwitch
                             x:Name="togEnableAutoAdjustMainLvColWidth"
                             Grid.Row="5"
-                            Grid.Column="1"
-                            Margin="{StaticResource Margin4}"
-                            HorizontalAlignment="Left" />
-
-                        <TextBlock
-                            Grid.Row="6"
-                            Grid.Column="0"
-                            Margin="{StaticResource Margin4}"
-                            VerticalAlignment="Center"
-                            Text="{x:Static resx:ResUI.TbSettingsEnableUpdateSubOnlyRemarksExist}" />
-                        <ToggleSwitch
-                            x:Name="togEnableUpdateSubOnlyRemarksExist"
-                            Grid.Row="6"
                             Grid.Column="1"
                             Margin="{StaticResource Margin4}"
                             HorizontalAlignment="Left" />
@@ -848,11 +829,12 @@
                         Grid.Column="0"
                         Margin="{StaticResource Margin4}"
                         VerticalAlignment="Center"
-                        Text="{x:Static resx:ResUI.TbSettingsEnableExInbound}" />
-                    <ToggleSwitch
-                        x:Name="togEnableExInbound"
+                        Text="{x:Static resx:ResUI.TbIcmpRoutingPolicy}" />
+                    <ComboBox
+                        x:Name="cmbIcmpRoutingPolicy"
                         Grid.Row="6"
                         Grid.Column="1"
+                        Width="200"
                         Margin="{StaticResource Margin4}"
                         HorizontalAlignment="Left" />
 

@@ -27,6 +27,8 @@ public class AddGroupServerViewModel : MyReactiveObject
 
     public IObservableCollection<ProfileItem> ChildItemsObs { get; } = new ObservableCollectionExtended<ProfileItem>();
 
+    public IObservableCollection<ProfileItem> AllProfilePreviewItemsObs { get; } = new ObservableCollectionExtended<ProfileItem>();
+
     //public ReactiveCommand<Unit, Unit> AddCmd { get; }
     public ReactiveCommand<Unit, Unit> RemoveCmd { get; }
 
@@ -97,15 +99,8 @@ public class AddGroupServerViewModel : MyReactiveObject
         Filter = protocolExtra?.Filter;
 
         var childIndexIds = Utils.String2List(protocolExtra?.ChildItems) ?? [];
-        foreach (var item in childIndexIds)
-        {
-            var child = await AppManager.Instance.GetProfileItem(item);
-            if (child == null)
-            {
-                continue;
-            }
-            ChildItemsObs.Add(child);
-        }
+        var childItemList = await AppManager.Instance.GetProfileItemsOrderedByIndexIds(childIndexIds);
+        ChildItemsObs.AddRange(childItemList);
     }
 
     public async Task ChildRemoveAsync()
@@ -182,6 +177,32 @@ public class AddGroupServerViewModel : MyReactiveObject
         await Task.CompletedTask;
     }
 
+    private ProtocolExtraItem GetUpdatedProtocolExtra()
+    {
+        return SelectedSource.GetProtocolExtra() with
+        {
+            ChildItems =
+            Utils.List2String(ChildItemsObs.Where(s => !s.IndexId.IsNullOrEmpty()).Select(s => s.IndexId).ToList()),
+            MultipleLoad = PolicyGroupType switch
+            {
+                var s when s == ResUI.TbLeastPing => EMultipleLoad.LeastPing,
+                var s when s == ResUI.TbFallback => EMultipleLoad.Fallback,
+                var s when s == ResUI.TbRandom => EMultipleLoad.Random,
+                var s when s == ResUI.TbRoundRobin => EMultipleLoad.RoundRobin,
+                var s when s == ResUI.TbLeastLoad => EMultipleLoad.LeastLoad,
+                _ => EMultipleLoad.LeastPing,
+            },
+            SubChildItems = SelectedSubItem?.Id,
+            Filter = Filter,
+        };
+    }
+
+    public async Task UpdatePreviewList()
+    {
+        AllProfilePreviewItemsObs.Clear();
+        AllProfilePreviewItemsObs.AddRange(await GroupProfileManager.GetChildProfileItemsByProtocolExtra(GetUpdatedProtocolExtra()));
+    }
+
     private async Task SaveServerAsync()
     {
         var remarks = SelectedSource.Remarks;
@@ -202,29 +223,9 @@ public class AddGroupServerViewModel : MyReactiveObject
             return;
         }
 
-        SelectedSource.SetProtocolExtra(SelectedSource.GetProtocolExtra() with
-        {
-            ChildItems =
-            Utils.List2String(ChildItemsObs.Where(s => !s.IndexId.IsNullOrEmpty()).Select(s => s.IndexId).ToList()),
-            MultipleLoad = PolicyGroupType switch
-            {
-                var s when s == ResUI.TbLeastPing => EMultipleLoad.LeastPing,
-                var s when s == ResUI.TbFallback => EMultipleLoad.Fallback,
-                var s when s == ResUI.TbRandom => EMultipleLoad.Random,
-                var s when s == ResUI.TbRoundRobin => EMultipleLoad.RoundRobin,
-                var s when s == ResUI.TbLeastLoad => EMultipleLoad.LeastLoad,
-                _ => EMultipleLoad.LeastPing,
-            },
-            SubChildItems = SelectedSubItem?.Id,
-            Filter = Filter,
-        });
+        var protocolExtra = GetUpdatedProtocolExtra();
 
-        var hasCycle = await GroupProfileManager.HasCycle(SelectedSource.IndexId, SelectedSource.GetProtocolExtra());
-        if (hasCycle)
-        {
-            NoticeManager.Instance.Enqueue(string.Format(ResUI.GroupSelfReference, remarks));
-            return;
-        }
+        SelectedSource.SetProtocolExtra(protocolExtra);
 
         if (await ConfigHandler.AddServerCommon(_config, SelectedSource) == 0)
         {

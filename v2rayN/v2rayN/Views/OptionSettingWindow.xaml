@@ -391,13 +391,6 @@
                             Grid.Column="1"
                             Margin="{StaticResource Margin8}"
                             HorizontalAlignment="Left" />
-                        <TextBlock
-                            Grid.Row="20"
-                            Grid.Column="2"
-                            Margin="{StaticResource Margin8}"
-                            Style="{StaticResource ToolbarTextBlock}"
-                            Text="{x:Static resx:ResUI.TbSettingsEnableFragmentTips}"
-                            TextWrapping="Wrap" />
                     </Grid>
                 </ScrollViewer>
             </TabItem>
@@ -633,20 +626,6 @@
                         <ToggleButton
                             x:Name="togEnableAutoAdjustMainLvColWidth"
                             Grid.Row="5"
-                            Grid.Column="1"
-                            Margin="{StaticResource Margin8}"
-                            HorizontalAlignment="Left" />
-
-                        <TextBlock
-                            Grid.Row="6"
-                            Grid.Column="0"
-                            Margin="{StaticResource Margin8}"
-                            VerticalAlignment="Center"
-                            Style="{StaticResource ToolbarTextBlock}"
-                            Text="{x:Static resx:ResUI.TbSettingsEnableUpdateSubOnlyRemarksExist}" />
-                        <ToggleButton
-                            x:Name="togEnableUpdateSubOnlyRemarksExist"
-                            Grid.Row="6"
                             Grid.Column="1"
                             Margin="{StaticResource Margin8}"
                             HorizontalAlignment="Left" />
@@ -1103,13 +1082,15 @@
                         Margin="{StaticResource Margin8}"
                         VerticalAlignment="Center"
                         Style="{StaticResource ToolbarTextBlock}"
-                        Text="{x:Static resx:ResUI.TbSettingsEnableExInbound}" />
-                    <ToggleButton
-                        x:Name="togEnableExInbound"
+                        Text="{x:Static resx:ResUI.TbIcmpRoutingPolicy}" />
+                    <ComboBox
+                        x:Name="cmbIcmpRoutingPolicy"
                         Grid.Row="6"
                         Grid.Column="1"
+                        Width="200"
                         Margin="{StaticResource Margin8}"
-                        HorizontalAlignment="Left" />
+                        HorizontalAlignment="Left"
+                        Style="{StaticResource DefComboBox}" />
 
                     <TextBlock
                         Grid.Row="7"

@@ -188,19 +188,14 @@ public class ProfilesSelectViewModel : MyReactiveObject
         {
             SubItems.Add(item);
         }
-        if (_subIndexId != null && SubItems.FirstOrDefault(t => t.Id == _subIndexId) != null)
-        {
-            SelectedSub = SubItems.FirstOrDefault(t => t.Id == _subIndexId);
-        }
-        else
-        {
-            SelectedSub = SubItems.First();
-        }
+        SelectedSub = (_config.SubIndexId.IsNotEmpty()
+                        ? SubItems.FirstOrDefault(t => t.Id == _config.SubIndexId)
+                        : null) ?? SubItems.LastOrDefault();
     }
 
     private async Task<List<ProfileItemModel>?> GetProfileItemsEx(string subid, string filter)
     {
-        var lstModel = await AppManager.Instance.ProfileItems(_subIndexId, filter);
+        var lstModel = await AppManager.Instance.ProfileModels(_subIndexId, filter);
         lstModel = (from t in lstModel
                     select new ProfileItemModel
                     {
@@ -255,19 +250,7 @@ public class ProfilesSelectViewModel : MyReactiveObject
         {
             return null;
         }
-        var lst = new List<ProfileItem>();
-        foreach (var sp in SelectedProfiles)
-        {
-            if (string.IsNullOrEmpty(sp?.IndexId))
-            {
-                continue;
-            }
-            var item = await AppManager.Instance.GetProfileItem(sp.IndexId);
-            if (item != null)
-            {
-                lst.Add(item);
-            }
-        }
+        var lst = await AppManager.Instance.GetProfileItemsOrderedByIndexIds(SelectedProfiles.Select(sp => sp?.IndexId));
         if (lst.Count == 0)
         {
             NoticeManager.Instance.Enqueue(ResUI.PleaseSelectServer);

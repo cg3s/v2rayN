@@ -12,7 +12,7 @@ public class GroupProfileManager
         return await HasCycle(indexId, extraInfo, new HashSet<string>(), new HashSet<string>());
     }
 
-    public static async Task<bool> HasCycle(string? indexId, ProtocolExtraItem? extraInfo, HashSet<string> visited, HashSet<string> stack)
+    private static async Task<bool> HasCycle(string? indexId, ProtocolExtraItem? extraInfo, HashSet<string> visited, HashSet<string> stack)
     {
         if (indexId.IsNullOrEmpty() || extraInfo == null)
         {
@@ -52,10 +52,10 @@ public class GroupProfileManager
                 return false;
             }
 
-            foreach (var child in childIds)
+            var childItems = await AppManager.Instance.GetProfileItemsByIndexIds(childIds);
+            foreach (var childItem in childItems)
             {
-                var childItem = await AppManager.Instance.GetProfileItem(child);
-                if (await HasCycle(child, childItem?.GetProtocolExtra(), visited, stack))
+                if (await HasCycle(childItem.IndexId, childItem?.GetProtocolExtra(), visited, stack))
                 {
                     return true;
                 }
@@ -79,40 +79,39 @@ public class GroupProfileManager
     {
         if (protocolExtra == null)
         {
-            return new();
+            return [];
         }
-        var items = await GetSelectedChildProfileItems(protocolExtra);
-        var subItems = await GetSubChildProfileItems(protocolExtra);
-        items.AddRange(subItems);
+
+        var items = new List<ProfileItem>();
+        items.AddRange(await GetSubChildProfileItems(protocolExtra));
+        items.AddRange(await GetSelectedChildProfileItems(protocolExtra));
 
         return items;
     }
 
-    public static async Task<List<ProfileItem>> GetSelectedChildProfileItems(ProtocolExtraItem? extra)
+    private static async Task<List<ProfileItem>> GetSelectedChildProfileItems(ProtocolExtraItem? extra)
     {
         if (extra == null || extra.ChildItems.IsNullOrEmpty())
         {
-            return new();
+            return [];
         }
-        var childProfiles = (await Task.WhenAll(
-                (Utils.String2List(extra.ChildItems) ?? new())
-                    .Where(p => !p.IsNullOrEmpty())
-                    .Select(AppManager.Instance.GetProfileItem)
-            ))
-            .Where(p =>
-                p != null &&
-                p.IsValid() &&
-                p.ConfigType != EConfigType.Custom
-            )
-            .ToList();
-        return childProfiles;
+        var childProfileIds = Utils.String2List(extra.ChildItems)
+            ?.Where(p => !string.IsNullOrEmpty(p))
+            .ToList() ?? [];
+        if (childProfileIds.Count == 0)
+        {
+            return [];
+        }
+
+        var ordered = await AppManager.Instance.GetProfileItemsOrderedByIndexIds(childProfileIds);
+        return ordered;
     }
 
-    public static async Task<List<ProfileItem>> GetSubChildProfileItems(ProtocolExtraItem? extra)
+    private static async Task<List<ProfileItem>> GetSubChildProfileItems(ProtocolExtraItem? extra)
     {
         if (extra == null || extra.SubChildItems.IsNullOrEmpty())
         {
-            return new();
+            return [];
         }
         var childProfiles = await AppManager.Instance.ProfileItems(extra.SubChildItems ?? string.Empty);
 
@@ -122,59 +121,31 @@ public class GroupProfileManager
                 !p.ConfigType.IsComplexType() &&
                 (extra.Filter.IsNullOrEmpty() || Regex.IsMatch(p.Remarks, extra.Filter))
             )
-            .ToList() ?? new();
+            .ToList() ?? [];
     }
 
-    public static async Task<HashSet<string>> GetAllChildDomainAddresses(ProfileItem profileItem)
+    public static async Task<Dictionary<string, ProfileItem>> GetAllChildProfileItems(ProfileItem profileItem)
     {
-        var childAddresses = new HashSet<string>();
-        var (childItems, _) = await GetChildProfileItems(profileItem);
-        foreach (var child in childItems)
-        {
-            if (!child.IsComplex())
-            {
-                childAddresses.Add(child.Address);
-            }
-            else if (child.ConfigType.IsGroupType())
-            {
-                var subAddresses = await GetAllChildDomainAddresses(child);
-                foreach (var addr in subAddresses)
-                {
-                    childAddresses.Add(addr);
-                }
-            }
-        }
-        return childAddresses;
+        var itemMap = new Dictionary<string, ProfileItem>();
+        var visited = new HashSet<string>();
+
+        await CollectChildItems(profileItem, itemMap, visited);
+
+        return itemMap;
     }
 
-    public static async Task<HashSet<string>> GetAllChildEchQuerySni(ProfileItem profileItem)
+    private static async Task CollectChildItems(ProfileItem profileItem, Dictionary<string, ProfileItem> itemMap,
+        HashSet<string> visited)
     {
-        var childAddresses = new HashSet<string>();
         var (childItems, _) = await GetChildProfileItems(profileItem);
-        foreach (var childNode in childItems)
+        foreach (var child in childItems.Where(child => visited.Add(child.IndexId)))
         {
-            if (!childNode.IsComplex() && !childNode.EchConfigList.IsNullOrEmpty())
+            itemMap[child.IndexId] = child;
+
+            if (child.ConfigType.IsGroupType())
             {
-                if (childNode.StreamSecurity == Global.StreamSecurity
-                    && childNode.EchConfigList?.Contains("://") == true)
-                {
-                    var idx = childNode.EchConfigList.IndexOf('+');
-                    childAddresses.Add(idx > 0 ? childNode.EchConfigList[..idx] : childNode.Sni);
-                }
-                else
-                {
-                    childAddresses.Add(childNode.Sni);
-                }
-            }
-            else if (childNode.ConfigType.IsGroupType())
-            {
-                var subAddresses = await GetAllChildDomainAddresses(childNode);
-                foreach (var addr in subAddresses)
-                {
-                    childAddresses.Add(addr);
-                }
+                await CollectChildItems(child, itemMap, visited);
             }
         }
-        return childAddresses;
     }
 }

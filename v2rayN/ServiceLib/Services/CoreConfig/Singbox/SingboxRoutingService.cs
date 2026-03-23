@@ -2,23 +2,23 @@ namespace ServiceLib.Services.CoreConfig;
 
 public partial class CoreConfigSingboxService
 {
-    private async Task<int> GenRouting(SingboxConfig singboxConfig)
+    private void GenRouting()
     {
         try
         {
-            singboxConfig.route.final = Global.ProxyTag;
-            var simpleDnsItem = _config.SimpleDNSItem;
+            _coreConfig.route.final = Global.ProxyTag;
+            var simpleDnsItem = context.SimpleDnsItem;
 
             var defaultDomainResolverTag = Global.SingboxDirectDNSTag;
             var directDnsStrategy = Utils.DomainStrategy4Sbox(simpleDnsItem.Strategy4Freedom);
 
-            var rawDNSItem = await AppManager.Instance.GetDNSItem(ECoreType.sing_box);
+            var rawDNSItem = context.RawDnsItem;
             if (rawDNSItem is { Enabled: true })
             {
                 defaultDomainResolverTag = Global.SingboxLocalDNSTag;
                 directDnsStrategy = rawDNSItem.DomainStrategy4Freedom.IsNullOrEmpty() ? null : rawDNSItem.DomainStrategy4Freedom;
             }
-            singboxConfig.route.default_domain_resolver = new()
+            _coreConfig.route.default_domain_resolver = new()
             {
                 server = defaultDomainResolverTag,
                 strategy = directDnsStrategy
@@ -26,91 +26,164 @@ public partial class CoreConfigSingboxService
 
             if (_config.TunModeItem.EnableTun)
             {
-                singboxConfig.route.auto_detect_interface = true;
+                _coreConfig.route.auto_detect_interface = true;
 
                 var tunRules = JsonUtils.Deserialize<List<Rule4Sbox>>(EmbedUtils.GetEmbedText(Global.TunSingboxRulesFileName));
                 if (tunRules != null)
                 {
-                    singboxConfig.route.rules.AddRange(tunRules);
+                    _coreConfig.route.rules.AddRange(tunRules);
                 }
 
-                GenRoutingDirectExe(out var lstDnsExe, out var lstDirectExe);
-                singboxConfig.route.rules.Add(new()
+                var (lstDnsExe, lstDirectExe) = BuildRoutingDirectExe();
+                _coreConfig.route.rules.Add(new()
                 {
-                    port = new() { 53 },
+                    port = [53],
                     action = "hijack-dns",
                     process_name = lstDnsExe
                 });
 
-                singboxConfig.route.rules.Add(new()
+                _coreConfig.route.rules.Add(new()
                 {
                     outbound = Global.DirectTag,
                     process_name = lstDirectExe
                 });
+
+                // ICMP Routing
+                var icmpRouting = _config.TunModeItem.IcmpRouting ?? "";
+                if (!Global.TunIcmpRoutingPolicies.Contains(icmpRouting))
+                {
+                    icmpRouting = Global.TunIcmpRoutingPolicies.First();
+                }
+                if (icmpRouting == "direct")
+                {
+                    _coreConfig.route.rules.Add(new()
+                    {
+                        network = ["icmp"],
+                        outbound = Global.DirectTag,
+                    });
+                }
+                else if (icmpRouting != "rule")
+                {
+                    var rejectMethod = icmpRouting switch
+                    {
+                        "unreachable" => "default",
+                        "drop" => "drop",
+                        _ => "reply",
+                    };
+                    _coreConfig.route.rules.Add(new()
+                    {
+                        network = ["icmp"],
+                        action = "reject",
+                        method = rejectMethod,
+                    });
+                }
             }
 
             if (_config.Inbound.First().SniffingEnabled)
             {
-                singboxConfig.route.rules.Add(new()
+                _coreConfig.route.rules.Add(new()
                 {
                     action = "sniff"
                 });
-                singboxConfig.route.rules.Add(new()
+                _coreConfig.route.rules.Add(new()
                 {
-                    protocol = new() { "dns" },
+                    protocol = ["dns"],
                     action = "hijack-dns"
                 });
             }
             else
             {
-                singboxConfig.route.rules.Add(new()
+                _coreConfig.route.rules.Add(new()
                 {
-                    port = new() { 53 },
-                    network = new() { "udp" },
+                    port = [53],
+                    network = ["udp"],
                     action = "hijack-dns"
                 });
             }
 
             var hostsDomains = new List<string>();
-            var dnsItem = await AppManager.Instance.GetDNSItem(ECoreType.sing_box);
-            if (dnsItem == null || !dnsItem.Enabled)
+            if (rawDNSItem is not { Enabled: true })
             {
                 var userHostsMap = Utils.ParseHostsToDictionary(simpleDnsItem.Hosts);
                 hostsDomains.AddRange(userHostsMap.Select(kvp => kvp.Key));
                 if (simpleDnsItem.UseSystemHosts == true)
                 {
                     var systemHostsMap = Utils.GetSystemHosts();
-                    foreach (var kvp in systemHostsMap)
-                    {
-                        hostsDomains.Add(kvp.Key);
-                    }
+                    hostsDomains.AddRange(systemHostsMap.Select(kvp => kvp.Key));
                 }
             }
             if (hostsDomains.Count > 0)
             {
-                singboxConfig.route.rules.Add(new()
+                var hostsResolveRule = new Rule4Sbox
                 {
                     action = "resolve",
-                    domain = hostsDomains,
-                });
+                };
+                var hostsCounter = 0;
+                foreach (var host in hostsDomains)
+                {
+                    var domainRule = new Rule4Sbox();
+                    if (!ParseV2Domain(host, domainRule))
+                    {
+                        continue;
+                    }
+                    if (domainRule.domain_keyword?.Count > 0 && !host.Contains(':'))
+                    {
+                        domainRule.domain = domainRule.domain_keyword;
+                        domainRule.domain_keyword = null;
+                    }
+                    if (domainRule.domain?.Count > 0)
+                    {
+                        hostsResolveRule.domain ??= [];
+                        hostsResolveRule.domain.AddRange(domainRule.domain);
+                        hostsCounter++;
+                    }
+                    else if (domainRule.domain_keyword?.Count > 0)
+                    {
+                        hostsResolveRule.domain_keyword ??= [];
+                        hostsResolveRule.domain_keyword.AddRange(domainRule.domain_keyword);
+                        hostsCounter++;
+                    }
+                    else if (domainRule.domain_suffix?.Count > 0)
+                    {
+                        hostsResolveRule.domain_suffix ??= [];
+                        hostsResolveRule.domain_suffix.AddRange(domainRule.domain_suffix);
+                        hostsCounter++;
+                    }
+                    else if (domainRule.domain_regex?.Count > 0)
+                    {
+                        hostsResolveRule.domain_regex ??= [];
+                        hostsResolveRule.domain_regex.AddRange(domainRule.domain_regex);
+                        hostsCounter++;
+                    }
+                    else if (domainRule.geosite?.Count > 0)
+                    {
+                        hostsResolveRule.geosite ??= [];
+                        hostsResolveRule.geosite.AddRange(domainRule.geosite);
+                        hostsCounter++;
+                    }
+                }
+                if (hostsCounter > 0)
+                {
+                    _coreConfig.route.rules.Add(hostsResolveRule);
+                }
             }
 
-            singboxConfig.route.rules.Add(new()
+            _coreConfig.route.rules.Add(new()
             {
                 outbound = Global.DirectTag,
                 clash_mode = ERuleMode.Direct.ToString()
             });
-            singboxConfig.route.rules.Add(new()
+            _coreConfig.route.rules.Add(new()
             {
                 outbound = Global.ProxyTag,
                 clash_mode = ERuleMode.Global.ToString()
             });
 
             var domainStrategy = _config.RoutingBasicItem.DomainStrategy4Singbox.NullIfEmpty();
-            var defaultRouting = await ConfigHandler.GetDefaultRouting(_config);
-            if (defaultRouting.DomainStrategy4Singbox.IsNotEmpty())
+            var routing = context.RoutingItem;
+            if (routing.DomainStrategy4Singbox.IsNotEmpty())
             {
-                domainStrategy = defaultRouting.DomainStrategy4Singbox;
+                domainStrategy = routing.DomainStrategy4Singbox;
             }
             var resolveRule = new Rule4Sbox
             {
@@ -119,10 +192,9 @@ public partial class CoreConfigSingboxService
             };
             if (_config.RoutingBasicItem.DomainStrategy == Global.IPOnDemand)
             {
-                singboxConfig.route.rules.Add(resolveRule);
+                _coreConfig.route.rules.Add(resolveRule);
             }
 
-            var routing = await ConfigHandler.GetDefaultRouting(_config);
             var ipRules = new List<RulesItem>();
             if (routing != null)
             {
@@ -139,7 +211,7 @@ public partial class CoreConfigSingboxService
                         continue;
                     }
 
-                    await GenRoutingUserRule(item1, singboxConfig);
+                    GenRoutingUserRule(item1);
 
                     if (item1.Ip?.Count > 0)
                     {
@@ -149,10 +221,10 @@ public partial class CoreConfigSingboxService
             }
             if (_config.RoutingBasicItem.DomainStrategy == Global.IPIfNonMatch)
             {
-                singboxConfig.route.rules.Add(resolveRule);
+                _coreConfig.route.rules.Add(resolveRule);
                 foreach (var item2 in ipRules)
                 {
-                    await GenRoutingUserRule(item2, singboxConfig);
+                    GenRoutingUserRule(item2);
                 }
             }
         }
@@ -160,10 +232,9 @@ public partial class CoreConfigSingboxService
         {
             Logging.SaveLog(_tag, ex);
         }
-        return 0;
     }
 
-    private void GenRoutingDirectExe(out List<string> lstDnsExe, out List<string> lstDirectExe)
+    private static (List<string> lstDnsExe, List<string> lstDirectExe) BuildRoutingDirectExe()
     {
         var dnsExeSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var directExeSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -187,20 +258,22 @@ public partial class CoreConfigSingboxService
             }
         }
 
-        lstDnsExe = new List<string>(dnsExeSet);
-        lstDirectExe = new List<string>(directExeSet);
+        var lstDnsExe = new List<string>(dnsExeSet);
+        var lstDirectExe = new List<string>(directExeSet);
+
+        return (lstDnsExe, lstDirectExe);
     }
 
-    private async Task<int> GenRoutingUserRule(RulesItem item, SingboxConfig singboxConfig)
+    private void GenRoutingUserRule(RulesItem? item)
     {
         try
         {
             if (item == null)
             {
-                return 0;
+                return;
             }
-            item.OutboundTag = await GenRoutingUserRuleOutbound(item.OutboundTag, singboxConfig);
-            var rules = singboxConfig.route.rules;
+            item.OutboundTag = GenRoutingUserRuleOutbound(item.OutboundTag ?? Global.ProxyTag);
+            var rules = _coreConfig.route.rules;
 
             var rule = new Rule4Sbox();
             if (item.OutboundTag == "block")
@@ -326,10 +399,9 @@ public partial class CoreConfigSingboxService
         {
             Logging.SaveLog(_tag, ex);
         }
-        return await Task.FromResult(0);
     }
 
-    private bool ParseV2Domain(string domain, Rule4Sbox rule)
+    private static bool ParseV2Domain(string domain, Rule4Sbox rule)
     {
         if (domain.StartsWith('#') || domain.StartsWith("ext:") || domain.StartsWith("ext-domain:"))
         {
@@ -360,6 +432,11 @@ public partial class CoreConfigSingboxService
             rule.domain_keyword ??= [];
             rule.domain_keyword?.Add(domain.Substring(8));
         }
+        else if (domain.StartsWith("dotless:"))
+        {
+            rule.domain_keyword ??= [];
+            rule.domain_keyword?.Add(domain.Substring(8));
+        }
         else
         {
             rule.domain_keyword ??= [];
@@ -368,7 +445,7 @@ public partial class CoreConfigSingboxService
         return true;
     }
 
-    private bool ParseV2Address(string address, Rule4Sbox rule)
+    private static bool ParseV2Address(string address, Rule4Sbox rule)
     {
         if (address.StartsWith("ext:") || address.StartsWith("ext-ip:"))
         {
@@ -401,14 +478,14 @@ public partial class CoreConfigSingboxService
         return true;
     }
 
-    private async Task<string?> GenRoutingUserRuleOutbound(string outboundTag, SingboxConfig singboxConfig)
+    private string GenRoutingUserRuleOutbound(string outboundTag)
     {
         if (Global.OutboundTags.Contains(outboundTag))
         {
             return outboundTag;
         }
 
-        var node = await AppManager.Instance.GetProfileItemViaRemarks(outboundTag);
+        var node = context.AllProxiesMap.GetValueOrDefault($"remark:{outboundTag}");
 
         if (node == null
             || (!Global.SingboxSupportConfigType.Contains(node.ConfigType)
@@ -417,40 +494,16 @@ public partial class CoreConfigSingboxService
             return Global.ProxyTag;
         }
 
-        var tag = $"{node.IndexId}-{Global.ProxyTag}";
-        if (singboxConfig.outbounds.Any(o => o.tag == tag)
-            || (singboxConfig.endpoints != null && singboxConfig.endpoints.Any(e => e.tag == tag)))
+        var tag = $"{node.IndexId}-{Global.ProxyTag}-{node.Remarks}";
+        if (_coreConfig.outbounds.Any(o => o.tag.StartsWith(tag))
+            || (_coreConfig.endpoints != null && _coreConfig.endpoints.Any(e => e.tag.StartsWith(tag))))
         {
             return tag;
         }
 
-        if (node.ConfigType.IsGroupType())
-        {
-            var ret = await GenGroupOutbound(node, singboxConfig, tag);
-            if (ret == 0)
-            {
-                return tag;
-            }
-            return Global.ProxyTag;
-        }
+        var proxyOutbounds = new CoreConfigSingboxService(context with { Node = node, }).BuildAllProxyOutbounds(tag);
+        FillRangeProxy(proxyOutbounds, _coreConfig, false);
 
-        var server = await GenServer(node);
-        if (server is null)
-        {
-            return Global.ProxyTag;
-        }
-
-        server.tag = tag;
-        if (server is Endpoints4Sbox endpoint)
-        {
-            singboxConfig.endpoints ??= new();
-            singboxConfig.endpoints.Add(endpoint);
-        }
-        else if (server is Outbound4Sbox outbound)
-        {
-            singboxConfig.outbounds.Add(outbound);
-        }
-
-        return server.tag;
+        return tag;
     }
 }

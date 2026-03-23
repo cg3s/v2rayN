@@ -511,19 +511,19 @@
     <value>Add a custom configuration</value>
   </data>
   <data name="menuAddShadowsocksServer" xml:space="preserve">
-    <value>Add [Shadowsocks] </value>
+    <value>Add [Shadowsocks]</value>
   </data>
   <data name="menuAddSocksServer" xml:space="preserve">
-    <value>Add [SOCKS] </value>
+    <value>Add [SOCKS]</value>
   </data>
   <data name="menuAddTrojanServer" xml:space="preserve">
-    <value>Add [Trojan] </value>
+    <value>Add [Trojan]</value>
   </data>
   <data name="menuAddVlessServer" xml:space="preserve">
-    <value>Add [VLESS] </value>
+    <value>Add [VLESS]</value>
   </data>
   <data name="menuAddVmessServer" xml:space="preserve">
-    <value>Add [VMess] </value>
+    <value>Add [VMess]</value>
   </data>
   <data name="menuSelectAll" xml:space="preserve">
     <value>Select all</value>
@@ -1024,7 +1024,7 @@
     <value>sing-box Mux Protocol</value>
   </data>
   <data name="TbRoutingRuleProcess" xml:space="preserve">
-    <value>Process (Tun mode)</value>
+    <value>Process (Linux/Windows)</value>
   </data>
   <data name="TbRoutingRuleIP" xml:space="preserve">
     <value>IP or IP CIDR</value>
@@ -1033,7 +1033,7 @@
     <value>Domain</value>
   </data>
   <data name="menuAddHysteria2Server" xml:space="preserve">
-    <value>Add [Hysteria2] </value>
+    <value>Add [Hysteria2]</value>
   </data>
   <data name="TbSettingsHysteriaBandwidth" xml:space="preserve">
     <value>Hysteria Max bandwidth (Up/Down)</value>
@@ -1042,7 +1042,7 @@
     <value>Use System Hosts</value>
   </data>
   <data name="menuAddTuicServer" xml:space="preserve">
-    <value>Add [TUIC] </value>
+    <value>Add [TUIC]</value>
   </data>
   <data name="TbHeaderType8" xml:space="preserve">
     <value>Congestion control</value>
@@ -1068,14 +1068,11 @@
   <data name="TbSettingsTunMtu" xml:space="preserve">
     <value>MTU</value>
   </data>
-  <data name="TbSettingsEnableExInbound" xml:space="preserve">
-    <value>Enable additional Inbound</value>
-  </data>
   <data name="TbSettingsEnableIPv6Address" xml:space="preserve">
     <value>Enable IPv6 Address</value>
   </data>
   <data name="menuAddWireguardServer" xml:space="preserve">
-    <value>Add [WireGuard] </value>
+    <value>Add [WireGuard]</value>
   </data>
   <data name="TbPrivateKey" xml:space="preserve">
     <value>Private Key</value>
@@ -1098,9 +1095,6 @@
   <data name="TbSettingsSpeedPingTestUrl" xml:space="preserve">
     <value>Speed Ping Test URL</value>
   </data>
-  <data name="TbSettingsEnableUpdateSubOnlyRemarksExist" xml:space="preserve">
-    <value>Updating subscription, only determining if remarks exist</value>
-  </data>
   <data name="SpeedtestingStop" xml:space="preserve">
     <value>Test terminating...</value>
   </data>
@@ -1109,9 +1103,6 @@
   </data>
   <data name="menuAddHttpServer" xml:space="preserve">
     <value>Add [HTTP]</value>
-  </data>
-  <data name="TbSettingsEnableFragmentTips" xml:space="preserve">
-    <value>which conflicts with the group previous proxy</value>
   </data>
   <data name="TbSettingsEnableFragment" xml:space="preserve">
     <value>Enable fragment</value>
@@ -1374,24 +1365,6 @@
   <data name="TbPorts7Tips" xml:space="preserve">
     <value>Will cover the port, separate with commas (,)</value>
   </data>
-  <data name="menuGenGroupMultipleServer" xml:space="preserve">
-    <value>Generate Policy Group from Multiple Profiles</value>
-  </data>
-  <data name="menuGenGroupMultipleServerXrayRandom" xml:space="preserve">
-    <value>Random by Xray</value>
-  </data>
-  <data name="menuGenGroupMultipleServerXrayRoundRobin" xml:space="preserve">
-    <value>RoundRobin by Xray</value>
-  </data>
-  <data name="menuGenGroupMultipleServerXrayLeastPing" xml:space="preserve">
-    <value>LeastPing by Xray</value>
-  </data>
-  <data name="menuGenGroupMultipleServerXrayLeastLoad" xml:space="preserve">
-    <value>LeastLoad by Xray</value>
-  </data>
-  <data name="menuGenGroupMultipleServerSingBoxLeastPing" xml:space="preserve">
-    <value>LeastPing by sing-box</value>
-  </data>
   <data name="menuExportConfig" xml:space="preserve">
     <value>Export</value>
   </data>
@@ -1519,13 +1492,13 @@
     <value>Policy Group Type</value>
   </data>
   <data name="menuAddPolicyGroupServer" xml:space="preserve">
-    <value>Add Policy Group </value>
+    <value>Add Policy Group</value>
   </data>
   <data name="menuAddProxyChainServer" xml:space="preserve">
     <value>Add Proxy Chain</value>
   </data>
   <data name="menuAddChildServer" xml:space="preserve">
-    <value>Add Child </value>
+    <value>Add Child</value>
   </data>
   <data name="menuRemoveChildServer" xml:space="preserve">
     <value>Remove Child </value>
@@ -1536,44 +1509,20 @@
   <data name="TbFallback" xml:space="preserve">
     <value>Fallback</value>
   </data>
-  <data name="menuGenGroupMultipleServerSingBoxFallback" xml:space="preserve">
-    <value>Fallback by sing-box</value>
+  <data name="MsgCoreNotSupportNetwork" xml:space="preserve">
+    <value>Core '{0}' does not support network type '{1}'</value>
   </data>
-  <data name="menuGenGroupMultipleServerXrayFallback" xml:space="preserve">
-    <value>Fallback by Xray</value>
+  <data name="MsgCoreNotSupportProtocolTransport" xml:space="preserve">
+    <value>Core '{0}' does not support protocol '{1}' when using transport '{2}'</value>
   </data>
-  <data name="CoreNotSupportNetwork" xml:space="preserve">
-    <value>Core '{0}' does not support network type '{1}'.</value>
+  <data name="MsgCoreNotSupportProtocol" xml:space="preserve">
+    <value>Core '{0}' does not support protocol '{1}'</value>
   </data>
-  <data name="CoreNotSupportProtocolTransport" xml:space="preserve">
-    <value>Core '{0}' does not support protocol '{1}' when using transport '{2}'.</value>
+  <data name="MsgInvalidProperty" xml:space="preserve">
+    <value>The {0} property is invalid, please check</value>
   </data>
-  <data name="CoreNotSupportProtocol" xml:space="preserve">
-    <value>Core '{0}' does not support protocol '{1}'.</value>
-  </data>
-  <data name="ProxyChainedPrefix" xml:space="preserve">
-    <value>Proxy chained: </value>
-  </data>
-  <data name="RoutingRuleOutboundPrefix" xml:space="preserve">
-    <value>Routing rule outbound: </value>
-  </data>
-  <data name="PolicyGroupPrefix" xml:space="preserve">
-    <value>Policy group: </value>
-  </data>
-  <data name="NodeTagNotExist" xml:space="preserve">
-    <value>Node alias '{0}' does not exist.</value>
-  </data>
-  <data name="GroupEmpty" xml:space="preserve">
-    <value>Group '{0}' is empty. Please add at least one node.</value>
-  </data>
-  <data name="InvalidProperty" xml:space="preserve">
-    <value>The {0} property is invalid, please check.</value>
-  </data>
-  <data name="GroupSelfReference" xml:space="preserve">
-    <value>{0} Group cannot reference itself or have a circular reference</value>
-  </data>
-  <data name="NotSupportProtocol" xml:space="preserve">
-    <value>Not support protocol '{0}'.</value>
+  <data name="MsgNotSupportProtocol" xml:space="preserve">
+    <value>Not support protocol '{0}'</value>
   </data>
   <data name="TbSettingsHide2TrayWhenCloseTip" xml:space="preserve">
     <value>If the system does not have a tray function, please do not enable it</value>
@@ -1664,5 +1613,83 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
   </data>
   <data name="TbHopInt7" xml:space="preserve">
     <value>Port hopping interval</value>
+  </data>
+  <data name="menuServerListPreview" xml:space="preserve">
+    <value>Configuration item preview</value>
+  </data>
+  <data name="TbFinalmask" xml:space="preserve">
+    <value>Finalmask</value>
+  </data>
+  <data name="MsgRoutingRuleOutboundNodeWarning" xml:space="preserve">
+    <value>Routing rule {0} outbound node {1} warning: {2}</value>
+  </data>
+  <data name="MsgRoutingRuleOutboundNodeError" xml:space="preserve">
+    <value>Routing rule {0} outbound node {1} error: {2}. Fallback to proxy node only.</value>
+  </data>
+  <data name="MsgGroupCycleDependency" xml:space="preserve">
+    <value>Group {0} has a cycle dependency on child node {1}. Skipping this node.</value>
+  </data>
+  <data name="MsgGroupChildNodeWarning" xml:space="preserve">
+    <value>Group {0} child node {1} warning: {2}</value>
+  </data>
+  <data name="MsgGroupChildNodeError" xml:space="preserve">
+    <value>Group {0} child node {1} error: {2}. Skipping this node.</value>
+  </data>
+  <data name="MsgGroupChildGroupNodeWarning" xml:space="preserve">
+    <value>Group {0} child group node {1} warning: {2}</value>
+  </data>
+  <data name="MsgGroupChildGroupNodeError" xml:space="preserve">
+    <value>Group {0} child group node {1} error: {2}. Skipping this node.</value>
+  </data>
+  <data name="MsgGroupNoValidChildNode" xml:space="preserve">
+    <value>Group {0} has no valid child node.</value>
+  </data>
+  <data name="MsgRoutingRuleEmptyOutboundTag" xml:space="preserve">
+    <value>Routing rule {0} has an empty outbound tag. Fallback to proxy node only.</value>
+  </data>
+  <data name="MsgRoutingRuleOutboundNodeNotFound" xml:space="preserve">
+    <value>Routing rule {0} outbound node {1} not found. Fallback to proxy node only.</value>
+  </data>
+  <data name="MsgSubscriptionPrevProfileNotFound" xml:space="preserve">
+    <value>Subscription previous proxy {0} not found. Skipping.</value>
+  </data>
+  <data name="MsgSubscriptionNextProfileNotFound" xml:space="preserve">
+    <value>Subscription next proxy {0} not found. Skipping.</value>
+  </data>
+  <data name="menuGenGroupServer" xml:space="preserve">
+    <value>Generate Policy Group</value>
+  </data>
+  <data name="menuAllServers" xml:space="preserve">
+    <value>All configurations</value>
+  </data>
+  <data name="menuGenRegionGroup" xml:space="preserve">
+    <value>Group by Region</value>
+  </data>
+  <data name="menuEditCopy" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="menuEditSelectAll" xml:space="preserve">
+    <value>Select all</value>
+  </data>
+  <data name="menuEditPaste" xml:space="preserve">
+    <value>Paste</value>
+  </data>
+  <data name="menuEditFormat" xml:space="preserve">
+    <value>Format</value>
+  </data>
+  <data name="TbUot" xml:space="preserve">
+    <value>UDP over TCP</value>
+  </data>
+  <data name="menuAddNaiveServer" xml:space="preserve">
+    <value>Add [NaïveProxy]</value>
+  </data>
+  <data name="TbInsecureConcurrency" xml:space="preserve">
+    <value>Insecure Concurrency</value>
+  </data>
+  <data name="TbUsername" xml:space="preserve">
+    <value>Username</value>
+  </data>
+  <data name="TbIcmpRoutingPolicy" xml:space="preserve">
+    <value>ICMP routing policy</value>
   </data>
 </root>

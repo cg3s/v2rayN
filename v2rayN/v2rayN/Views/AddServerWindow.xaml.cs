@@ -73,8 +73,9 @@ public partial class AddServerWindow
                 cmbCoreType.IsEnabled = false;
                 cmbFingerprint.IsEnabled = false;
                 cmbFingerprint.Text = string.Empty;
+                gridFinalmask.Visibility = Visibility.Collapsed;
 
-                cmbHeaderType8.ItemsSource = Global.TuicCongestionControls;
+                cmbCongestionControl8.ItemsSource = Global.TuicCongestionControls;
                 break;
 
             case EConfigType.WireGuard:
@@ -88,8 +89,27 @@ public partial class AddServerWindow
 
             case EConfigType.Anytls:
                 gridAnytls.Visibility = Visibility.Visible;
+                sepa2.Visibility = Visibility.Collapsed;
+                gridTransport.Visibility = Visibility.Collapsed;
                 cmbCoreType.IsEnabled = false;
                 lstStreamSecurity.Add(Global.StreamSecurityReality);
+                gridFinalmask.Visibility = Visibility.Collapsed;
+                break;
+
+            case EConfigType.Naive:
+                gridNaive.Visibility = Visibility.Visible;
+                sepa2.Visibility = Visibility.Collapsed;
+                gridTransport.Visibility = Visibility.Collapsed;
+                cmbCoreType.IsEnabled = false;
+                gridFinalmask.Visibility = Visibility.Collapsed;
+                cmbFingerprint.IsEnabled = false;
+                cmbFingerprint.Text = string.Empty;
+                cmbAlpn.IsEnabled = false;
+                cmbAlpn.Text = string.Empty;
+                cmbAllowInsecure.IsEnabled = false;
+                cmbAllowInsecure.Text = string.Empty;
+
+                cmbCongestionControl12.ItemsSource = Global.NaiveCongestionControls;
                 break;
         }
         cmbStreamSecurity.ItemsSource = lstStreamSecurity;
@@ -115,6 +135,7 @@ public partial class AddServerWindow
                 case EConfigType.Shadowsocks:
                     this.Bind(ViewModel, vm => vm.SelectedSource.Password, v => v.txtId3.Text).DisposeWith(disposables);
                     this.Bind(ViewModel, vm => vm.SsMethod, v => v.cmbSecurity3.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.Uot, v => v.togUotEnabled3.IsChecked).DisposeWith(disposables);
                     this.Bind(ViewModel, vm => vm.SelectedSource.MuxEnabled, v => v.togmuxEnabled3.IsChecked).DisposeWith(disposables);
                     break;
 
@@ -149,7 +170,7 @@ public partial class AddServerWindow
                 case EConfigType.TUIC:
                     this.Bind(ViewModel, vm => vm.SelectedSource.Username, v => v.txtId8.Text).DisposeWith(disposables);
                     this.Bind(ViewModel, vm => vm.SelectedSource.Password, v => v.txtSecurity8.Text).DisposeWith(disposables);
-                    this.Bind(ViewModel, vm => vm.SelectedSource.HeaderType, v => v.cmbHeaderType8.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.CongestionControl, v => v.cmbCongestionControl8.Text).DisposeWith(disposables);
                     break;
 
                 case EConfigType.WireGuard:
@@ -161,7 +182,16 @@ public partial class AddServerWindow
                     break;
 
                 case EConfigType.Anytls:
-                    this.Bind(ViewModel, vm => vm.SelectedSource.Password, v => v.txtId10.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.SelectedSource.Password, v => v.txtId11.Text).DisposeWith(disposables);
+                    break;
+
+                case EConfigType.Naive:
+                    this.Bind(ViewModel, vm => vm.SelectedSource.Username, v => v.txtId12.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.SelectedSource.Password, v => v.txtSecurity12.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.NaiveQuic, v => v.togNaiveQuic12.IsChecked).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.CongestionControl, v => v.cmbCongestionControl12.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.InsecureConcurrency, v => v.txtInsecureConcurrency12.Text).DisposeWith(disposables);
+                    this.Bind(ViewModel, vm => vm.Uot, v => v.togUotEnabled12.IsChecked).DisposeWith(disposables);
                     break;
             }
             this.Bind(ViewModel, vm => vm.SelectedSource.Network, v => v.cmbNetwork.Text).DisposeWith(disposables);
@@ -189,6 +219,8 @@ public partial class AddServerWindow
             this.Bind(ViewModel, vm => vm.SelectedSource.ShortId, v => v.txtShortId.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.SelectedSource.SpiderX, v => v.txtSpiderX.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.SelectedSource.Mldsa65Verify, v => v.txtMldsa65Verify.Text).DisposeWith(disposables);
+
+            this.Bind(ViewModel, vm => vm.SelectedSource.Finalmask, v => v.txtFinalmask.Text).DisposeWith(disposables);
 
             this.BindCommand(ViewModel, vm => vm.FetchCertCmd, v => v.btnFetchCert).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.FetchCertChainCmd, v => v.btnFetchCertChain).DisposeWith(disposables);
