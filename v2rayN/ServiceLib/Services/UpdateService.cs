@@ -100,6 +100,38 @@ public class UpdateService(Config config, Func<bool, string, Task> updateFunc)
         }
     }
 
+    public async Task<UpdateResult> CheckHasUpdateOnly(ECoreType type, bool preRelease)
+    {
+        if (!CoreInfoManager.Instance.IsCheckUpdateSupported(type))
+        {
+            return new UpdateResult(false, ResUI.MsgNotSupport);
+        }
+
+        var downloadHandle = new DownloadService();
+        var checkPreRelease = CoreInfoManager.Instance.GetCheckPreRelease(type, preRelease);
+        return await CheckUpdateAsync(downloadHandle, type, checkPreRelease);
+    }
+
+    public async Task<List<string>> CheckHasUpdateOnlyAll(bool preRelease)
+    {
+        var msgs = new List<string>();
+        foreach (var type in CoreInfoManager.Instance.GetCheckUpdateCoreTypes())
+        {
+            var result = await CheckHasUpdateOnly(type, preRelease);
+            if (result.Success && result.Version != null)
+            {
+                var msg = string.Format(ResUI.MsgCheckUpdateHasNewVersion, type, result.Version);
+                msgs.Add(msg);
+                AppManager.Instance.SetLastCheckUpdateResult(type, msg);
+            }
+            else
+            {
+                AppManager.Instance.SetLastCheckUpdateResult(type, result.Msg);
+            }
+        }
+        return msgs;
+    }
+
     public async Task UpdateGeoFileAll()
     {
         await UpdateGeoFiles();
@@ -304,6 +336,7 @@ public class UpdateService(Config config, Func<bool, string, Task> updateFunc)
             return RuntimeInformation.ProcessArchitecture switch
             {
                 Architecture.Arm64 => coreInfo?.DownloadUrlLinuxArm64,
+                Architecture.RiscV64 => coreInfo?.DownloadUrlLinuxRiscV64,
                 Architecture.X64 => coreInfo?.DownloadUrlLinux64,
                 _ => null,
             };
@@ -370,8 +403,8 @@ public class UpdateService(Config config, Func<bool, string, Task> updateFunc)
             var rules = JsonUtils.Deserialize<List<RulesItem>>(routing.RuleSet);
             foreach (var item in rules ?? [])
             {
-                AddPrefixedItems(item.Ip, "geoip:", geoipFiles);
-                AddPrefixedItems(item.Domain, "geosite:", geoSiteFiles);
+                AddPrefixedItems(item.Ip, Global.GeoIPPrefix, geoipFiles);
+                AddPrefixedItems(item.Domain, Global.GeoSitePrefix, geoSiteFiles);
             }
         }
 

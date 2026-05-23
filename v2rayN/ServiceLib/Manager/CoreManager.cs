@@ -8,6 +8,7 @@ public class CoreManager
     private static readonly Lazy<CoreManager> _instance = new(() => new());
     public static CoreManager Instance => _instance.Value;
     private Config _config;
+    [SupportedOSPlatform("windows")]
     private WindowsJobService? _processJob;
     private ProcessService? _processService;
     private ProcessService? _processPreService;
@@ -90,6 +91,9 @@ public class CoreManager
 
         await CoreStart(mainContext);
         await CoreStartPreService(preContext);
+
+        AppManager.Instance.RunningCoreType = preContext?.RunCoreType ?? mainContext.RunCoreType;
+
         if (_processService != null)
         {
             await UpdateFunc(true, $"{node.GetSummary()}");
@@ -172,7 +176,7 @@ public class CoreManager
     private async Task CoreStart(CoreConfigContext context)
     {
         var node = context.Node;
-        var coreType = AppManager.Instance.RunningCoreType = AppManager.Instance.GetCoreType(node, node.ConfigType);
+        var coreType = AppManager.Instance.GetCoreType(node, node.ConfigType);
         var coreInfo = CoreInfoManager.Instance.GetCoreInfo(coreType);
 
         var displayLog = node.ConfigType != EConfigType.Custom || node.DisplayLog;

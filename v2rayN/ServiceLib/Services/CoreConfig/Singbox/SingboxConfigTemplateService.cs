@@ -58,4 +58,56 @@ public partial class CoreConfigSingboxService
 
         return JsonUtils.Serialize(fullConfigTemplateNode);
     }
+
+    private void ApplyOutboundBindInterface()
+    {
+        var bindInterface = _config.CoreBasicItem.BindInterface?.TrimEx();
+        if (bindInterface.IsNullOrEmpty())
+        {
+            return;
+        }
+        if (!(context.IsTunEnabled || context.IsWindows))
+        {
+            return;
+        }
+        foreach (var outbound in _coreConfig.outbounds ?? [])
+        {
+            outbound.bind_interface = ShouldBindNet(outbound) ? bindInterface : null;
+        }
+    }
+
+    private void ApplyOutboundSendThrough()
+    {
+        var sendThrough = _config.CoreBasicItem.SendThrough?.TrimEx();
+        if (sendThrough.IsNullOrEmpty())
+        {
+            return;
+        }
+        foreach (var outbound in _coreConfig.outbounds ?? [])
+        {
+            outbound.inet4_bind_address = ShouldBindNet(outbound) ? sendThrough : null;
+        }
+    }
+
+    private static bool ShouldBindNet(Outbound4Sbox outbound)
+    {
+        if (outbound.type is "direct" or "block" or "dns" or "selector" or "urltest")
+        {
+            return false;
+        }
+
+        if (!outbound.detour.IsNullOrEmpty())
+        {
+            return false;
+        }
+
+        var outboundAddress = outbound.server ?? string.Empty;
+
+        if (outboundAddress.Equals("localhost", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return !IPAddress.TryParse(outboundAddress, out var address) || !IPAddress.IsLoopback(address);
+    }
 }

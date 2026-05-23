@@ -5,12 +5,18 @@ public partial class CoreConfigV2rayService
     private string ApplyFullConfigTemplate()
     {
         var fullConfigTemplate = context.FullConfigTemplate;
-        if (fullConfigTemplate == null || !fullConfigTemplate.Enabled || fullConfigTemplate.Config.IsNullOrEmpty())
+        if (fullConfigTemplate is not { Enabled: true })
         {
             return JsonUtils.Serialize(_coreConfig);
         }
 
-        var fullConfigTemplateNode = JsonNode.Parse(fullConfigTemplate.Config);
+        var fullConfigTemplateItem = context.IsTunEnabled ? fullConfigTemplate.TunConfig : fullConfigTemplate.Config;
+        if (fullConfigTemplateItem.IsNullOrEmpty())
+        {
+            return JsonUtils.Serialize(_coreConfig);
+        }
+
+        var fullConfigTemplateNode = JsonNode.Parse(fullConfigTemplateItem);
         if (fullConfigTemplateNode == null)
         {
             return JsonUtils.Serialize(_coreConfig);
@@ -109,9 +115,7 @@ public partial class CoreConfigV2rayService
                     ?? string.Empty;
                 if (!Utils.IsPrivateNetwork(outboundAddress))
                 {
-                    outbound.streamSettings ??= new StreamSettings4Ray();
-                    outbound.streamSettings.sockopt ??= new Sockopt4Ray();
-                    outbound.streamSettings.sockopt.dialerProxy = fullConfigTemplate.ProxyDetour;
+                    FillDialerProxy(outbound, fullConfigTemplate.ProxyDetour);
                 }
             }
             customOutboundsNode.Add(JsonUtils.DeepCopy(outbound));
@@ -128,5 +132,81 @@ public partial class CoreConfigV2rayService
         fullConfigTemplateNode["outbounds"] = customOutboundsNode;
 
         return JsonUtils.Serialize(fullConfigTemplateNode);
+    }
+
+    private void ApplyOutboundBindInterface()
+    {
+        var bindInterface = _config.CoreBasicItem.BindInterface?.TrimEx();
+        if (bindInterface.IsNullOrEmpty())
+        {
+            return;
+        }
+        if (!(context.IsTunEnabled || context.IsWindows))
+        {
+            return;
+        }
+        foreach (var outbound in _coreConfig.outbounds ?? [])
+        {
+            if (!ShouldBindNet(outbound))
+            {
+                continue;
+            }
+            outbound.streamSettings ??= new();
+            outbound.streamSettings.sockopt ??= new();
+            outbound.streamSettings.sockopt.Interface = bindInterface;
+            // xhttp download bind interface
+            if (outbound?.streamSettings?.xhttpSettings?.extra is null)
+            {
+                continue;
+            }
+            var xhttpExtra = JsonUtils.ParseJson(JsonUtils.Serialize(outbound.streamSettings.xhttpSettings!.extra));
+            if (xhttpExtra is not JsonObject xhttpExtraObject
+                || xhttpExtraObject["downloadSettings"] is not JsonObject downloadSettings)
+            {
+                continue;
+            }
+            var sockopt = downloadSettings["sockopt"] as JsonObject ?? new JsonObject();
+            sockopt["interface"] = bindInterface;
+            downloadSettings["sockopt"] = sockopt;
+            outbound.streamSettings.xhttpSettings.extra = xhttpExtraObject;
+        }
+    }
+
+    private void ApplyOutboundSendThrough()
+    {
+        var sendThrough = _config.CoreBasicItem.SendThrough?.TrimEx();
+        if (sendThrough.IsNullOrEmpty())
+        {
+            return;
+        }
+        foreach (var outbound in _coreConfig.outbounds ?? [])
+        {
+            outbound.sendThrough = ShouldBindNet(outbound) ? sendThrough : null;
+        }
+    }
+
+    private static bool ShouldBindNet(Outbounds4Ray outbound)
+    {
+        if (outbound.protocol is "freedom" or "blackhole" or "dns" or "loopback")
+        {
+            return false;
+        }
+
+        if (outbound.streamSettings?.sockopt?.dialerProxy.IsNullOrEmpty() == false)
+        {
+            return false;
+        }
+
+        var outboundAddress = outbound.settings?.servers?.FirstOrDefault()?.address
+                              ?? outbound.settings?.vnext?.FirstOrDefault()?.address
+                              ?? outbound.settings?.address?.ToString()
+                              ?? string.Empty;
+
+        if (outboundAddress.Equals("localhost", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return !IPAddress.TryParse(outboundAddress, out var address) || !IPAddress.IsLoopback(address);
     }
 }

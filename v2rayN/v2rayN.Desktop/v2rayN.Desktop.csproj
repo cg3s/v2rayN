@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
@@ -6,6 +6,7 @@
 		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
 		<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
 		<AssemblyName>v2rayN</AssemblyName>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -15,8 +16,8 @@
 		</PackageReference>
 		<PackageReference Include="Avalonia.Desktop" />
 		<PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" />
+		<PackageReference Include="DialogHost.Avalonia" />
 		<PackageReference Include="ReactiveUI.Avalonia" />
-		<PackageReference Include="MessageBox.Avalonia" />
 		<PackageReference Include="Semi.Avalonia" />
 		<PackageReference Include="Semi.Avalonia.AvaloniaEdit" />
 		<PackageReference Include="Semi.Avalonia.DataGrid">
@@ -28,6 +29,7 @@
 		<PackageReference Include="ReactiveUI.Fody">
 			<TreatAsUsed>true</TreatAsUsed>
 		</PackageReference>
+		<PackageReference Include="SkiaSharp.NativeAssets.Linux" />
 	</ItemGroup>
 
 	<ItemGroup>

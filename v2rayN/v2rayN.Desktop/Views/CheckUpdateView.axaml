@@ -34,6 +34,12 @@
                     HorizontalAlignment="Left" />
 
                 <Button
+                    x:Name="btnCheckOnly"
+                    Width="100"
+                    Margin="{StaticResource Margin4}"
+                    Content="{x:Static resx:ResUI.menuCheckOnly}" />
+
+                <Button
                     x:Name="btnCheckUpdate"
                     Width="100"
                     Margin="{StaticResource Margin4}"
@@ -70,7 +76,7 @@
                                     Grid.Column="1"
                                     HorizontalAlignment="Left"
                                     VerticalAlignment="Center"
-                                    Text="{Binding CoreType}" />
+                                    Text="{Binding CoreTypeForStorage}" />
                                 <TextBlock
                                     Grid.Column="2"
                                     HorizontalAlignment="Left"

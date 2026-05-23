@@ -522,6 +522,23 @@ public class Utils
         return false;
     }
 
+    public static bool IsIpv4(string? ip)
+    {
+        if (ip.IsNullOrEmpty())
+        {
+            return false;
+        }
+
+        ip = ip.Trim();
+        if (!IPAddress.TryParse(ip, out var address))
+        {
+            return false;
+        }
+
+        return address.AddressFamily == AddressFamily.InterNetwork
+               && ip.Count(c => c == '.') == 3;
+    }
+
     public static bool IsIpAddress(string? ip)
     {
         if (ip.IsNullOrEmpty())
@@ -847,15 +864,25 @@ public class Utils
 
     public static Dictionary<string, string> GetSystemHosts()
     {
-        var hosts = GetSystemHosts(@"C:\Windows\System32\drivers\etc\hosts");
-        var hostsIcs = GetSystemHosts(@"C:\Windows\System32\drivers\etc\hosts.ics");
-
-        foreach (var (key, value) in hostsIcs)
+        if (IsWindows())
         {
-            hosts[key] = value;
+            var hosts = GetSystemHosts(@"C:\Windows\System32\drivers\etc\hosts");
+            var hostsIcs = GetSystemHosts(@"C:\Windows\System32\drivers\etc\hosts.ics");
+
+            foreach (var (key, value) in hostsIcs)
+            {
+                hosts[key] = value;
+            }
+
+            return hosts;
         }
 
-        return hosts;
+        if (IsLinux() || IsMacOS())
+        {
+            return GetSystemHosts("/etc/hosts");
+        }
+
+        return new Dictionary<string, string>();
     }
 
     public static async Task<string?> GetCliWrapOutput(string filePath, string? arg)
@@ -1097,12 +1124,16 @@ public class Utils
 
     #region Platform
 
+    [SupportedOSPlatformGuard("windows")]
     public static bool IsWindows() => OperatingSystem.IsWindows();
 
+    [SupportedOSPlatformGuard("linux")]
     public static bool IsLinux() => OperatingSystem.IsLinux();
 
+    [SupportedOSPlatformGuard("macos")]
     public static bool IsMacOS() => OperatingSystem.IsMacOS();
 
+    [UnsupportedOSPlatformGuard("windows")]
     public static bool IsNonWindows() => !OperatingSystem.IsWindows();
 
     public static string GetExeName(string name)
@@ -1197,6 +1228,16 @@ public class Utils
     }
 
     public static bool SetUnixFileMode(string? fileName)
+    {
+        if (IsWindows())
+        {
+            return false;
+        }
+        return SetUnixFileModeInternal(fileName);
+    }
+
+    [UnsupportedOSPlatform("windows")]
+    private static bool SetUnixFileModeInternal(string? fileName)
     {
         try
         {

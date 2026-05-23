@@ -65,6 +65,8 @@ public class MainWindowViewModel : MyReactiveObject
 
     [Reactive] public bool BlIsWindows { get; set; }
 
+    [Reactive] public bool BlNewUpdate { get; set; }
+
     #endregion Menu
 
     #region Init
@@ -251,6 +253,11 @@ public class MainWindowViewModel : MyReactiveObject
             .ObserveOn(RxSchedulers.MainThreadScheduler)
             .Subscribe(async blProxy => await UpdateSubscriptionProcess("", blProxy));
 
+        AppEvents.HasUpdateNotified
+            .AsObservable()
+            .ObserveOn(RxSchedulers.MainThreadScheduler)
+            .Subscribe(async bl => BlNewUpdate = bl);
+
         #endregion AppEvents
 
         _ = Init();
@@ -297,10 +304,22 @@ public class MainWindowViewModel : MyReactiveObject
         {
             var indexIdOld = _config.IndexId;
             await RefreshServers();
-            if (indexIdOld != _config.IndexId)
+
+            // If indexId changed or subIndexId is empty, directly reload.
+            if (indexIdOld != _config.IndexId || _config.SubIndexId.IsNullOrEmpty())
             {
                 await Reload();
             }
+            else
+            {
+                // The activity config belongs to the current group.
+                var profile = await AppManager.Instance.GetProfileItem(_config.IndexId);
+                if (profile != null && profile.Subid == _config.SubIndexId)
+                {
+                    await Reload();
+                }
+            }
+
             if (_config.UiItem.EnableAutoAdjustMainLvColWidth)
             {
                 AppEvents.AdjustMainLvColWidthRequested.Publish();
@@ -559,7 +578,7 @@ public class MainWindowViewModel : MyReactiveObject
 
             await Task.Run(async () =>
             {
-                await LoadCore(allResult.ResolvedMainContext, allResult.PreSocksResult?.Context);
+                await LoadCore(allResult.MainResult.Context, allResult.PreSocksResult?.Context);
                 await SysProxyHandler.UpdateSysProxy(_config, false);
                 await Task.Delay(1000);
             });
