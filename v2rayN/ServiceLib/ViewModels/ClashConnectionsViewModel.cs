@@ -1,25 +1,24 @@
 namespace ServiceLib.ViewModels;
 
-public class ClashConnectionsViewModel : MyReactiveObject
+public partial class ClashConnectionsViewModel : MyReactiveObject
 {
-    public IObservableCollection<ClashConnectionModel> ConnectionItems { get; } = new ObservableCollectionExtended<ClashConnectionModel>();
+    public BulkObservableCollection<ClashConnectionModel> ConnectionItems { get; } = [];
 
     [Reactive]
-    public ClashConnectionModel SelectedSource { get; set; }
+    public partial ClashConnectionModel SelectedSource { get; set; }
 
-    public ReactiveCommand<Unit, Unit> ConnectionCloseCmd { get; }
-    public ReactiveCommand<Unit, Unit> ConnectionCloseAllCmd { get; }
-
-    [Reactive]
-    public string HostFilter { get; set; }
+    public ReactiveCommand<RxVoid, RxVoid> ConnectionCloseCmd { get; }
+    public ReactiveCommand<RxVoid, RxVoid> ConnectionCloseAllCmd { get; }
 
     [Reactive]
-    public bool AutoRefresh { get; set; }
+    public partial string HostFilter { get; set; }
 
-    public ClashConnectionsViewModel(Func<EViewAction, object?, Task<bool>>? updateView)
+    [Reactive]
+    public partial bool AutoRefresh { get; set; }
+
+    public ClashConnectionsViewModel()
     {
         _config = AppManager.Instance.Config;
-        _updateView = updateView;
         AutoRefresh = _config.ClashUIItem.ConnectionsAutoRefresh;
 
         var canEditRemove = this.WhenAnyValue(
@@ -56,10 +55,9 @@ public class ClashConnectionsViewModel : MyReactiveObject
             return;
         }
 
-        RxSchedulers.MainThreadScheduler.Schedule(ret?.connections, (scheduler, model) =>
+        RxSchedulers.MainThreadScheduler.Schedule(() =>
         {
-            _ = RefreshConnections(model);
-            return Disposable.Empty;
+            _ = RefreshConnections(ret?.connections);
         });
     }
 
@@ -69,7 +67,7 @@ public class ClashConnectionsViewModel : MyReactiveObject
 
         var dtNow = DateTime.Now;
         var lstModel = new List<ClashConnectionModel>();
-        foreach (var item in connections ?? new())
+        foreach (var item in connections ?? [])
         {
             var host = $"{(item.metadata.host.IsNullOrEmpty() ? item.metadata.destinationIP : item.metadata.host)}:{item.metadata.destinationPort}";
             if (HostFilter.IsNotEmpty() && !host.Contains(HostFilter))
@@ -85,7 +83,7 @@ public class ClashConnectionsViewModel : MyReactiveObject
                 Host = host,
                 Time = (dtNow - item.start).TotalSeconds < 0 ? 1 : (dtNow - item.start).TotalSeconds,
                 Elapsed = (dtNow - item.start).ToString(@"hh\:mm\:ss"),
-                Chain = $"{item.rule} , {string.Join("->", item.chains ?? new())}"
+                Chain = $"{item.rule} , {string.Join("->", item.chains ?? [])}"
             };
 
             lstModel.Add(model);

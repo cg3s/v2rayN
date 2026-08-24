@@ -1,3 +1,4 @@
+using System.Security.Authentication;
 using Downloader;
 
 namespace ServiceLib.Helper;
@@ -14,6 +15,8 @@ public class DownloaderHelper
             return null;
         }
 
+        var connectTimeout = Math.Clamp(timeout / 5, 2, 5);
+
         Uri uri = new(url);
         //Authorization Header
         var headers = new WebHeaderCollection();
@@ -22,17 +25,19 @@ public class DownloaderHelper
             headers.Add(HttpRequestHeader.Authorization, "Basic " + Utils.Base64Encode(uri.UserInfo));
         }
 
+        var requestConfiguration = new RequestConfiguration()
+        {
+            Headers = headers,
+            UserAgent = userAgent,
+            ConnectTimeout = connectTimeout * 1000,
+            Proxy = webProxy
+        };
         var downloadOpt = new DownloadConfiguration()
         {
             BlockTimeout = timeout * 1000,
             MaxTryAgainOnFailure = 2,
-            RequestConfiguration =
-                {
-                    Headers = headers,
-                    UserAgent = userAgent,
-                    ConnectTimeout = timeout * 1000,
-                    Proxy = webProxy
-                }
+            RequestConfiguration = requestConfiguration,
+            CustomHttpMessageHandlerFactory = () => GetSocketsHttpHandler(requestConfiguration),
         };
 
         await using var downloader = new Downloader.DownloadService(downloadOpt);
@@ -45,10 +50,10 @@ public class DownloaderHelper
         };
 
         using var cts = new CancellationTokenSource();
-        await using var stream = await downloader.DownloadFileTaskAsync(address: url, cts.Token).WaitAsync(TimeSpan.FromSeconds(timeout), cts.Token);
-        using StreamReader reader = new(stream);
+        cts.CancelAfter(TimeSpan.FromSeconds(timeout));
 
-        downloadOpt = null;
+        await using var stream = await downloader.DownloadFileTaskAsync(address: url, cts.Token);
+        using StreamReader reader = new(stream);
 
         return await reader.ReadToEndAsync(cts.Token);
     }
@@ -60,15 +65,18 @@ public class DownloaderHelper
             throw new ArgumentNullException(nameof(url));
         }
 
+        var connectTimeout = Math.Clamp(timeout / 5, 2, 5);
+        var requestConfiguration = new RequestConfiguration()
+        {
+            ConnectTimeout = connectTimeout * 1000,
+            Proxy = webProxy
+        };
         var downloadOpt = new DownloadConfiguration()
         {
             BlockTimeout = timeout * 1000,
             MaxTryAgainOnFailure = 2,
-            RequestConfiguration =
-                {
-                    ConnectTimeout= timeout * 1000,
-                    Proxy = webProxy
-                }
+            RequestConfiguration = requestConfiguration,
+            CustomHttpMessageHandlerFactory = () => GetSocketsHttpHandler(requestConfiguration),
         };
 
         var lastUpdateTime = DateTime.Now;
@@ -116,70 +124,222 @@ public class DownloaderHelper
         };
         //progress.Report("......");
         using var cts = new CancellationTokenSource();
-        cts.CancelAfter(timeout * 1000);
+        cts.CancelAfter(TimeSpan.FromSeconds(timeout));
         await using var stream = await downloader.DownloadFileTaskAsync(address: url, cts.Token);
-
-        downloadOpt = null;
     }
 
-    public async Task DownloadFileAsync(IWebProxy? webProxy, string url, string fileName, IProgress<double> progress, int timeout)
+    public async Task DownloadFileAsync(IWebProxy? webProxy, FileDownloadRequest request, Action<FileDownloadState> onProgress, TimeSpan connectTimeout, CancellationToken cancellationToken = default)
     {
-        if (url.IsNullOrEmpty())
+        ArgumentNullException.ThrowIfNull(request);
+        if (request.FilePath.IsNullOrEmpty())
         {
-            throw new ArgumentNullException(nameof(url));
+            throw new ArgumentNullException(nameof(request.FilePath));
         }
-        if (fileName.IsNullOrEmpty())
+        if (File.Exists(request.FilePath))
         {
-            throw new ArgumentNullException(nameof(fileName));
-        }
-        if (File.Exists(fileName))
-        {
-            File.Delete(fileName);
+            File.Delete(request.FilePath);
         }
 
-        var downloadOpt = new DownloadConfiguration()
+        var state = new FileDownloadState
         {
-            BlockTimeout = timeout * 1000,
-            MaxTryAgainOnFailure = 2,
-            RequestConfiguration =
-                {
-                    ConnectTimeout= timeout * 1000,
-                    Proxy = webProxy
-                }
+            Request = request,
         };
 
-        var progressPercentage = 0;
-        var hasValue = false;
+        var requestConfiguration = new RequestConfiguration()
+        {
+            ConnectTimeout = (int)connectTimeout.TotalMilliseconds,
+            Proxy = webProxy,
+        };
+        var downloadOpt = new DownloadConfiguration()
+        {
+            ChunkCount = 100,
+            MinimumChunkSize = 8 * 1024 * 1024, // 8 MB
+            MinimumSizeOfChunking = 8 * 1024 * 1024, // 8 MB
+            ParallelDownload = true,
+            ParallelCount = 4,
+
+            RequestConfiguration = requestConfiguration,
+            CustomHttpMessageHandlerFactory = () => GetSocketsHttpHandler(requestConfiguration),
+        };
+
         await using var downloader = new Downloader.DownloadService(downloadOpt);
-        downloader.DownloadStarted += (sender, value) => progress?.Report(0);
+        downloader.DownloadStarted += (sender, value) =>
+        {
+            state = state with
+            {
+                TotalBytes = value.TotalBytesToReceive,
+            };
+            onProgress.Invoke(state);
+        };
         downloader.DownloadProgressChanged += (sender, value) =>
         {
-            hasValue = true;
-            var percent = (int)value.ProgressPercentage;//   Convert.ToInt32((totalRead * 1d) / (total * 1d) * 100);
-            if (progressPercentage != percent && percent % 10 == 0)
+            state = state with
             {
-                progressPercentage = percent;
-                progress.Report(percent);
-            }
+                DownloadedBytes = value.ReceivedBytesSize,
+                TotalBytes = value.TotalBytesToReceive,
+                SpeedBytesPerSecond = value.BytesPerSecondSpeed,
+            };
+            onProgress.Invoke(state);
         };
         downloader.DownloadFileCompleted += (sender, value) =>
         {
-            if (progress != null)
+            state = state with
             {
-                if (hasValue && value.Error == null)
-                {
-                    progress.Report(101);
-                }
-                else if (value.Error != null)
-                {
-                    throw value.Error;
-                }
-            }
+                Completed = true,
+                Error = value.Error,
+            };
+            onProgress.Invoke(state);
         };
 
-        using var cts = new CancellationTokenSource();
-        await downloader.DownloadFileTaskAsync(url, fileName, cts.Token);
+        await downloader.DownloadFileTaskAsync(request.FileUrl, request.FilePath, cancellationToken);
+    }
 
-        downloadOpt = null;
+    public async Task DownloadSmallFilesAsync(IWebProxy? webProxy, List<FileDownloadRequest> requests, Action<ReadOnlyMemory<FileDownloadState>> onProgress, TimeSpan connectTimeout, CancellationToken cancellationToken = default)
+    {
+        if (requests is not { Count: > 0 })
+        {
+            throw new ArgumentNullException(nameof(requests));
+        }
+
+        var states = new FileDownloadState[requests.Count];
+        for (var i = 0; i < requests.Count; i++)
+        {
+            states[i] = new FileDownloadState
+            {
+                Request = requests[i],
+            };
+        }
+        var readOnlyStates = new ReadOnlyMemory<FileDownloadState>(states);
+
+        var requestConfiguration = new RequestConfiguration()
+        {
+            ConnectTimeout = (int)connectTimeout.TotalMilliseconds,
+            Proxy = webProxy,
+
+            KeepAlive = true,
+        };
+        using var socketsHttpHandler = GetSocketsHttpHandler(requestConfiguration);
+
+        var parallelOptions = new ParallelOptions
+        {
+            MaxDegreeOfParallelism = 4,
+            //CancellationToken = cancellationToken,
+        };
+
+        await Parallel.ForEachAsync(Enumerable.Range(0, requests.Count), parallelOptions, async (index, parallelCancellationToken) =>
+        {
+            var request = requests[index];
+            var downloadOpt = new DownloadConfiguration()
+            {
+                RequestConfiguration = requestConfiguration,
+                // ReSharper disable once AccessToDisposedClosure
+                CustomHttpMessageHandlerFactory = () => socketsHttpHandler,
+            };
+            await using var downloader = new Downloader.DownloadService(downloadOpt);
+            downloader.DownloadStarted += (sender, value) =>
+            {
+                states[index] = states[index] with
+                {
+                    DownloadedBytes = 0,
+                    TotalBytes = value.TotalBytesToReceive,
+                    SpeedBytesPerSecond = 0,
+                    Completed = false,
+                };
+                onProgress.Invoke(readOnlyStates);
+            };
+            downloader.DownloadProgressChanged += (sender, value) =>
+            {
+                states[index] = states[index] with
+                {
+                    DownloadedBytes = value.ReceivedBytesSize,
+                    TotalBytes = value.TotalBytesToReceive,
+                    SpeedBytesPerSecond = value.BytesPerSecondSpeed,
+                    Completed = false,
+                };
+                onProgress.Invoke(readOnlyStates);
+            };
+            downloader.DownloadFileCompleted += (sender, value) =>
+            {
+                var newState = states[index] with { Completed = true };
+                if (value.Error != null)
+                {
+                    newState = newState with { Error = value.Error };
+                }
+                states[index] = newState;
+                onProgress.Invoke(readOnlyStates);
+            };
+            await downloader.DownloadFileTaskAsync(request.FileUrl, request.FilePath, parallelCancellationToken);
+        });
+    }
+
+    // https://github.com/bezzad/Downloader/blob/a75a6e431acd6cbba6293f7afdcf676544a09174/src/Downloader/SocketClient.cs#L45
+    // There is a risk of MITM attacks
+    // https://github.com/bezzad/Downloader/blob/a75a6e431acd6cbba6293f7afdcf676544a09174/src/Downloader/Extensions/ExceptionHelper.cs#L111
+    private static SocketsHttpHandler GetSocketsHttpHandler(RequestConfiguration config)
+    {
+        SocketsHttpHandler handler = new()
+        {
+            AllowAutoRedirect = config.AllowAutoRedirect,
+            MaxAutomaticRedirections = config.MaximumAutomaticRedirections,
+            AutomaticDecompression = config.AutomaticDecompression,
+            PreAuthenticate = config.PreAuthenticate,
+            UseCookies = config.CookieContainer != null,
+            UseProxy = config.Proxy != null,
+            MaxConnectionsPerServer = 1000,
+            PooledConnectionIdleTimeout = config.KeepAliveTimeout,
+            PooledConnectionLifetime = Timeout.InfiniteTimeSpan,
+            EnableMultipleHttp2Connections = true,
+            ConnectTimeout = TimeSpan.FromMilliseconds(config.ConnectTimeout),
+        };
+
+        // Set up the SslClientAuthenticationOptions for custom certificate validation
+        if (config.ClientCertificates?.Count > 0)
+        {
+            handler.SslOptions.ClientCertificates = config.ClientCertificates;
+        }
+
+        handler.SslOptions.EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12;
+        //handler.SslOptions.RemoteCertificateValidationCallback = ExceptionHelper.CertificateValidationCallBack;
+
+        var certificateChainPolicy = CertPemManager.Instance.BuildCertificateChainPolicy();
+        if (certificateChainPolicy != null)
+        {
+            handler.SslOptions.CertificateChainPolicy = certificateChainPolicy;
+            handler.SslOptions.RemoteCertificateValidationCallback = null;
+        }
+
+        // Configure keep-alive
+        if (config.KeepAlive)
+        {
+            handler.KeepAlivePingTimeout = config.KeepAliveTimeout;
+            handler.KeepAlivePingPolicy = HttpKeepAlivePingPolicy.WithActiveRequests;
+        }
+
+        // Configure credentials
+        if (config.Credentials != null)
+        {
+            handler.Credentials = config.Credentials;
+            handler.PreAuthenticate = config.PreAuthenticate;
+        }
+
+        // Configure cookies
+        if (handler.UseCookies && config.CookieContainer != null)
+        {
+            handler.CookieContainer = config.CookieContainer;
+        }
+
+        // Configure proxy
+        if (handler.UseProxy && config.Proxy != null)
+        {
+            handler.Proxy = config.Proxy;
+        }
+
+        // Add expect header
+        if (!string.IsNullOrWhiteSpace(config.Expect))
+        {
+            handler.Expect100ContinueTimeout = TimeSpan.FromSeconds(1);
+        }
+
+        return handler;
     }
 }

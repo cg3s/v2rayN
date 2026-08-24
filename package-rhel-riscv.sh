@@ -12,7 +12,7 @@ MIN_KERNEL="5.10"
 PKGROOT="v2rayN-publish"
 PROJECT_HINT="v2rayN.Desktop/v2rayN.Desktop.csproj"
 RPM_TOPDIR="${HOME}/rpmbuild"
-DOTNET_RISCV_VERSION="10.0.108"
+DOTNET_RISCV_VERSION="10.0.111"
 DOTNET_RISCV_BASE="https://github.com/xujiegb/dotnet-riscv/releases/download"
 DOTNET_RISCV_FILE="dotnet-sdk-${DOTNET_RISCV_VERSION}-linux-riscv64.tar.gz"
 DOTNET_SDK_URL="${DOTNET_RISCV_BASE}/${DOTNET_RISCV_VERSION}/${DOTNET_RISCV_FILE}"
@@ -501,7 +501,7 @@ write_spec_file() {
 Name:           v2rayN
 Version:        __VERSION__
 Release:        1%{?dist}
-Summary:        v2rayN (Avalonia) GUI client for Linux (riscv64)
+Summary:        v2rayN (Avalonia) GUI client for Linux
 License:        GPL-3.0-only
 URL:            https://github.com/2dust/v2rayN
 BugURL:         https://github.com/2dust/v2rayN/issues
@@ -509,13 +509,13 @@ ExclusiveArch:  riscv64
 Source0:        __PKGROOT__.tar.gz
 
 Requires:       cairo, pango, openssl, mesa-libEGL, mesa-libGL
-Requires:       glibc >= 2.34
-Requires:       fontconfig >= 2.13.1
+Requires:       glibc >= 2.39
+Requires:       fontconfig >= 2.15.0
 Requires:       desktop-file-utils >= 0.26
 Requires:       xdg-utils >= 1.1.3
-Requires:       coreutils >= 8.32
-Requires:       bash >= 5.1
-Requires:       freetype >= 2.10
+Requires:       coreutils >= 9.4
+Requires:       bash >= 5.2.21
+Requires:       freetype >= 2.13
 
 %description
 v2rayN Linux for Red Hat Enterprise Linux

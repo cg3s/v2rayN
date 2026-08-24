@@ -13,11 +13,19 @@ public partial class MessageBoxDialog : Window
     {
         InitializeComponent();
 
+        if (Design.IsDesignMode)
+        {
+            caption = "Design Caption";
+            message = "Design Message";
+        }
+
         Title = caption;
         txtMessage.Text = message;
 
         btnYes.Click += BtnYes_Click;
         btnNo.Click += BtnNo_Click;
+
+        CanMinimize = false;
     }
 
     private void BtnYes_Click(object? sender, RoutedEventArgs e)

@@ -6,10 +6,14 @@
 
 	<ItemGroup>
 		<PackageReference Include="Downloader" />
+		<PackageReference Include="IPNetwork2" />
 		<PackageReference Include="ReactiveUI">
 			<TreatAsUsed>true</TreatAsUsed>
 		</PackageReference>
-		<PackageReference Include="ReactiveUI.Fody" />
+		<PackageReference Include="ReactiveUI.SourceGenerators">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
 		<PackageReference Include="sqlite-net-e" />
 		<PackageReference Include="Repobot.SQLite.Unofficial" />
 		<PackageReference Include="NLog" />
@@ -22,6 +26,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+        <EmbeddedResource Include="Sample\chrome_roots_pem" />
 		<EmbeddedResource Include="Sample\clash_mixin_yaml" />
 		<EmbeddedResource Include="Sample\clash_tun_yaml" />
 		<EmbeddedResource Include="Sample\custom_routing_black" />
@@ -31,6 +36,7 @@
 		<EmbeddedResource Include="Sample\dns_v2ray_normal" />
 		<EmbeddedResource Include="Sample\kill_as_sudo_linux_sh" />
 		<EmbeddedResource Include="Sample\kill_as_sudo_osx_sh" />
+        <EmbeddedResource Include="Sample\mozilla_roots_pem" />
 		<EmbeddedResource Include="Sample\pac" />
 		<EmbeddedResource Include="Sample\proxy_set_linux_sh" /> 
 		<EmbeddedResource Include="Sample\proxy_set_osx_sh" />
@@ -56,7 +62,7 @@
 			<DesignTime>True</DesignTime>
 			<AutoGen>True</AutoGen>
 		</Compile>
-		<EmbeddedResource Update="Resx\ResUI.fa-Ir.resx">
+		<EmbeddedResource Update="Resx\ResUI.fa.resx">
 			<SubType>Designer</SubType>
 			<Generator>PublicResXFileCodeGenerator</Generator>
 		</EmbeddedResource>
@@ -64,6 +70,9 @@
 			<Generator>PublicResXFileCodeGenerator</Generator>
 		</EmbeddedResource>
 		<EmbeddedResource Update="Resx\ResUI.hu.resx">
+			<Generator>PublicResXFileCodeGenerator</Generator>
+		</EmbeddedResource>
+        <EmbeddedResource Update="Resx\ResUI.id.resx">
 			<Generator>PublicResXFileCodeGenerator</Generator>
 		</EmbeddedResource>
 		<EmbeddedResource Update="Resx\ResUI.resx">

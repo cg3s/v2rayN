@@ -8,13 +8,13 @@ BUILD_FROM=""
 XRAY_VER="${XRAY_VER:-}"
 SING_VER="${SING_VER:-}"
 
-MIN_KERNEL="5.10"
+MIN_KERNEL="6.12"
 PKGROOT="v2rayN-publish"
 PROJECT_HINT="v2rayN.Desktop/v2rayN.Desktop.csproj"
 OUTPUT_DIR="${HOME}/debbuild"
 DOTNET_TFM="net10.0"
-DOTNET_LOONGARCH_VERSION="10.0.108"
-DOTNET_LOONGARCH_TAG="v10.0.108-loongarch64"
+DOTNET_LOONGARCH_VERSION="10.0.111"
+DOTNET_LOONGARCH_TAG="v10.0.111-loongarch64"
 DOTNET_LOONGARCH_BASE="https://github.com/loongson/dotnet/releases/download"
 DOTNET_LOONGARCH_FILE="dotnet-sdk-${DOTNET_LOONGARCH_VERSION}-linux-loongarch64.tar.gz"
 DOTNET_SDK_URL="${DOTNET_LOONGARCH_BASE}/${DOTNET_LOONGARCH_TAG}/${DOTNET_LOONGARCH_FILE}"
@@ -116,20 +116,7 @@ install_dependencies() {
 
     export PATH="$HOME/.dotnet:$PATH"
     export DOTNET_ROOT="$HOME/.dotnet"
-
-    mkdir -p "$HOME/.nuget/NuGet"
-
-    cat > "$HOME/.nuget/NuGet/NuGet.Config" <<EOF
-<?xml version="1.0" encoding="utf-8"?>
-<configuration>
-  <packageSources>
-    <clear />
-    <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
-    <add key="loongnix" value="https://lnuget.loongnix.cn/v3/index.json" allowInsecureConnections="true" />
-  </packageSources>
-</configuration>
-EOF
-
+    
     dotnet --info >/dev/null 2>&1 && install_ok=1
   fi
 
@@ -610,8 +597,8 @@ package_binary() {
   write_desktop_file "$stage"
   write_maintainer_scripts "$debian_dir"
 
-  extra_depends="libc6 (>= 2.34), fontconfig (>= 2.13.1), desktop-file-utils (>= 0.26), xdg-utils (>= 1.1.3), coreutils (>= 8.32), bash (>= 5.1), libfreetype6 (>= 2.11)"
-
+  extra_depends="libc6 (>= 2.39), fontconfig (>= 2.15.0), desktop-file-utils (>= 0.26), xdg-utils (>= 1.1.3), coreutils (>= 9.4), bash (>= 5.2.21), libfreetype6 (>= 2.13)"
+  
   mkdir -p "$workdir/debian"
   cat > "$workdir/debian/control" <<EOF
 Source: v2rayn

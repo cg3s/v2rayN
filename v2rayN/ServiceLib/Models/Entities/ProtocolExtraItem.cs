@@ -5,6 +5,9 @@ public record ProtocolExtraItem
     public bool? Uot { get; init; }
     public string? CongestionControl { get; init; }
 
+    // http outbound
+    public string? HttpHeaders { get; init; }
+
     // vmess
     public string? AlterId { get; init; }
     public string? VmessSecurity { get; init; }
@@ -31,6 +34,12 @@ public record ProtocolExtraItem
     public int? DownMbps { get; init; }
     public string? Ports { get; init; }
     public string? HopInterval { get; init; }
+    // realm://<token>@<rendezvous-host>[:port]/<realm-name>?stun=<stun-host>[:port]&stun=<stun-host>[:port]...
+    // example:
+    // realm://public@realm.hy2.io/57f9be7c-2810-4f5b-8cb9-260bc84d6c90?stun=example.stun:3478&stun=example2.stun:3478
+    public string? Hy2RealmUrl { get; init; }
+    public string? GeckoMinPacketSize { get; init; }
+    public string? GeckoMaxPacketSize { get; init; }
 
     // naiveproxy
     public int? InsecureConcurrency { get; init; }
@@ -42,4 +51,7 @@ public record ProtocolExtraItem
     public string? SubChildItems { get; init; }
     public string? Filter { get; init; }
     public EMultipleLoad? MultipleLoad { get; init; }
+
+    // custom outbound
+    public bool? IsSingboxEndpoint { get; init; }
 }

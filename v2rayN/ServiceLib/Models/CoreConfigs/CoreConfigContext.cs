@@ -11,13 +11,20 @@ public record CoreConfigContext
     public Config AppConfig { get; init; } = new();
     public FullConfigTemplateItem? FullConfigTemplate { get; init; } = new();
 
+    public Dictionary<string, string> CustomOutboundContent { get; init; } = new();
+
     // Test ServerTestItem Map
     public Dictionary<string, string> ServerTestItemMap { get; init; } = new();
 
     // TUN Compatibility
     public bool IsTunEnabled { get; init; } = false;
     public HashSet<string> ProtectDomainList { get; init; } = [];
+    // Typically, it is the core of the outbound chain
+    public HashSet<ECoreType> ProtectCoreTypeList { get; init; } = [];
 
     public bool IsWindows { get; init; }
     public bool IsMacOS { get; init; }
+
+    // Generation Context
+    public Dictionary<object, string> CustomOutboundMap { get; init; } = new();
 }

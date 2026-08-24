@@ -39,15 +39,14 @@ public static class ConfigHandler
         {
             LogEnabled = false,
             Loglevel = "warning",
-            MuxEnabled = false,
         };
 
         if (config.Inbound == null)
         {
-            config.Inbound = new List<InItem>();
+            config.Inbound = [];
             InItem inItem = new()
             {
-                Protocol = EInboundProtocol.socks.ToString(),
+                Protocol = nameof(EInboundProtocol.socks),
                 LocalPort = 10808,
                 UdpEnabled = true,
                 SniffingEnabled = true,
@@ -60,7 +59,7 @@ public static class ConfigHandler
         {
             if (config.Inbound.Count > 0)
             {
-                config.Inbound.First().Protocol = EInboundProtocol.socks.ToString();
+                config.Inbound.First().Protocol = nameof(EInboundProtocol.socks);
             }
         }
 
@@ -93,14 +92,18 @@ public static class ConfigHandler
             EnableTun = false,
             Mtu = 9000,
             IcmpRouting = Global.TunIcmpRoutingPolicies.First(),
-            EnableLegacyProtect = false,
+            EnableLegacyProtect = true,
         };
         config.GuiItem ??= new();
+        if (!Global.RootCertProviders.Contains(config.GuiItem.RootCertProvider))
+        {
+            config.GuiItem.RootCertProvider = Global.RootCertProviders.First();
+        }
         config.MsgUIItem ??= new();
 
         config.UiItem ??= new();
-        config.UiItem.MainColumnItem ??= new();
-        config.UiItem.WindowSizeItem ??= new();
+        config.UiItem.MainColumnItem ??= [];
+        config.UiItem.WindowSizeItem ??= [];
 
         if (config.UiItem.CurrentLanguage.IsNullOrEmpty())
         {
@@ -112,10 +115,13 @@ public static class ConfigHandler
         config.ConstItem ??= new ConstItem();
 
         config.SimpleDNSItem ??= InitBuiltinSimpleDNS();
+        config.SimpleDNSItem.BlockAAAAQuery ??= false;
+        config.SimpleDNSItem.FakeIPRange ??= Global.FakeIPRanges.FirstOrDefault();
         config.SimpleDNSItem.GlobalFakeIp ??= true;
         config.SimpleDNSItem.BootstrapDNS ??= Global.DomainPureIPDNSAddress.FirstOrDefault();
         config.SimpleDNSItem.ServeStale ??= false;
         config.SimpleDNSItem.ParallelQuery ??= false;
+        config.SimpleDNSItem.EnableHappyEyeballs ??= false;
 
         config.SpeedTestItem ??= new();
         if (config.SpeedTestItem.SpeedTestTimeout < 10)
@@ -158,17 +164,32 @@ public static class ConfigHandler
             DownMbps = 100
         };
         config.ClashUIItem ??= new();
-        config.ClashUIItem.ConnectionsColumnItem ??= new();
+        config.ClashUIItem.ConnectionsColumnItem ??= [];
         config.SystemProxyItem ??= new();
         config.WebDavItem ??= new();
         config.CheckUpdateItem ??= new();
         config.Fragment4RayItem ??= new()
         {
             Packets = "tlshello",
-            Length = "50-100",
-            Interval = "10-20"
         };
-        config.GlobalHotkeys ??= new();
+        config.Fragment4RayItem.MaxSplit ??= "0";
+
+        config.HappyEyeballs4RayItem ??= new()
+        {
+            TryDelayMs = 250,
+            PrioritizeIPv6 = false,
+            Interleave = 1,
+            MaxConcurrentTry = 4,
+        };
+        if ((config.Fragment4RayItem.Lengths ?? []).Count == 0)
+        {
+            config.Fragment4RayItem.Lengths = [config.Fragment4RayItem.Length ?? "50-100"];
+        }
+        if ((config.Fragment4RayItem.Delays ?? []).Count == 0)
+        {
+            config.Fragment4RayItem.Delays = [config.Fragment4RayItem.Interval ?? "10-20"];
+        }
+        config.GlobalHotkeys ??= [];
 
         if (config.SystemProxyItem.SystemProxyExceptions.IsNullOrEmpty())
         {
@@ -255,6 +276,7 @@ public static class ConfigHandler
             item.Cert = profileItem.Cert;
             item.CertSha = profileItem.CertSha;
             item.EchConfigList = profileItem.EchConfigList;
+            item.VerifyPeerCertByName = profileItem.VerifyPeerCertByName;
             item.Finalmask = profileItem.Finalmask;
             item.ProtoExtra = profileItem.ProtoExtra;
             item.TransportExtra = profileItem.TransportExtra;
@@ -358,6 +380,13 @@ public static class ConfigHandler
             {
                 profileItem.Address = Utils.GetConfigPath(profileItem.Address);
                 if (await AddCustomServer(config, profileItem, false) == 0)
+                {
+                }
+            }
+            else if (profileItem.ConfigType == EConfigType.Outbound)
+            {
+                profileItem.Address = Utils.GetConfigPath(profileItem.Address);
+                if (await AddCustomOutboundServer(config, profileItem, false) == 0)
                 {
                 }
             }
@@ -558,6 +587,43 @@ public static class ConfigHandler
         return 0;
     }
 
+    public static async Task<int> AddCustomOutboundServer(Config config, ProfileItem profileItem, bool blDelete, bool toFile = true)
+    {
+        var fileName = profileItem.Address;
+        if (!File.Exists(fileName))
+        {
+            return -1;
+        }
+        var ext = Path.GetExtension(fileName);
+        var newFileName = $"{Utils.GetGuid()}{ext}";
+        //newFileName = Path.Combine(Utile.GetTempPath(), newFileName);
+
+        try
+        {
+            File.Copy(fileName, Utils.GetConfigPath(newFileName));
+            if (blDelete)
+            {
+                File.Delete(fileName);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logging.SaveLog(_tag, ex);
+            return -1;
+        }
+
+        profileItem.Address = newFileName;
+        profileItem.ConfigType = EConfigType.Outbound;
+        if (profileItem.Remarks.IsNullOrEmpty())
+        {
+            profileItem.Remarks = $"import custom outbound@{DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss")}";
+        }
+
+        await AddServerCommon(config, profileItem, toFile);
+
+        return 0;
+    }
+
     /// <summary>
     /// Edit an existing custom server configuration
     /// Updates the server's properties without changing the file
@@ -579,6 +645,8 @@ public static class ConfigHandler
             item.CoreType = profileItem.CoreType;
             item.DisplayLog = profileItem.DisplayLog;
             item.PreSocksPort = profileItem.PreSocksPort;
+
+            item.ProtoExtra = profileItem.ProtoExtra;
         }
 
         if (await SQLiteHelper.Instance.UpdateAsync(item) > 0)
@@ -720,11 +788,50 @@ public static class ConfigHandler
         {
             return -1;
         }
-        profileItem.SetProtocolExtra(profileItem.GetProtocolExtra() with
+        var protocolExtra = profileItem.GetProtocolExtra();
+        profileItem.SetProtocolExtra(protocolExtra with
         {
-            SalamanderPass = profileItem.GetProtocolExtra().SalamanderPass?.TrimEx(),
-            HopInterval = profileItem.GetProtocolExtra().HopInterval?.TrimEx(),
+            SalamanderPass = protocolExtra.SalamanderPass?.TrimEx(),
+            HopInterval = protocolExtra.HopInterval?.TrimEx(),
         });
+
+        if (!protocolExtra.Hy2RealmUrl.IsNullOrEmpty())
+        {
+            var realmResult = HyRealm.TryParse(protocolExtra.Hy2RealmUrl, out var realm);
+            if (!realmResult || realm is null)
+            {
+                return -1;
+            }
+            if (realm.StunList.Count == 0)
+            {
+                realm = realm with
+                {
+                    StunList = Global.DefaultRealmStunList,
+                };
+            }
+            profileItem.SetProtocolExtra(profileItem.GetProtocolExtra() with
+            {
+                Hy2RealmUrl = realm.ToUri(),
+            });
+        }
+        var isGecko = !protocolExtra.GeckoMinPacketSize.IsNullOrEmpty() || !protocolExtra.GeckoMaxPacketSize.IsNullOrEmpty();
+        if (isGecko)
+        {
+            var minPacketSize = protocolExtra.GeckoMinPacketSize.ToInt();
+            var maxPacketSize = protocolExtra.GeckoMaxPacketSize.ToInt();
+            if (minPacketSize <= 0
+                || minPacketSize > maxPacketSize
+                || maxPacketSize > 2048)
+            {
+                minPacketSize = 512;
+                maxPacketSize = 1200;
+            }
+            profileItem.SetProtocolExtra(profileItem.GetProtocolExtra() with
+            {
+                GeckoMinPacketSize = minPacketSize.ToString(),
+                GeckoMaxPacketSize = maxPacketSize.ToString(),
+            });
+        }
 
         await AddServerCommon(config, profileItem, toFile);
 
@@ -874,7 +981,7 @@ public static class ConfigHandler
         profileItem.Fingerprint = string.Empty;
         profileItem.Alpn = string.Empty;
         profileItem.Network = string.Empty;
-        profileItem.AllowInsecure = "false";
+        profileItem.AllowInsecure = string.Empty;
         if (profileItem.StreamSecurity.IsNullOrEmpty())
         {
             profileItem.StreamSecurity = Global.StreamSecurity;
@@ -1056,8 +1163,8 @@ public static class ConfigHandler
             return new Tuple<int, int>(0, 0);
         }
 
-        List<ProfileItem> lstKeep = new();
-        List<ProfileItem> lstRemove = new();
+        List<ProfileItem> lstKeep = [];
+        List<ProfileItem> lstRemove = [];
         if (!config.GuiItem.KeepOlderDedupl)
         {
             lstProfile.Reverse();
@@ -1106,10 +1213,6 @@ public static class ConfigHandler
             }
             else
             {
-                if (profileItem.AllowInsecure.IsNullOrEmpty())
-                {
-                    profileItem.AllowInsecure = config.CoreBasicItem.DefAllowInsecure.ToString().ToLower();
-                }
                 if (profileItem.Fingerprint.IsNullOrEmpty() && profileItem.StreamSecurity == Global.StreamSecurityReality)
                 {
                     profileItem.Fingerprint = config.CoreBasicItem.DefFingerprint;
@@ -1423,7 +1526,7 @@ public static class ConfigHandler
             var matchedChildProfiles = childProfiles?.Where(p =>
                     p != null &&
                     p.IsValid() &&
-                    !p.ConfigType.IsComplexType() &&
+                    (!p.ConfigType.IsComplexType() || p.ConfigType == EConfigType.Outbound) &&
                     (extraItem.Filter.IsNullOrEmpty() || Regex.IsMatch(p.Remarks, extraItem.Filter))
                 )
                 .ToList() ?? [];
@@ -1454,8 +1557,7 @@ public static class ConfigHandler
     public static ProfileItem? GetPreSocksItem(Config config, ProfileItem node, ECoreType coreType)
     {
         ProfileItem? itemSocks = null;
-        var enableLegacyProtect = config.TunModeItem.EnableLegacyProtect
-                                  || Utils.IsNonWindows();
+        var enableLegacyProtect = config.TunModeItem.EnableLegacyProtect;
         if (node.ConfigType != EConfigType.Custom
             && coreType != ECoreType.sing_box
             && config.TunModeItem.EnableTun
@@ -1472,7 +1574,8 @@ public static class ConfigHandler
         else if (node.ConfigType == EConfigType.Custom
             && node.PreSocksPort is > 0 and <= 65535)
         {
-            var preCoreType = config.TunModeItem.EnableTun ? ECoreType.sing_box : ECoreType.Xray;
+            var customPreCoreType = AppManager.Instance.GetCoreType(null, EConfigType.Custom);
+            var preCoreType = (enableLegacyProtect && config.TunModeItem.EnableTun) ? ECoreType.sing_box : customPreCoreType;
             itemSocks = new ProfileItem()
             {
                 CoreType = preCoreType,
@@ -1537,7 +1640,7 @@ public static class ConfigHandler
         }
 
         var countServers = 0;
-        List<ProfileItem> lstAdd = new();
+        List<ProfileItem> lstAdd = [];
         var arrData = strData.Split(Environment.NewLine.ToCharArray()).Where(t => !t.IsNullOrEmpty());
         if (isSub)
         {
@@ -1619,68 +1722,195 @@ public static class ConfigHandler
         }
 
         var subItem = await AppManager.Instance.GetSubItem(subid);
+
+        if (subItem?.CustomCoreType is null)
+        {
+            return await AddBatchServersDefaultCustom(config, strData, subid, isSub, subItem);
+        }
+
+        return await AddBatchServersSpecificCustom(config, strData, subid, isSub, subItem);
+    }
+
+    private static async Task<int> AddBatchServersDefaultCustom(
+        Config config,
+        string strData,
+        string subid,
+        bool isSub,
+        SubItem? subItem)
+    {
         var subRemarks = subItem?.Remarks;
-        var preSocksPort = subItem?.PreSocksPort;
-
-        List<ProfileItem>? lstProfiles = null;
-        //Is sing-box array configuration
-        if (lstProfiles is null || lstProfiles.Count <= 0)
+        // Prioritize using complete custom parsing, followed by custom outbound parsing.
+        var lstProfiles = V2rayFmt.ResolveToCustom(strData, subRemarks);
+        if (lstProfiles.Count == 0)
         {
-            lstProfiles = SingboxFmt.ResolveFullArray(strData, subRemarks);
+            lstProfiles = SingboxFmt.ResolveToCustom(strData, subRemarks);
         }
-        //Is v2ray array configuration
-        if (lstProfiles is null || lstProfiles.Count <= 0)
+        if (lstProfiles.Count == 0)
         {
-            lstProfiles = V2rayFmt.ResolveFullArray(strData, subRemarks);
+            lstProfiles = V2rayFmt.ResolveToCustomOutbound(strData, subRemarks);
         }
-        if (lstProfiles != null && lstProfiles.Count > 0)
+        if (lstProfiles.Count == 0)
         {
-            var count = 0;
-            foreach (var it in lstProfiles)
-            {
-                it.Subid = subid;
-                it.IsSub = isSub;
-                it.PreSocksPort = preSocksPort;
-                if (await AddCustomServer(config, it, true) == 0)
-                {
-                    count++;
-                }
-            }
-            if (count > 0)
-            {
-                return count;
-            }
+            lstProfiles = SingboxFmt.ResolveToCustomOutbound(strData, subRemarks);
         }
-
-        ProfileItem? profileItem = null;
-        //Is sing-box configuration
-        profileItem ??= SingboxFmt.ResolveFull(strData, subRemarks);
-        //Is v2ray configuration
-        profileItem ??= V2rayFmt.ResolveFull(strData, subRemarks);
-        //Is Html Page
-        if (profileItem is null && HtmlPageFmt.IsHtmlPage(strData))
+        if (lstProfiles.Count == 0)
         {
             return -1;
         }
-        //Is Clash configuration
-        profileItem ??= ClashFmt.ResolveFull(strData, subRemarks);
-        //Is hysteria configuration
-        profileItem ??= Hysteria2Fmt.ResolveFull2(strData, subRemarks);
-        if (profileItem is null || profileItem.Address.IsNullOrEmpty())
+
+        var count = await AddBatchCustomServers(config, lstProfiles, subid, isSub);
+        if (count > 0)
+        {
+            return count;
+        }
+
+        if (HtmlPageFmt.IsHtmlPage(strData))
+        {
+            return -1;
+        }
+
+        var profileItem = ClashFmt.ResolveFull(strData, subRemarks)
+            ?? Hysteria2Fmt.ResolveFull2(strData, subRemarks);
+
+        if (profileItem == null)
         {
             return -1;
         }
 
         profileItem.Subid = subid;
         profileItem.IsSub = isSub;
-        profileItem.PreSocksPort = preSocksPort;
-        if (await AddCustomServer(config, profileItem, true) == 0)
+        profileItem.PreSocksPort = subItem?.PreSocksPort;
+
+        return await AddCustomServer(config, profileItem, true) == 0 ? 1 : -1;
+    }
+
+    private static async Task<int> AddBatchServersSpecificCustom(
+        Config config,
+        string strData,
+        string subid,
+        bool isSub,
+        SubItem subItem)
+    {
+        var subRemarks = subItem.Remarks;
+        var customCoreType = subItem.CustomCoreType!.Value;
+
+        var lstProfiles = customCoreType switch
         {
-            return 1;
-        }
-        else
+            ECoreType.Xray => V2rayFmt.ResolveToCustom(strData, subRemarks),
+            ECoreType.sing_box => SingboxFmt.ResolveToCustom(strData, subRemarks),
+            _ => null,
+        };
+
+        if ((lstProfiles?.Count ?? 0) == 0)
         {
             return -1;
+        }
+
+        var count = await AddBatchCustomServers(config, lstProfiles, subid, isSub);
+        if (count > 0)
+        {
+            return count;
+        }
+
+        return await SaveCustomRawFileServer(config, strData, subid, isSub, subItem, customCoreType);
+    }
+
+    private static async Task<int> AddBatchCustomServers(
+        Config config,
+        List<ProfileItem> lstProfiles,
+        string subid,
+        bool isSub)
+    {
+        var count = 0;
+        foreach (var it in lstProfiles)
+        {
+            it.Subid = subid;
+            it.IsSub = isSub;
+
+            if (it.ConfigType == EConfigType.Custom)
+            {
+                if (await AddCustomServer(config, it, true) == 0)
+                {
+                    count++;
+                }
+            }
+            else
+            {
+                if (await AddCustomOutboundServer(config, it, true) == 0)
+                {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    private static async Task<int> SaveCustomRawFileServer(
+        Config config,
+        string strData,
+        string subid,
+        bool isSub,
+        SubItem subItem,
+        ECoreType customCoreType)
+    {
+        var ext = DetectFileExtension(strData);
+        var fileName = Utils.GetTempPath($"{Utils.GetGuid(false)}{ext}");
+        await File.WriteAllTextAsync(fileName, strData);
+
+        var profileItem = new ProfileItem
+        {
+            CoreType = customCoreType,
+            ConfigType = EConfigType.Custom,
+            Address = fileName,
+            Remarks = subItem.Remarks ?? customCoreType.ToString(),
+            Subid = subid,
+            IsSub = isSub,
+            PreSocksPort = subItem.PreSocksPort,
+        };
+
+        return await AddCustomServer(config, profileItem, true) == 0 ? 1 : -1;
+
+        static string DetectFileExtension(string data)
+        {
+            var trimmed = data.AsSpan().TrimStart();
+            if (trimmed.IsEmpty)
+            {
+                return string.Empty;
+            }
+
+            if (trimmed[0] is '{' or '[')
+            {
+                return ".json";
+            }
+
+            if (trimmed.StartsWith("---"))
+            {
+                return ".yaml";
+            }
+
+            foreach (var line in trimmed.EnumerateLines())
+            {
+                var lineTrimmed = line.TrimStart();
+                if (lineTrimmed.IsEmpty || lineTrimmed.StartsWith("#"))
+                {
+                    continue;
+                }
+
+                var colonIndex = lineTrimmed.IndexOf(':');
+                if (colonIndex > 0)
+                {
+                    var keySpan = lineTrimmed[..colonIndex];
+                    if (!keySpan.Contains(' ') && !keySpan.Contains('\t'))
+                    {
+                        if (colonIndex == lineTrimmed.Length - 1 || lineTrimmed[colonIndex + 1] is ' ' or '\t' or '\r' or '\n')
+                        {
+                            return ".yaml";
+                        }
+                    }
+                }
+            }
+
+            return string.Empty;
         }
     }
 
@@ -1781,6 +2011,7 @@ public static class ConfigHandler
                     EConfigType.Anytls => await AddAnytlsServer(config, profileItem, false),
                     EConfigType.Naive => await AddNaiveServer(config, profileItem, false),
                     EConfigType.PolicyGroup or EConfigType.ProxyChain => await AddServerCommon(config, profileItem, false),
+                    EConfigType.Outbound => await AddCustomOutboundServer(config, profileItem, true, false),
                     _ => -1,
                 };
                 if (addStatus == 0)
@@ -1982,6 +2213,7 @@ public static class ConfigHandler
             item.NextProfile = subItem.NextProfile;
             item.PreSocksPort = subItem.PreSocksPort;
             item.Memo = subItem.Memo;
+            item.CustomCoreType = subItem.CustomCoreType;
         }
 
         if (item.Id.IsNullOrEmpty())
@@ -2022,7 +2254,7 @@ public static class ConfigHandler
         {
             return -1;
         }
-        var customProfile = await SQLiteHelper.Instance.TableAsync<ProfileItem>().Where(t => t.Subid == subid && t.ConfigType == EConfigType.Custom).ToListAsync();
+        var customProfile = await SQLiteHelper.Instance.TableAsync<ProfileItem>().Where(t => t.Subid == subid && (t.ConfigType == EConfigType.Custom || t.ConfigType == EConfigType.Outbound)).ToListAsync();
         if (isSub)
         {
             await SQLiteHelper.Instance.ExecuteAsync($"delete from ProfileItem where isSub = 1 and subid = '{subid}'");

@@ -178,7 +178,7 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
-        ///   查找类似 Failed to import custom configuration Configuration 的本地化字符串。
+        ///   查找类似 Failed to import configuration 的本地化字符串。
         /// </summary>
         public static string FailedImportedCustomServer {
             get {
@@ -223,20 +223,20 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
-        ///   查找类似 Please fill in the correct IPv4 address for SendThrough. 的本地化字符串。
-        /// </summary>
-        public static string FillCorrectSendThroughIPv4 {
-            get {
-                return ResourceManager.GetString("FillCorrectSendThroughIPv4", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查找类似 Please enter the correct port format. 的本地化字符串。
         /// </summary>
         public static string FillCorrectServerPort {
             get {
                 return ResourceManager.GetString("FillCorrectServerPort", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Invalid range format. Use &apos;from-to&apos; (e.g., 50-100). 的本地化字符串。
+        /// </summary>
+        public static string FillFragmentParameterError {
+            get {
+                return ResourceManager.GetString("FillFragmentParameterError", resourceCulture);
             }
         }
         
@@ -268,7 +268,7 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
-        ///   查找类似 Please browse to import Configuration configuration 的本地化字符串。
+        ///   查找类似 Please browse to import configuration 的本地化字符串。
         /// </summary>
         public static string FillServerAddressCustom {
             get {
@@ -318,6 +318,24 @@ namespace ServiceLib.Resx {
         public static string InsecureUrlProtocol {
             get {
                 return ResourceManager.GetString("InsecureUrlProtocol", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Please enter valid HTTP request headers JSON. 的本地化字符串。
+        /// </summary>
+        public static string InvalidHttpOutboundHeaders {
+            get {
+                return ResourceManager.GetString("InvalidHttpOutboundHeaders", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Invalid Realm URL. 的本地化字符串。
+        /// </summary>
+        public static string InvalidHy2RealmUrl {
+            get {
+                return ResourceManager.GetString("InvalidHy2RealmUrl", resourceCulture);
             }
         }
         
@@ -417,6 +435,15 @@ namespace ServiceLib.Resx {
         public static string LvCount {
             get {
                 return ResourceManager.GetString("LvCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Custom config core 的本地化字符串。
+        /// </summary>
+        public static string LvCustomCoreType {
+            get {
+                return ResourceManager.GetString("LvCustomCoreType", resourceCulture);
             }
         }
         
@@ -714,6 +741,15 @@ namespace ServiceLib.Resx {
         public static string menuAddChildServer {
             get {
                 return ResourceManager.GetString("menuAddChildServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Add a custom outbound 的本地化字符串。
+        /// </summary>
+        public static string menuAddCustomOutboundServer {
+            get {
+                return ResourceManager.GetString("menuAddCustomOutboundServer", resourceCulture);
             }
         }
         
@@ -1906,6 +1942,15 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
+        ///   查找类似 The current node uses an unencrypted connection, meaning your communications could be directly monitored by network intermediaries controlled by authoritarian governments. For security reasons, nodes of this type cannot connect via Xray-core versions 26.2.6 or higher. If this is a self-built node, please enable TLS or other secure encryption, or pin the certificate using pinSHA256. If this is an airport/provider node, please contact your service provider for a technical upgrade. If the provider refuses to c [字符串的其余部分被截断]&quot;; 的本地化字符串。
+        /// </summary>
+        public static string MsgAllowInsecureDeprecated {
+            get {
+                return ResourceManager.GetString("MsgAllowInsecureDeprecated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 {0} has a new version available: {1} 的本地化字符串。
         /// </summary>
         public static string MsgCheckUpdateHasNewVersion {
@@ -1938,6 +1983,15 @@ namespace ServiceLib.Resx {
         public static string MsgCoreNotSupportProtocolTransport {
             get {
                 return ResourceManager.GetString("MsgCoreNotSupportProtocolTransport", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Custom outbound {0} file not found: {1} 的本地化字符串。
+        /// </summary>
+        public static string MsgCustomOutboundFileNotFound {
+            get {
+                return ResourceManager.GetString("MsgCustomOutboundFileNotFound", resourceCulture);
             }
         }
         
@@ -2050,6 +2104,15 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
+        ///   查找类似 Insecure configuration detected: AllowInsecure is enabled but no certificate is provided. This may cause MITM attacks. 的本地化字符串。
+        /// </summary>
+        public static string MsgInsecureConfiguration {
+            get {
+                return ResourceManager.GetString("MsgInsecureConfiguration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 The {0} property is invalid, please check 的本地化字符串。
         /// </summary>
         public static string MsgInvalidProperty {
@@ -2091,6 +2154,15 @@ namespace ServiceLib.Resx {
         public static string MsgNoValidSubscription {
             get {
                 return ResourceManager.GetString("MsgNoValidSubscription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Conflict between {0} and {1} 的本地化字符串。
+        /// </summary>
+        public static string MsgOptionsConflict {
+            get {
+                return ResourceManager.GetString("MsgOptionsConflict", resourceCulture);
             }
         }
         
@@ -2208,6 +2280,15 @@ namespace ServiceLib.Resx {
         public static string MsgSubscriptionPrevProfileNotFound {
             get {
                 return ResourceManager.GetString("MsgSubscriptionPrevProfileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Invalid address in TUN route exclude list: {0} 的本地化字符串。
+        /// </summary>
+        public static string MsgTunRouteExcludeInvalidAddress {
+            get {
+                return ResourceManager.GetString("MsgTunRouteExcludeInvalidAddress", resourceCulture);
             }
         }
         
@@ -2563,7 +2644,7 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
-        ///   查找类似 Custom configuration Configuration imported successfully 的本地化字符串。
+        ///   查找类似 Custom configuration imported successfully 的本地化字符串。
         /// </summary>
         public static string SuccessfullyImportedCustomServer {
             get {
@@ -2635,24 +2716,6 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
-        ///   查找类似 Allow insecure cert fetch (self-signed) 的本地化字符串。
-        /// </summary>
-        public static string TbAllowInsecureCertFetch {
-            get {
-                return ResourceManager.GetString("TbAllowInsecureCertFetch", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Only for fetching self-signed certificates. This may expose you to MITM risks. 的本地化字符串。
-        /// </summary>
-        public static string TbAllowInsecureCertFetchTips {
-            get {
-                return ResourceManager.GetString("TbAllowInsecureCertFetchTips", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查找类似 ALPN 的本地化字符串。
         /// </summary>
         public static string TbAlpn {
@@ -2698,6 +2761,24 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
+        ///   查找类似 Block AAAA Queries 的本地化字符串。
+        /// </summary>
+        public static string TbBlockAAAAQueries {
+            get {
+                return ResourceManager.GetString("TbBlockAAAAQueries", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Block IPv6 queries when enabled 的本地化字符串。
+        /// </summary>
+        public static string TbBlockAAAAQueriesTips {
+            get {
+                return ResourceManager.GetString("TbBlockAAAAQueriesTips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Block SVCB and HTTPS Queries 的本地化字符串。
         /// </summary>
         public static string TbBlockSVCBHTTPSQueries {
@@ -2707,7 +2788,7 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
-        ///   查找类似 Block ECH and HTTP/3 availability checks when enabled 的本地化字符串。
+        ///   查找类似 Block ECH and HTTP/3 availability checks when enabled. Always enabled in Xray 的本地化字符串。
         /// </summary>
         public static string TbBlockSVCBHTTPSQueriesTips {
             get {
@@ -2881,6 +2962,15 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
+        ///   查找类似 Only single outbound/endpoint supported for xray/sing-box 的本地化字符串。
+        /// </summary>
+        public static string TbCustomOutboundTip {
+            get {
+                return ResourceManager.GetString("TbCustomOutboundTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Direct Target Resolution Strategy 的本地化字符串。
         /// </summary>
         public static string TbDirectResolveStrategy {
@@ -2998,6 +3088,51 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
+        ///   查找类似 Enable Final Fragment 的本地化字符串。
+        /// </summary>
+        public static string TbEnableFinalFragment {
+            get {
+                return ResourceManager.GetString("TbEnableFinalFragment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Split the tail of packets into smaller fragments. This may affect throughput and latency. 的本地化字符串。
+        /// </summary>
+        public static string TbEnableFinalFragmentTip {
+            get {
+                return ResourceManager.GetString("TbEnableFinalFragmentTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Enable Happy Eyeballs 的本地化字符串。
+        /// </summary>
+        public static string TbEnableHappyEyeballs {
+            get {
+                return ResourceManager.GetString("TbEnableHappyEyeballs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Requires the UseIP Strategy. When enabled, it attempts IPv4 and IPv6 connections simultaneously and automatically selects the faster available path. 的本地化字符串。
+        /// </summary>
+        public static string TbEnableHappyEyeballsTip {
+            get {
+                return ResourceManager.GetString("TbEnableHappyEyeballsTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 DNS via Bridge 的本地化字符串。
+        /// </summary>
+        public static string TbEnabletDnsViaProxy {
+            get {
+                return ResourceManager.GetString("TbEnabletDnsViaProxy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Enable Tun 的本地化字符串。
         /// </summary>
         public static string TbEnableTunAs {
@@ -3016,7 +3151,7 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
-        ///   查找类似 Applies globally by default, with built-in FakeIP filtering (sing-box only). 的本地化字符串。
+        ///   查找类似 Applies globally by default, and built-in FakeIP filtering is only built into sing-box. 的本地化字符串。
         /// </summary>
         public static string TbFakeIPTips {
             get {
@@ -3106,6 +3241,15 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
+        ///   查找类似 Gecko Packet Size (min/max) 的本地化字符串。
+        /// </summary>
+        public static string TbGeckoPacketSize {
+            get {
+                return ResourceManager.GetString("TbGeckoPacketSize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Global Hotkey Settings 的本地化字符串。
         /// </summary>
         public static string TbGlobalHotkeySetting {
@@ -3169,6 +3313,33 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
+        ///   查找类似 HTTP headers 的本地化字符串。
+        /// </summary>
+        public static string TbHttpOutboundHeaders {
+            get {
+                return ResourceManager.GetString("TbHttpOutboundHeaders", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Realm URL 的本地化字符串。
+        /// </summary>
+        public static string TbHy2RealmUrl {
+            get {
+                return ResourceManager.GetString("TbHy2RealmUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Format: realm://&lt;token&gt;@&lt;rendezvous-host&gt;[:port]/&lt;realm-name&gt;?stun=&lt;stun-host&gt;[:port] 的本地化字符串。
+        /// </summary>
+        public static string TbHy2RealmUrlTip {
+            get {
+                return ResourceManager.GetString("TbHy2RealmUrlTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 ICMP routing policy 的本地化字符串。
         /// </summary>
         public static string TbIcmpRoutingPolicy {
@@ -3223,6 +3394,24 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
+        ///   查找类似 Ipv4 Address 的本地化字符串。
+        /// </summary>
+        public static string TbIpv4Address {
+            get {
+                return ResourceManager.GetString("TbIpv4Address", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Ipv6 Address 的本地化字符串。
+        /// </summary>
+        public static string TbIpv6Address {
+            get {
+                return ResourceManager.GetString("TbIpv6Address", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Most Stable 的本地化字符串。
         /// </summary>
         public static string TbLeastLoad {
@@ -3246,6 +3435,15 @@ namespace ServiceLib.Resx {
         public static string TbLegacyProtect {
             get {
                 return ResourceManager.GetString("TbLegacyProtect", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 If enabled, use sing-box TUN; otherwise, use xray TUN. 的本地化字符串。
+        /// </summary>
+        public static string TbLegacyProtectTip {
+            get {
+                return ResourceManager.GetString("TbLegacyProtectTip", resourceCulture);
             }
         }
         
@@ -3412,6 +3610,24 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
+        ///   查找类似 Proxy Dial Resolution Strategy 的本地化字符串。
+        /// </summary>
+        public static string TbProxyDialResolveStrategy {
+            get {
+                return ResourceManager.GetString("TbProxyDialResolveStrategy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Not recommended; may cause routing loops. 的本地化字符串。
+        /// </summary>
+        public static string TbProxyDialResolveStrategyTip {
+            get {
+                return ResourceManager.GetString("TbProxyDialResolveStrategyTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Public Key 的本地化字符串。
         /// </summary>
         public static string TbPublicKey {
@@ -3511,11 +3727,47 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
+        ///   查找类似 Root Certificate Provider 的本地化字符串。
+        /// </summary>
+        public static string TbRootCertificateProvider {
+            get {
+                return ResourceManager.GetString("TbRootCertificateProvider", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Only applies to the v2rayN GUI&apos;s downloads and network requests. Does not affect the core&apos;s certificate validation. 的本地化字符串。
+        /// </summary>
+        public static string TbRootCertificateProviderTip {
+            get {
+                return ResourceManager.GetString("TbRootCertificateProviderTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Round Robin 的本地化字符串。
         /// </summary>
         public static string TbRoundRobin {
             get {
                 return ResourceManager.GetString("TbRoundRobin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Route Exclude Address 的本地化字符串。
+        /// </summary>
+        public static string TbRouteExcludeAddress {
+            get {
+                return ResourceManager.GetString("TbRouteExcludeAddress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Use commas (,) to separate. 的本地化字符串。
+        /// </summary>
+        public static string TbRouteExcludeAddressTip {
+            get {
+                return ResourceManager.GetString("TbRouteExcludeAddressTip", resourceCulture);
             }
         }
         
@@ -3754,7 +4006,7 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
-        ///   查找类似 For multi-interface environments, enter the name of the interface to bind. Only effective on Windows systems or TUN mode 的本地化字符串。
+        ///   查找类似 For multi-interface environments, enter the interface name for outbound connections. On Linux/macOS, it only works when TUN mode is enabled. 的本地化字符串。
         /// </summary>
         public static string TbSettingsBindInterfaceTip {
             get {
@@ -4038,6 +4290,96 @@ namespace ServiceLib.Resx {
         public static string TbSettingsFontSize {
             get {
                 return ResourceManager.GetString("TbSettingsFontSize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Fallback Delay 的本地化字符串。
+        /// </summary>
+        public static string TbSettingsFragmentFallbackDelay {
+            get {
+                return ResourceManager.GetString("TbSettingsFragmentFallbackDelay", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Fallback delay when ACK detection unavailable (e.g., 500ms). sing-box only. Empty = default. 的本地化字符串。
+        /// </summary>
+        public static string TbSettingsFragmentFallbackDelayTip {
+            get {
+                return ResourceManager.GetString("TbSettingsFragmentFallbackDelayTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Fragment Interval 的本地化字符串。
+        /// </summary>
+        public static string TbSettingsFragmentInterval {
+            get {
+                return ResourceManager.GetString("TbSettingsFragmentInterval", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Delay between fragments in ms (e.g., 10-20). Range 1-100. First value must be &lt;= second. Empty = default. 的本地化字符串。
+        /// </summary>
+        public static string TbSettingsFragmentIntervalTip {
+            get {
+                return ResourceManager.GetString("TbSettingsFragmentIntervalTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Fragment Length 的本地化字符串。
+        /// </summary>
+        public static string TbSettingsFragmentLength {
+            get {
+                return ResourceManager.GetString("TbSettingsFragmentLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Fragment size range in bytes (e.g., 50-100). First value must be &lt;= second. Empty = default. 的本地化字符串。
+        /// </summary>
+        public static string TbSettingsFragmentLengthTip {
+            get {
+                return ResourceManager.GetString("TbSettingsFragmentLengthTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Max Split 的本地化字符串。
+        /// </summary>
+        public static string TbSettingsFragmentMaxSplit {
+            get {
+                return ResourceManager.GetString("TbSettingsFragmentMaxSplit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Maximum number of fragments per packet (0-10000, 0 = unlimited). Xray only. Empty = default. 的本地化字符串。
+        /// </summary>
+        public static string TbSettingsFragmentMaxSplitTip {
+            get {
+                return ResourceManager.GetString("TbSettingsFragmentMaxSplitTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Fragment Packets 的本地化字符串。
+        /// </summary>
+        public static string TbSettingsFragmentPackets {
+            get {
+                return ResourceManager.GetString("TbSettingsFragmentPackets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Packets to fragment: tlshello (TLS ClientHello) or 1-1 to 1-5 (first N TCP packets) 的本地化字符串。
+        /// </summary>
+        public static string TbSettingsFragmentPacketsTip {
+            get {
+                return ResourceManager.GetString("TbSettingsFragmentPacketsTip", resourceCulture);
             }
         }
         
@@ -4690,6 +5032,24 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
+        ///   查找类似 Verify Peer Cert By Name 的本地化字符串。
+        /// </summary>
+        public static string TbVerifyPeerCertByName {
+            get {
+                return ResourceManager.GetString("TbVerifyPeerCertByName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Xray Only 的本地化字符串。
+        /// </summary>
+        public static string TbXrayOnly {
+            get {
+                return ResourceManager.GetString("TbXrayOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 The delay: {0} ms, {1} 的本地化字符串。
         /// </summary>
         public static string TestMeOutput {
@@ -4749,6 +5109,15 @@ namespace ServiceLib.Resx {
         public static string TipDisplayLog {
             get {
                 return ResourceManager.GetString("TipDisplayLog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Custom HTTP outbound request headers as a JSON object with string or string array values. 的本地化字符串。
+        /// </summary>
+        public static string TipHttpOutboundHeaders {
+            get {
+                return ResourceManager.GetString("TipHttpOutboundHeaders", resourceCulture);
             }
         }
         

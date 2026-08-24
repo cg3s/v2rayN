@@ -1,11 +1,7 @@
-using System.Collections.Specialized;
-
 namespace ServiceLib.Handler.Fmt;
 
 public class BaseFmt
 {
-    private static readonly string[] _allowInsecureArray = new[] { "insecure", "allowInsecure", "allow_insecure" };
-
     private static string UrlEncodeSafe(string? value) => Utils.UrlEncode(value ?? string.Empty);
 
     protected static string GetIpv6(string address)
@@ -67,11 +63,14 @@ public class BaseFmt
             {
                 dicQuery.Add("alpn", Utils.UrlEncode(item.Alpn));
             }
-            ToUriQueryAllowInsecure(item, ref dicQuery);
         }
         if (item.EchConfigList.IsNotEmpty())
         {
             dicQuery.Add("ech", Utils.UrlEncode(item.EchConfigList));
+        }
+        if (item.VerifyPeerCertByName.IsNotEmpty())
+        {
+            dicQuery.Add("vcn", Utils.UrlEncode(item.VerifyPeerCertByName));
         }
         if (item.CertSha.IsNotEmpty())
         {
@@ -192,25 +191,6 @@ public class BaseFmt
             dicQuery.Add("alpn", Utils.UrlEncode(item.Alpn));
         }
 
-        ToUriQueryAllowInsecure(item, ref dicQuery);
-
-        return 0;
-    }
-
-    private static int ToUriQueryAllowInsecure(ProfileItem item, ref Dictionary<string, string> dicQuery)
-    {
-        if (item.AllowInsecure.Equals(Global.AllowInsecure.First()))
-        {
-            // Add two for compatibility
-            dicQuery.Add("insecure", "1");
-            dicQuery.Add("allowInsecure", "1");
-        }
-        else
-        {
-            dicQuery.Add("insecure", "0");
-            dicQuery.Add("allowInsecure", "0");
-        }
-
         return 0;
     }
 
@@ -227,6 +207,7 @@ public class BaseFmt
         item.SpiderX = GetQueryDecoded(query, "spx");
         item.Mldsa65Verify = GetQueryDecoded(query, "pqv");
         item.EchConfigList = GetQueryDecoded(query, "ech");
+        item.VerifyPeerCertByName = GetQueryDecoded(query, "vcn");
         item.CertSha = GetQueryDecoded(query, "pcs");
 
         var finalmaskDecoded = GetQueryDecoded(query, "fm");
@@ -245,19 +226,6 @@ public class BaseFmt
         else
         {
             item.Finalmask = string.Empty;
-        }
-
-        if (_allowInsecureArray.Any(k => GetQueryDecoded(query, k) == "1"))
-        {
-            item.AllowInsecure = Global.AllowInsecure.First();
-        }
-        else if (_allowInsecureArray.Any(k => GetQueryDecoded(query, k) == "0"))
-        {
-            item.AllowInsecure = Global.AllowInsecure.Skip(1).First();
-        }
-        else
-        {
-            item.AllowInsecure = string.Empty;
         }
 
         var net = GetQueryValue(query, "type", nameof(ETransport.raw));

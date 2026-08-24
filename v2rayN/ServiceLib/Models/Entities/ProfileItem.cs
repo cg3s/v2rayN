@@ -66,7 +66,7 @@ public class ProfileItem
 
     public bool IsValid()
     {
-        if (IsComplex())
+        if (IsComplex() || ConfigType == EConfigType.Outbound)
         {
             return true;
         }
@@ -146,6 +146,11 @@ public class ProfileItem
         TransportExtra = JsonUtils.Serialize(transportExtra, false);
     }
 
+    public bool GetAllowInsecure()
+    {
+        return AllowInsecure == Global.StringTrue;
+    }
+
     #endregion function
 
     [PrimaryKey]
@@ -191,6 +196,7 @@ public class ProfileItem
     public string Cert { get; set; }
     public string CertSha { get; set; }
     public string EchConfigList { get; set; }
+    public string VerifyPeerCertByName { get; set; }
     public string Finalmask { get; set; }
 
     public string ProtoExtra { get; set; }

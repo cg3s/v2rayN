@@ -1027,7 +1027,7 @@
     <value>添加 [Hysteria2]</value>
   </data>
   <data name="TbSettingsHysteriaBandwidth" xml:space="preserve">
-    <value>Hysteria 最大带宽 (Up/Dw)</value>
+    <value>Hysteria 最大带宽 (上传/下载)</value>
   </data>
   <data name="TbSettingsUseSystemHosts" xml:space="preserve">
     <value>使用系统 hosts</value>
@@ -1037,6 +1037,12 @@
   </data>
   <data name="TbHeaderType8" xml:space="preserve">
     <value>拥塞控制算法</value>
+  </data>
+  <data name="TbHttpOutboundHeaders" xml:space="preserve">
+    <value>HTTP 请求头</value>
+  </data>
+  <data name="TipHttpOutboundHeaders" xml:space="preserve">
+    <value>自定义 HTTP 出站请求头，请输入值为字符串或字符串数组的 JSON 对象。</value>
   </data>
   <data name="LvPrevProfile" xml:space="preserve">
     <value>前置代理配置别名</value>
@@ -1097,6 +1103,39 @@
   </data>
   <data name="TbSettingsEnableFragment" xml:space="preserve">
     <value>启用分片 (Fragment)</value>
+  </data>
+  <data name="TbSettingsFragmentPackets" xml:space="preserve">
+    <value>分片包类型</value>
+  </data>
+  <data name="TbSettingsFragmentPacketsTip" xml:space="preserve">
+    <value>要分片的包类型: tlshello (TLS ClientHello) 或 1-1 到 1-5 (前 N 个 TCP 包)</value>
+  </data>
+  <data name="TbSettingsFragmentLength" xml:space="preserve">
+    <value>分片长度</value>
+  </data>
+  <data name="TbSettingsFragmentLengthTip" xml:space="preserve">
+    <value>分片大小范围(字节), 如 50-100. 第一个值必须 &lt;= 第二个值. 留空使用默认值.</value>
+  </data>
+  <data name="TbSettingsFragmentInterval" xml:space="preserve">
+    <value>分片间隔</value>
+  </data>
+  <data name="TbSettingsFragmentIntervalTip" xml:space="preserve">
+    <value>分片间延迟(毫秒), 如 10-20. 范围 1-100. 第一个值必须 &lt;= 第二个值. 留空使用默认值.</value>
+  </data>
+  <data name="TbSettingsFragmentMaxSplit" xml:space="preserve">
+    <value>最大分片数</value>
+  </data>
+  <data name="TbSettingsFragmentMaxSplitTip" xml:space="preserve">
+    <value>每个包最大分片数 (0-10000, 0=无限制). 仅 Xray. 留空使用默认值.</value>
+  </data>
+  <data name="TbSettingsFragmentFallbackDelay" xml:space="preserve">
+    <value>回退延迟</value>
+  </data>
+  <data name="TbSettingsFragmentFallbackDelayTip" xml:space="preserve">
+    <value>ACK 检测不可用时的回退延迟 (如 500ms). 仅 sing-box. 留空使用默认值.</value>
+  </data>
+  <data name="FillFragmentParameterError" xml:space="preserve">
+    <value>无效的范围格式。请使用 'from-to' (如 50-100)。</value>
   </data>
   <data name="TbSettingsEnableCacheFile4Sbox" xml:space="preserve">
     <value>启用 sing-box (规则集文件) 的缓存文件</value>
@@ -1417,7 +1456,7 @@
     <value>自定义 DNS 已启用，此页面配置将无效</value>
   </data>
   <data name="TbBlockSVCBHTTPSQueriesTips" xml:space="preserve">
-    <value>开启后将阻止 ECH 和 HTTP/3 可用性查询</value>
+    <value>开启后将阻止 ECH 和 HTTP/3 可用性查询。Xray 固定开启</value>
   </data>
   <data name="FillCorrectConfigTemplateText" xml:space="preserve">
     <value>请填写正确的配置模板</value>
@@ -1456,7 +1495,7 @@
     <value>选择配置</value>
   </data>
   <data name="TbFakeIPTips" xml:space="preserve">
-    <value>默认全局生效，内置 FakeIP 过滤，仅在 sing-box 中生效</value>
+    <value>默认全局生效，仅在 sing-box 中内置 FakeIP 过滤。</value>
   </data>
   <data name="PleaseAddAtLeastOneServer" xml:space="preserve">
     <value>请至少添加一个配置</value>
@@ -1692,12 +1731,6 @@
   <data name="TransportExtra" xml:space="preserve">
     <value>XHTTP Extra</value>
   </data>
-  <data name="TbAllowInsecureCertFetch" xml:space="preserve">
-    <value>允许不安全获取证书（自签名）</value>
-  </data>
-  <data name="TbAllowInsecureCertFetchTips" xml:space="preserve">
-    <value>仅用于抓取自签证书，存在中间人风险。</value>
-  </data>
   <data name="menuUdpTestServer" xml:space="preserve">
     <value>测试 UDP 延迟 (多选)</value>
   </data>
@@ -1709,9 +1742,6 @@
   </data>
   <data name="TbSettingsSendThroughTip" xml:space="preserve">
     <value>用于多网口环境，请填写本机 IPv4 地址</value>
-  </data>
-  <data name="FillCorrectSendThroughIPv4" xml:space="preserve">
-    <value>请填写正确的 SendThrough IPv4 地址。</value>
   </data>
   <data name="TbSettingsBindInterface" xml:space="preserve">
     <value>绑定网口</value>
@@ -1739,5 +1769,102 @@
   </data>
   <data name="menuNewUpdate" xml:space="preserve">
     <value>有更新</value>
+  </data>
+  <data name="MsgAllowInsecureDeprecated" xml:space="preserve">
+    <value>当前节点使用未加密连接，您的通信可能会被威权政府掌控的网络中间设施直接查看
+为了安全，此类节点无法通过 26.2.6+ 版本的Xray核心连接
+如果是自建节点请启用 TLS 等安全加密，或固定证书 pinSHA256
+如果机场节点请联系服务商完成技术升级，如服务商拒绝配合，建议更换更重视用户安全的服务商
+更多的信息，请访问 https://github.com/2dust/v2rayN/discussions/9460</value>
+  </data>
+  <data name="TbVerifyPeerCertByName" xml:space="preserve">
+    <value>Verify Peer Cert By Name</value>
+  </data>
+  <data name="TbRouteExcludeAddress" xml:space="preserve">
+    <value>路由排除地址</value>
+  </data>
+  <data name="TbRouteExcludeAddressTip" xml:space="preserve">
+    <value>使用逗号 (,) 分隔</value>
+  </data>
+  <data name="MsgTunRouteExcludeInvalidAddress" xml:space="preserve">
+    <value>TUN 路由排除列表包含无效地址：{0}</value>
+  </data>
+  <data name="MsgOptionsConflict" xml:space="preserve">
+    <value>{0} 与 {1} 冲突</value>
+  </data>
+  <data name="TbEnableFinalFragment" xml:space="preserve">
+    <value>启用末端分片</value>
+  </data>
+  <data name="TbEnableFinalFragmentTip" xml:space="preserve">
+    <value>将数据包末端拆分为更小片段发送，可能影响吞吐与延迟。</value>
+  </data>
+  <data name="TbEnabletDnsViaProxy" xml:space="preserve">
+    <value>DNS 通过 Bridge</value>
+  </data>
+  <data name="MsgInsecureConfiguration" xml:space="preserve">
+    <value>检测到不安全配置：AllowInsecure 已启用，但未提供证书。这可能会导致中间人攻击。</value>
+  </data>
+  <data name="TbHy2RealmUrl" xml:space="preserve">
+    <value>Realm URL</value>
+  </data>
+  <data name="InvalidHy2RealmUrl" xml:space="preserve">
+    <value>Realm URL 不正确。</value>
+  </data>
+  <data name="InvalidHttpOutboundHeaders" xml:space="preserve">
+    <value>请填写合法的HTTP请求头JSON。</value>
+  </data>
+  <data name="TbHy2RealmUrlTip" xml:space="preserve">
+    <value>格式：realm://&lt;token&gt;@&lt;rendezvous-host&gt;[:port]/&lt;realm-name&gt;?stun=&lt;stun-host&gt;[:port]</value>
+  </data>
+  <data name="TbGeckoPacketSize" xml:space="preserve">
+    <value>Gecko 包大小 (最小/最大)</value>
+  </data>
+  <data name="TbLegacyProtectTip" xml:space="preserve">
+    <value>启用则使用 sing-box TUN ,否则使用 xray TUN</value>
+  </data>
+  <data name="TbRootCertificateProvider" xml:space="preserve">
+    <value>根证书提供者</value>
+  </data>
+  <data name="TbRootCertificateProviderTip" xml:space="preserve">
+    <value>仅用于 v2rayN 界面程序的下载及网络请求，不影响核心的证书验证。</value>
+  </data>
+  <data name="TbProxyDialResolveStrategy" xml:space="preserve">
+    <value>连接代理解析策略</value>
+  </data>
+  <data name="TbProxyDialResolveStrategyTip" xml:space="preserve">
+    <value>不建议开启，特殊情况可能回环。</value>
+  </data>
+  <data name="TbEnableHappyEyeballs" xml:space="preserve">
+    <value>启用 Happy Eyeballs</value>
+  </data>
+  <data name="TbEnableHappyEyeballsTip" xml:space="preserve">
+    <value>需配合 UseIP 策略使用。启用后将同时尝试 IPv4 和 IPv6 连接，并自动选择更快可用的路径。</value>
+  </data>
+  <data name="TbIpv6Address" xml:space="preserve">
+    <value>Ipv6 地址</value>
+  </data>
+  <data name="TbIpv4Address" xml:space="preserve">
+    <value>Ipv4 地址</value>
+  </data>
+  <data name="menuAddCustomOutboundServer" xml:space="preserve">
+    <value>添加自定义出站</value>
+  </data>
+  <data name="MsgCustomOutboundFileNotFound" xml:space="preserve">
+    <value>自定义出站 {0} 的文件未找到：{1}</value>
+  </data>
+  <data name="TbCustomOutboundTip" xml:space="preserve">
+    <value>仅支持 xray/sing-box 的单个 outbound/endpoin</value>
+  </data>
+  <data name="LvCustomCoreType" xml:space="preserve">
+    <value>自定义配置核心</value>
+  </data>
+  <data name="TbXrayOnly" xml:space="preserve">
+    <value>仅 Xray</value>
+  </data>
+  <data name="TbBlockAAAAQueries" xml:space="preserve">
+    <value>阻止 AAAA 查询</value>
+  </data>
+  <data name="TbBlockAAAAQueriesTips" xml:space="preserve">
+    <value>开启后将阻止 IPv6 查询</value>
   </data>
 </root>

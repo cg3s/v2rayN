@@ -1,4 +1,3 @@
-using System.Collections.Specialized;
 using System.Security.Principal;
 using CliWrap;
 using CliWrap.Buffered;
@@ -51,7 +50,7 @@ public class Utils
 
         try
         {
-            str = str.Replace(Environment.NewLine, string.Empty);
+            str = str.ReplaceLineBreaks(string.Empty);
             return new List<string>(str.Split(',', StringSplitOptions.RemoveEmptyEntries));
         }
         catch (Exception ex)
@@ -114,9 +113,7 @@ public class Utils
             }
 
             plainText = plainText.Trim()
-                .Replace(Environment.NewLine, "")
-                .Replace("\n", "")
-                .Replace("\r", "")
+                .ReplaceLineBreaks("")
                 .Replace('_', '/')
                 .Replace('-', '+')
                 .Replace(" ", "");
@@ -321,7 +318,32 @@ public class Utils
             return text;
         }
 
-        return text.Replace("，", ",").Replace(Environment.NewLine, ",");
+        return text.Replace("，", ",")
+                    .Replace(" ", "")
+                    .ReplaceLineBreaks(",");
+    }
+
+    public static string ParseProcess(string text)
+    {
+        if (text.IsNullOrEmpty())
+        {
+            return string.Empty;
+        }
+        if (text.StartsWith('"'))
+        {
+            text = text[1..];
+        }
+        if (text.EndsWith('"'))
+        {
+            text = text[..^1];
+        }
+        return List2String(text.Replace("，", ",")
+            .Replace("\\", "/")
+            .ReplaceLineBreaks(",")
+            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(x => x.TrimEx())
+            .Where(x => x.IsNotEmpty())
+            .ToList());
     }
 
     public static List<string> GetEnumNames<TEnum>() where TEnum : Enum
@@ -462,12 +484,17 @@ public class Utils
 
     public static string? DomainStrategy4Sbox(string? strategy)
     {
+        if (strategy is null)
+        {
+            return null;
+        }
+
         return strategy switch
         {
-            not null when strategy.StartsWith("UseIPv4") => "prefer_ipv4",
-            not null when strategy.StartsWith("UseIPv6") => "prefer_ipv6",
-            not null when strategy.StartsWith("ForceIPv4") => "ipv4_only",
-            not null when strategy.StartsWith("ForceIPv6") => "ipv6_only",
+            _ when strategy.StartsWith("UseIPv6") => "prefer_ipv6",
+            _ when strategy.StartsWith("UseIP") => "prefer_ipv4",
+            _ when strategy.StartsWith("ForceIPv6") => "ipv6_only",
+            _ when strategy.StartsWith("ForceIP") => "ipv4_only",
             _ => null
         };
     }
@@ -576,6 +603,58 @@ public class Utils
         }
     }
 
+    public static bool TryParseRange(string? input, int min, int max, out int from, out int to)
+    {
+        from = to = 0;
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            return true;
+        }
+        var parts = input.Split('-');
+        if (parts.Length == 1)
+        {
+            if (!int.TryParse(parts[0], out from))
+            {
+                return false;
+            }
+            to = from;
+            return from >= min && to <= max;
+        }
+        if (parts.Length != 2
+            || !int.TryParse(parts[0], out from)
+            || !int.TryParse(parts[1], out to))
+        {
+            return false;
+        }
+        return from >= min && to <= max && from <= to;
+    }
+
+    public static bool TryParseMaxSplit(string? input, int min, int max, out int from, out int to)
+    {
+        from = to = 0;
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            return true;
+        }
+        var parts = input.Split('-');
+        if (parts.Length == 1)
+        {
+            if (!int.TryParse(parts[0], out from))
+            {
+                return false;
+            }
+            to = from;
+            return from >= min && to <= max;
+        }
+        if (parts.Length != 2
+            || !int.TryParse(parts[0], out from)
+            || !int.TryParse(parts[1], out to))
+        {
+            return false;
+        }
+        return from >= min && to <= max && from <= to;
+    }
+
     public static bool IsPrivateNetwork(string ip)
     {
         if (IPAddress.TryParse(ip, out var address))
@@ -673,11 +752,11 @@ public class Utils
         return false;
     }
 
-    public static int GetFreePort(int defaultPort = 0)
+    public static int GetFreePort(int defaultPort)
     {
         try
         {
-            if (!(defaultPort == 0 || Utils.PortInUse(defaultPort)))
+            if (!PortInUse(defaultPort))
             {
                 return defaultPort;
             }
@@ -714,6 +793,24 @@ public class Utils
         }
 
         return (endpoints, connections);
+    }
+
+    public static bool IsLocalIP(string ipAddress)
+    {
+        if (!IPAddress.TryParse(ipAddress, out var targetAddress))
+        {
+            return false;
+        }
+
+        return NetworkInterface.GetAllNetworkInterfaces()
+               .SelectMany(ni => ni.GetIPProperties().UnicastAddresses)
+               .Any(ua => ua.Address.Equals(targetAddress));
+    }
+
+    public static bool ContainsInterfaceName(string inInterfaceName)
+    {
+        return NetworkInterface.GetAllNetworkInterfaces()
+            .Any(ni => ni.Name.Equals(inInterfaceName, StringComparison.OrdinalIgnoreCase));
     }
 
     #endregion Speed Test

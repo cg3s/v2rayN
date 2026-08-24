@@ -11,7 +11,7 @@ public partial class CoreConfigSingboxService
     private List<BaseServer4Sbox> BuildAllProxyOutbounds(string baseTagName = Global.ProxyTag, bool withSelector = true)
     {
         var proxyOutboundList = new List<BaseServer4Sbox>();
-        if (!_node.ConfigType.IsComplexType())
+        if (!_node.ConfigType.IsGroupType())
         {
             var outbound = BuildProxyOutbound(baseTagName);
             proxyOutboundList.Add(outbound);
@@ -35,6 +35,10 @@ public partial class CoreConfigSingboxService
     {
         var outbound = BuildProxyServer();
         outbound.tag = baseTagName;
+        if (_node.ConfigType == EConfigType.Outbound)
+        {
+            context.CustomOutboundMap[outbound] = _node.IndexId;
+        }
         return outbound;
     }
 
@@ -59,6 +63,20 @@ public partial class CoreConfigSingboxService
         try
         {
             var txtOutbound = EmbedUtils.GetEmbedText(Global.SingboxSampleOutbound);
+            if (_node.ConfigType == EConfigType.Outbound)
+            {
+                if (_node.GetProtocolExtra().IsSingboxEndpoint == true)
+                {
+                    var endpoint = JsonUtils.Deserialize<Endpoints4Sbox>(txtOutbound);
+                    return endpoint;
+                }
+                else
+                {
+                    var outbound = JsonUtils.Deserialize<Outbound4Sbox>(txtOutbound);
+                    return outbound;
+                }
+            }
+
             if (_node.ConfigType == EConfigType.WireGuard)
             {
                 var endpoint = JsonUtils.Deserialize<Endpoints4Sbox>(txtOutbound);
@@ -190,15 +208,16 @@ public partial class CoreConfigSingboxService
 
                         outbound.packet_encoding = "xudp";
 
-                        if (!protocolExtra.Flow.IsNullOrEmpty())
+                        if (protocolExtra.Flow is "xtls-rprx-vision" or "xtls-rprx-vision-udp443")
+                        {
+                            outbound.flow = "xtls-rprx-vision";
+                        }
+                        else if (!protocolExtra.Flow.IsNullOrEmpty())
                         {
                             outbound.flow = protocolExtra.Flow;
                         }
-                        else
-                        {
-                            FillOutboundMux(outbound);
-                        }
 
+                        FillOutboundMux(outbound);
                         FillOutboundTransport(outbound);
                         break;
                     }
@@ -216,11 +235,17 @@ public partial class CoreConfigSingboxService
 
                         if (!protocolExtra.SalamanderPass.IsNullOrEmpty())
                         {
+                            var isGecko = !protocolExtra.GeckoMinPacketSize.IsNullOrEmpty() || !protocolExtra.GeckoMaxPacketSize.IsNullOrEmpty();
                             outbound.obfs = new()
                             {
-                                type = "salamander",
+                                type = isGecko ? "gecko" : "salamander",
                                 password = protocolExtra.SalamanderPass.TrimEx(),
                             };
+                            if (isGecko)
+                            {
+                                outbound.obfs.min_packet_size = protocolExtra.GeckoMinPacketSize.ToInt();
+                                outbound.obfs.max_packet_size = protocolExtra.GeckoMaxPacketSize.ToInt();
+                            }
                         }
                         int? upMbps = protocolExtra?.UpMbps is { } su and >= 0
                             ? su
@@ -261,6 +286,22 @@ public partial class CoreConfigSingboxService
                                     outbound.hop_interval = hi >= 5 ? $"{hi}s" : outbound.hop_interval;
                                 }
                             }
+                        }
+
+                        if (HyRealm.TryParse(protocolExtra.Hy2RealmUrl, out var realm)
+                            && realm is not null)
+                        {
+                            var realm4Sbox = new HyRealm4Sbox()
+                            {
+                                server_url = realm.ToServerUrl(),
+                                token = realm.Token,
+                                realm_id = realm.RealmName,
+                                stun_servers = realm.StunList?.Count > 0 ? realm.StunList : null,
+                            };
+                            outbound.realm = realm4Sbox;
+                            outbound.server = null;
+                            outbound.server_port = null;
+                            outbound.server_ports = null;
                         }
 
                         break;
@@ -342,7 +383,7 @@ public partial class CoreConfigSingboxService
     {
         try
         {
-            var muxEnabled = _node.MuxEnabled ?? _config.CoreBasicItem.MuxEnabled;
+            var muxEnabled = _node.MuxEnabled ?? false;
             if (muxEnabled && _config.Mux4SboxItem.Protocol.IsNotEmpty())
             {
                 var mux = new Multiplex4Sbox()
@@ -394,11 +435,15 @@ public partial class CoreConfigSingboxService
             var tls = new Tls4Sbox()
             {
                 enabled = true,
-                record_fragment = _config.CoreBasicItem.EnableFragment ? true : null,
                 server_name = serverName,
-                insecure = Utils.ToBool(_node.AllowInsecure.IsNullOrEmpty() ? _config.CoreBasicItem.DefAllowInsecure.ToString().ToLower() : _node.AllowInsecure),
+                insecure = _node.GetAllowInsecure(),
                 alpn = _node.GetAlpn(),
             };
+            if (_config.CoreBasicItem.EnableFragment == true)
+            {
+                tls.fragment = true;
+                tls.record_fragment = true;
+            }
             if (_node.Fingerprint.IsNotEmpty())
             {
                 tls.utls = new Utls4Sbox()
@@ -566,7 +611,7 @@ public partial class CoreConfigSingboxService
         {
             type = "selector",
             tag = baseTagName,
-            outbounds = JsonUtils.DeepCopy(proxyTags),
+            outbounds = [.. proxyTags],
             interrupt_exist_connections = false,
         };
         outSelector.outbounds.Insert(0, outUrltest.tag);
@@ -694,9 +739,9 @@ public partial class CoreConfigSingboxService
         return resultOutbounds;
     }
 
-    private static List<BaseServer4Sbox> CloneOutbounds(List<BaseServer4Sbox> source)
+    private List<BaseServer4Sbox> CloneOutbounds(List<BaseServer4Sbox> source)
     {
-        if (source is null || source.Count == 0)
+        if (source is not { Count: > 0 })
         {
             return [];
         }
@@ -713,9 +758,14 @@ public partial class CoreConfigSingboxService
             {
                 clone = JsonUtils.DeepCopy(endpoint);
             }
-            if (clone is not null)
+            if (clone is null)
             {
-                result.Add(clone);
+                continue;
+            }
+            result.Add(clone);
+            if (context.CustomOutboundMap.ContainsKey(item))
+            {
+                context.CustomOutboundMap[clone] = context.CustomOutboundMap[item];
             }
         }
         return result;
@@ -729,8 +779,8 @@ public partial class CoreConfigSingboxService
             {
                 return;
             }
-            var outbounds = servers.Where(s => s is Outbound4Sbox).Cast<Outbound4Sbox>().ToList();
-            var endpoints = servers.Where(s => s is Endpoints4Sbox).Cast<Endpoints4Sbox>().ToList();
+            var outbounds = servers.OfType<Outbound4Sbox>().ToList();
+            var endpoints = servers.OfType<Endpoints4Sbox>().ToList();
             singboxConfig.endpoints ??= [];
             if (prepend)
             {

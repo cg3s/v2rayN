@@ -93,6 +93,7 @@ public class Rule4Sbox
     public List<string>? wifi_bssid { get; set; }
     public bool? rule_set_ip_cidr_match_source { get; set; }
     public bool? rule_set_ip_cidr_accept_empty { get; set; }
+    public bool? tls_record_fragment { get; set; }
 }
 
 [Serializable]
@@ -110,6 +111,7 @@ public class Inbound4Sbox
     public bool? endpoint_independent_nat { get; set; }
     public string? stack { get; set; }
     public List<User4Sbox> users { get; set; }
+    public List<string>? route_exclude_address { get; set; }
 }
 
 public class User4Sbox
@@ -246,6 +248,16 @@ public class HyObfs4Sbox
 {
     public string? type { get; set; }
     public string? password { get; set; }
+    public int? min_packet_size { get; set; }
+    public int? max_packet_size { get; set; }
+}
+
+public class HyRealm4Sbox
+{
+    public string? server_url { get; set; }
+    public string? token { get; set; }
+    public string? realm_id { get; set; }
+    public List<string>? stun_servers { get; set; }
 }
 
 public class Server4Sbox : BaseServer4Sbox
@@ -332,6 +344,7 @@ public abstract class DialFields4Sbox
     public Multiplex4Sbox? multiplex { get; set; }
     public Transport4Sbox? transport { get; set; }
     public HyObfs4Sbox? obfs { get; set; }
+    public HyRealm4Sbox? realm { get; set; }
 }
 
 public abstract class BaseServer4Sbox : DialFields4Sbox

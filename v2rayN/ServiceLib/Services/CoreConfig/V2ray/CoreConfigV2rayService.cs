@@ -60,8 +60,10 @@ public partial class CoreConfigV2rayService(CoreConfigContext context)
             {
                 ApplyOutboundFragment();
             }
-            ApplyOutboundBindInterface();
-            ApplyOutboundSendThrough();
+            if (_config.CoreBasicItem.EnableFinalFragment)
+            {
+                ApplyFinalFragment();
+            }
 
             var finalRule = BuildFinalRule();
             if (!string.IsNullOrEmpty(finalRule?.balancerTag))
@@ -71,7 +73,7 @@ public partial class CoreConfigV2rayService(CoreConfigContext context)
 
             ret.Msg = string.Format(ResUI.SuccessfulConfiguration, "");
             ret.Success = true;
-            ret.Data = ApplyFullConfigTemplate();
+            ret.Data = ApplyFinalConfigModifiers();
             return ret;
         }
         catch (Exception ex)
@@ -115,7 +117,7 @@ public partial class CoreConfigV2rayService(CoreConfigContext context)
 
             foreach (var it in selecteds)
             {
-                if (!(Global.XraySupportConfigType.Contains(it.ConfigType) || it.ConfigType.IsGroupType()))
+                if (!(Global.XraySupportConfigType.Contains(it.ConfigType) || it.ConfigType.IsGroupType() || it.ConfigType is EConfigType.Outbound))
                 {
                     continue;
                 }
@@ -161,7 +163,7 @@ public partial class CoreConfigV2rayService(CoreConfigContext context)
                 {
                     listen = Global.Loopback,
                     port = port,
-                    protocol = EInboundProtocol.mixed.ToString(),
+                    protocol = nameof(EInboundProtocol.mixed),
                     settings = new Inboundsettings4Ray()
                     {
                         udp = true,
@@ -204,11 +206,15 @@ public partial class CoreConfigV2rayService(CoreConfigContext context)
             {
                 ApplyOutboundFragment();
             }
+            if (_config.CoreBasicItem.EnableFinalFragment)
+            {
+                ApplyFinalFragment();
+            }
             ApplyOutboundBindInterface();
             ApplyOutboundSendThrough();
             //ret.Msg =string.Format(ResUI.SuccessfulConfiguration"), node.getSummary());
             ret.Success = true;
-            ret.Data = JsonUtils.Serialize(_coreConfig);
+            ret.Data = ApplyCustomOutboundReplace();
             return ret;
         }
         catch (Exception ex)
@@ -262,7 +268,7 @@ public partial class CoreConfigV2rayService(CoreConfigContext context)
                 tag = $"{EInboundProtocol.socks}{port}",
                 listen = Global.Loopback,
                 port = port,
-                protocol = EInboundProtocol.mixed.ToString(),
+                protocol = nameof(EInboundProtocol.mixed),
                 settings = new Inboundsettings4Ray()
                 {
                     udp = true,
@@ -276,12 +282,16 @@ public partial class CoreConfigV2rayService(CoreConfigContext context)
             {
                 ApplyOutboundFragment();
             }
+            if (_config.CoreBasicItem.EnableFinalFragment)
+            {
+                ApplyFinalFragment();
+            }
             ApplyOutboundBindInterface();
             ApplyOutboundSendThrough();
 
             ret.Msg = string.Format(ResUI.SuccessfulConfiguration, "");
             ret.Success = true;
-            ret.Data = JsonUtils.Serialize(_coreConfig);
+            ret.Data = ApplyCustomOutboundReplace();
             return ret;
         }
         catch (Exception ex)

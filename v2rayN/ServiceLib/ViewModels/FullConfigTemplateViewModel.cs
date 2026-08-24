@@ -1,47 +1,48 @@
 namespace ServiceLib.ViewModels;
 
-public class FullConfigTemplateViewModel : MyReactiveObject
+public partial class FullConfigTemplateViewModel : MyReactiveObject, ICloseable
 {
+    public event EventHandler? RequestClose;
+
     #region Reactive
 
     [Reactive]
-    public bool EnableFullConfigTemplate4Ray { get; set; }
+    public partial bool EnableFullConfigTemplate4Ray { get; set; }
 
     [Reactive]
-    public bool EnableFullConfigTemplate4Singbox { get; set; }
+    public partial bool EnableFullConfigTemplate4Singbox { get; set; }
 
     [Reactive]
-    public string FullConfigTemplate4Ray { get; set; }
+    public partial string FullConfigTemplate4Ray { get; set; } = string.Empty;
 
     [Reactive]
-    public string FullTunConfigTemplate4Ray { get; set; }
+    public partial string FullTunConfigTemplate4Ray { get; set; } = string.Empty;
 
     [Reactive]
-    public string FullConfigTemplate4Singbox { get; set; }
+    public partial string FullConfigTemplate4Singbox { get; set; } = string.Empty;
 
     [Reactive]
-    public string FullTunConfigTemplate4Singbox { get; set; }
+    public partial string FullTunConfigTemplate4Singbox { get; set; } = string.Empty;
 
     [Reactive]
-    public bool AddProxyOnly4Ray { get; set; }
+    public partial bool AddProxyOnly4Ray { get; set; }
 
     [Reactive]
-    public bool AddProxyOnly4Singbox { get; set; }
+    public partial bool AddProxyOnly4Singbox { get; set; }
 
     [Reactive]
-    public string ProxyDetour4Ray { get; set; }
+    public partial string ProxyDetour4Ray { get; set; } = string.Empty;
 
     [Reactive]
-    public string ProxyDetour4Singbox { get; set; }
+    public partial string ProxyDetour4Singbox { get; set; } = string.Empty;
 
-    public ReactiveCommand<Unit, Unit> SaveCmd { get; }
+    public ReactiveCommand<RxVoid, RxVoid> SaveCmd { get; }
 
     #endregion Reactive
 
-    public FullConfigTemplateViewModel(Func<EViewAction, object?, Task<bool>>? updateView)
+    public FullConfigTemplateViewModel()
     {
         _config = AppManager.Instance.Config;
-        _updateView = updateView;
         SaveCmd = ReactiveCommand.CreateFromTask(async () =>
         {
             await SaveSettingAsync();
@@ -84,7 +85,7 @@ public class FullConfigTemplateViewModel : MyReactiveObject
         }
 
         NoticeManager.Instance.Enqueue(ResUI.OperationSuccess);
-        _ = _updateView?.Invoke(EViewAction.CloseWindow, null);
+        RequestClose?.Invoke(this, EventArgs.Empty);
     }
 
     private async Task<bool> SaveXrayConfigAsync()

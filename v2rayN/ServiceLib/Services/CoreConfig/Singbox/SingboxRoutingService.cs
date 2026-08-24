@@ -10,18 +10,27 @@ public partial class CoreConfigSingboxService
             var simpleDnsItem = context.SimpleDnsItem;
 
             var defaultDomainResolverTag = Global.SingboxDirectDNSTag;
-            var directDnsStrategy = Utils.DomainStrategy4Sbox(simpleDnsItem.Strategy4Freedom);
+            var dialDnsStrategy = Utils.DomainStrategy4Sbox(simpleDnsItem.Strategy4ProxyDial);
 
             var rawDNSItem = context.RawDnsItem;
             if (rawDNSItem is { Enabled: true })
             {
                 defaultDomainResolverTag = Global.SingboxLocalDNSTag;
-                directDnsStrategy = rawDNSItem.DomainStrategy4Freedom.IsNullOrEmpty() ? null : rawDNSItem.DomainStrategy4Freedom;
+                dialDnsStrategy = rawDNSItem.DomainStrategy4Freedom.IsNullOrEmpty() ? null : rawDNSItem.DomainStrategy4Freedom;
+            }
+            else if (!simpleDnsItem.Strategy4Freedom.IsNullOrEmpty())
+            {
+                var directOutbound = _coreConfig.outbounds.FirstOrDefault(o => o.tag == Global.DirectTag);
+                directOutbound?.domain_resolver = new()
+                {
+                    server = defaultDomainResolverTag,
+                    strategy = Utils.DomainStrategy4Sbox(simpleDnsItem.Strategy4Freedom),
+                };
             }
             _coreConfig.route.default_domain_resolver = new()
             {
                 server = defaultDomainResolverTag,
-                strategy = directDnsStrategy
+                strategy = dialDnsStrategy
             };
 
             if (context.IsTunEnabled)
@@ -34,19 +43,44 @@ public partial class CoreConfigSingboxService
                     _coreConfig.route.rules.AddRange(tunRules);
                 }
 
-                var (lstDnsExe, lstDirectExe) = BuildRoutingDirectExe();
-                _coreConfig.route.rules.Add(new()
+                // Traffic addressed to the TUN interface's own addresses must never reach an
+                // outbound. auto_route hijacks the default route, so `direct` writes such a
+                // packet straight back into the TUN, which hands it to the outbound again -
+                // an infinite loop that pins a CPU core. Drop instead of rejecting so no
+                // ICMP unreachable is generated back towards the same addresses.
+                //
+                // Match each address on its own, not the prefix it carries. On Linux sing-tun
+                // registers Inet4Address[0].Addr().Next() with systemd-resolved as a "~." DNS
+                // upstream, and every prefix offered here is a /30 or /126, so carrying the
+                // prefix through would cover that resolver address too and drop every system
+                // name lookup along with the loop.
+                var tunAddresses = _coreConfig.inbounds.FirstOrDefault(i => i.type == "tun")?.address;
+                if (tunAddresses?.Count > 0)
                 {
-                    port = [53],
-                    action = "hijack-dns",
-                    process_name = lstDnsExe
-                });
+                    _coreConfig.route.rules.Add(new()
+                    {
+                        ip_cidr = [.. tunAddresses.Select(ToSingleAddressPrefix)],
+                        action = "reject",
+                        method = "drop",
+                    });
+                }
 
-                _coreConfig.route.rules.Add(new()
+                var lstDirectExe = BuildRoutingDirectExe();
+                if (lstDirectExe.Count > 0)
                 {
-                    outbound = Global.DirectTag,
-                    process_name = lstDirectExe
-                });
+                    _coreConfig.route.rules.Add(new()
+                    {
+                        port = [53],
+                        action = "hijack-dns",
+                        process_path = lstDirectExe,
+                    });
+
+                    _coreConfig.route.rules.Add(new()
+                    {
+                        outbound = Global.DirectTag,
+                        process_path = lstDirectExe,
+                    });
+                }
 
                 // ICMP Routing
                 var icmpRouting = _config.TunModeItem.IcmpRouting ?? "";
@@ -96,6 +130,15 @@ public partial class CoreConfigSingboxService
                         new() { protocol = ["dns"] },
                     ],
                 });
+                if (_config.CoreBasicItem.EnableFinalFragment)
+                {
+                    _coreConfig.route.rules.Add(new()
+                    {
+                        protocol = ["tls"],
+                        action = "route-options",
+                        tls_record_fragment = true,
+                    });
+                }
             }
             else
             {
@@ -104,6 +147,14 @@ public partial class CoreConfigSingboxService
                     port = [53],
                     action = "hijack-dns",
                 });
+                if (_config.CoreBasicItem.EnableFinalFragment)
+                {
+                    _coreConfig.route.rules.Add(new()
+                    {
+                        action = "route-options",
+                        tls_record_fragment = true,
+                    });
+                }
             }
 
             var hostsDomains = new List<string>();
@@ -176,12 +227,12 @@ public partial class CoreConfigSingboxService
             _coreConfig.route.rules.Add(new()
             {
                 outbound = Global.DirectTag,
-                clash_mode = ERuleMode.Direct.ToString()
+                clash_mode = nameof(ERuleMode.Direct)
             });
             _coreConfig.route.rules.Add(new()
             {
                 outbound = Global.ProxyTag,
-                clash_mode = ERuleMode.Global.ToString()
+                clash_mode = nameof(ERuleMode.Global)
             });
 
             var domainStrategy = _config.RoutingBasicItem.DomainStrategy4Singbox.NullIfEmpty();
@@ -239,34 +290,46 @@ public partial class CoreConfigSingboxService
         }
     }
 
-    private static (List<string> lstDnsExe, List<string> lstDirectExe) BuildRoutingDirectExe()
+    private static string ToSingleAddressPrefix(string address)
     {
-        var dnsExeSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var addr = address.Split('/').First();
+        return IPAddress.TryParse(addr, out var ip)
+            ? $"{addr}/{(ip.AddressFamily == AddressFamily.InterNetworkV6 ? 128 : 32)}"
+            : address;
+    }
+
+    private List<string> BuildRoutingDirectExe()
+    {
         var directExeSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        var coreInfoResult = CoreInfoManager.Instance.GetCoreInfo();
+        var allCoreInfo = CoreInfoManager.Instance.GetCoreInfo();
 
-        foreach (var coreConfig in coreInfoResult)
+        foreach (var coreConfig in allCoreInfo)
         {
+            if (!context.ProtectCoreTypeList.Contains(coreConfig.CoreType))
+            {
+                continue;
+            }
             if (coreConfig.CoreType == ECoreType.v2rayN)
             {
                 continue;
             }
-
+            if (coreConfig.CoreExes == null)
+            {
+                continue;
+            }
             foreach (var baseExeName in coreConfig.CoreExes)
             {
-                if (coreConfig.CoreType != ECoreType.sing_box)
+                //directExeSet.Add(Utils.GetExeName(baseExeName));
+                var exePath = CoreInfoManager.Instance.GetCoreExecFile(coreConfig, out _);
+                if (!exePath.IsNullOrEmpty())
                 {
-                    dnsExeSet.Add(Utils.GetExeName(baseExeName));
+                    directExeSet.Add(exePath);
                 }
-                directExeSet.Add(Utils.GetExeName(baseExeName));
             }
         }
 
-        var lstDnsExe = new List<string>(dnsExeSet);
-        var lstDirectExe = new List<string>(directExeSet);
-
-        return (lstDnsExe, lstDirectExe);
+        return directExeSet.ToList();
     }
 
     private void GenRoutingUserRule(RulesItem? item)
@@ -525,7 +588,8 @@ public partial class CoreConfigSingboxService
 
         if (node == null
             || (!Global.SingboxSupportConfigType.Contains(node.ConfigType)
-            && !node.ConfigType.IsGroupType()))
+            && !node.ConfigType.IsGroupType()
+            && node.ConfigType is not EConfigType.Outbound))
         {
             return Global.ProxyTag;
         }

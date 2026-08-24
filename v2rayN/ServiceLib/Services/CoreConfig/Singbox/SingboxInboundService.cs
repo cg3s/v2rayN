@@ -15,32 +15,33 @@ public partial class CoreConfigSingboxService
             {
                 var inbound = new Inbound4Sbox()
                 {
-                    type = EInboundProtocol.mixed.ToString(),
-                    tag = EInboundProtocol.socks.ToString(),
+                    type = nameof(EInboundProtocol.mixed),
+                    tag = nameof(EInboundProtocol.socks),
                     listen = Global.Loopback,
                 };
                 _coreConfig.inbounds.Add(inbound);
 
+                var inboundConf = _config.Inbound.First();
                 inbound.listen_port = listenPort;
 
-                if (_config.Inbound.First().SecondLocalPortEnabled)
+                if (inboundConf.SecondLocalPortEnabled)
                 {
                     var inbound2 = BuildInbound(inbound, EInboundProtocol.socks2, true);
                     _coreConfig.inbounds.Add(inbound2);
                 }
 
-                if (_config.Inbound.First().AllowLANConn)
+                if (inboundConf.AllowLANConn)
                 {
-                    if (_config.Inbound.First().NewPort4LAN)
+                    if (inboundConf.NewPort4LAN)
                     {
                         var inbound3 = BuildInbound(inbound, EInboundProtocol.socks3, true);
                         inbound3.listen = listen;
                         _coreConfig.inbounds.Add(inbound3);
 
                         //auth
-                        if (_config.Inbound.First().User.IsNotEmpty() && _config.Inbound.First().Pass.IsNotEmpty())
+                        if (inboundConf.User.IsNotEmpty() && inboundConf.Pass.IsNotEmpty())
                         {
-                            inbound3.users = new() { new() { username = _config.Inbound.First().User, password = _config.Inbound.First().Pass } };
+                            inbound3.users = new() { new() { username = inboundConf.User, password = inboundConf.Pass } };
                         }
                     }
                     else
@@ -67,10 +68,15 @@ public partial class CoreConfigSingboxService
                 tunInbound.auto_route = _config.TunModeItem.AutoRoute;
                 tunInbound.strict_route = _config.TunModeItem.StrictRoute;
                 tunInbound.stack = _config.TunModeItem.Stack;
-                if (_config.TunModeItem.EnableIPv6Address == false)
+
+                var address = _config.TunModeItem.IPv4Address.NullIfEmpty() ?? Global.TunIPv4Address.First();
+                tunInbound.address = [address];
+                if (_config.TunModeItem.EnableIPv6Address == true)
                 {
-                    tunInbound.address = ["172.18.0.1/30"];
+                    var address6 = _config.TunModeItem.IPv6Address.NullIfEmpty() ?? Global.TunIPv6Address.First();
+                    tunInbound.address.Add(address6);
                 }
+                tunInbound.route_exclude_address = _config.TunModeItem.RouteExcludeAddress;
 
                 _coreConfig.inbounds.Add(tunInbound);
             }
@@ -86,7 +92,7 @@ public partial class CoreConfigSingboxService
         var inbound = JsonUtils.DeepCopy(inItem);
         inbound.tag = protocol.ToString();
         inbound.listen_port = inItem.listen_port + (int)protocol;
-        inbound.type = EInboundProtocol.mixed.ToString();
+        inbound.type = nameof(EInboundProtocol.mixed);
         return inbound;
     }
 }

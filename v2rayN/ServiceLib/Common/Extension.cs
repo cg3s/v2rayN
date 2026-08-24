@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 namespace ServiceLib.Common;
 
@@ -47,7 +48,7 @@ public static class Extension
 
     public static string TrimEx(this string? value)
     {
-        return value == null ? string.Empty : value.Trim();
+        return value?.Trim() ?? string.Empty;
     }
 
     public static string RemovePrefix(this string value, char prefix)
@@ -92,7 +93,7 @@ public static class Extension
 
     public static bool IsComplexType(this EConfigType configType)
     {
-        return configType is EConfigType.Custom or EConfigType.PolicyGroup or EConfigType.ProxyChain;
+        return configType is EConfigType.Custom or EConfigType.Outbound or EConfigType.PolicyGroup or EConfigType.ProxyChain;
     }
 
     /// <summary>
@@ -116,6 +117,48 @@ public static class Extension
         foreach (var item in source)
         {
             destination.Add(item);
+        }
+    }
+
+    /// <summary>
+    /// Replace all cross-platform newline characters with the specified string
+    /// </summary>
+    public static string ReplaceLineBreaks(this string input, string replacement)
+    {
+        if (string.IsNullOrEmpty(input))
+        {
+            return input;
+        }
+
+        // You must replace \r\n first, and then replace the single characters \r and \n.
+        return input.Replace("\r\n", replacement)
+                    .Replace("\r", replacement)
+                    .Replace("\n", replacement);
+    }
+
+    public static async Task<TOutput> HandleSafe<TInput, TOutput>(
+        this Interaction<TInput, TOutput> interaction,
+        TInput input,
+        TOutput defaultValue = default!,
+        [CallerMemberName] string memberName = "",
+        [CallerFilePath] string filePath = "",
+        [CallerLineNumber] int lineNumber = 0)
+    {
+        try
+        {
+            return await interaction.Handle(input);
+        }
+        catch (UnhandledInteractionException<TInput, TOutput> ex)
+        {
+            var title = $"Unhandled interaction exception in {memberName} at {filePath}:{lineNumber}";
+            Logging.SaveLog(title, ex);
+            return defaultValue;
+        }
+        catch (Exception ex)
+        {
+            var title = $"Exception occurred while handling interaction in {memberName} at {filePath}:{lineNumber}, input: {input}";
+            Logging.SaveLog(title, ex);
+            return defaultValue;
         }
     }
 }

@@ -1,42 +1,40 @@
-using System.Reactive.Concurrency;
 using static ServiceLib.Models.Dto.ClashProviders;
 using static ServiceLib.Models.Dto.ClashProxies;
 
 namespace ServiceLib.ViewModels;
 
-public class ClashProxiesViewModel : MyReactiveObject
+public partial class ClashProxiesViewModel : MyReactiveObject
 {
     private Dictionary<string, ProxiesItem>? _proxies;
     private Dictionary<string, ProvidersItem>? _providers;
     private readonly int _delayTimeout = 99999999;
 
-    public IObservableCollection<ClashProxyModel> ProxyGroups { get; } = new ObservableCollectionExtended<ClashProxyModel>();
-    public IObservableCollection<ClashProxyModel> ProxyDetails { get; } = new ObservableCollectionExtended<ClashProxyModel>();
+    public BulkObservableCollection<ClashProxyModel> ProxyGroups { get; } = [];
+    public BulkObservableCollection<ClashProxyModel> ProxyDetails { get; } = [];
 
     [Reactive]
-    public ClashProxyModel SelectedGroup { get; set; }
+    public partial ClashProxyModel SelectedGroup { get; set; }
 
     [Reactive]
-    public ClashProxyModel SelectedDetail { get; set; }
+    public partial ClashProxyModel SelectedDetail { get; set; }
 
-    public ReactiveCommand<Unit, Unit> ProxiesReloadCmd { get; }
-    public ReactiveCommand<Unit, Unit> ProxiesDelayTestCmd { get; }
-    public ReactiveCommand<Unit, Unit> ProxiesDelayTestPartCmd { get; }
-    public ReactiveCommand<Unit, Unit> ProxiesSelectActivityCmd { get; }
-
-    [Reactive]
-    public int RuleModeSelected { get; set; }
+    public ReactiveCommand<RxVoid, RxVoid> ProxiesReloadCmd { get; }
+    public ReactiveCommand<RxVoid, RxVoid> ProxiesDelayTestCmd { get; }
+    public ReactiveCommand<RxVoid, RxVoid> ProxiesDelayTestPartCmd { get; }
+    public ReactiveCommand<RxVoid, RxVoid> ProxiesSelectActivityCmd { get; }
 
     [Reactive]
-    public int SortingSelected { get; set; }
+    public partial int RuleModeSelected { get; set; }
 
     [Reactive]
-    public bool AutoRefresh { get; set; }
+    public partial int SortingSelected { get; set; }
 
-    public ClashProxiesViewModel(Func<EViewAction, object?, Task<bool>>? updateView)
+    [Reactive]
+    public partial bool AutoRefresh { get; set; }
+
+    public ClashProxiesViewModel()
     {
         _config = AppManager.Instance.Config;
-        _updateView = updateView;
 
         ProxiesReloadCmd = ReactiveCommand.CreateFromTask(async () =>
         {
@@ -67,7 +65,7 @@ public class ClashProxiesViewModel : MyReactiveObject
         this.WhenAnyValue(
            x => x.SelectedGroup,
            y => y != null && y.Name.IsNotEmpty())
-               .Subscribe(c => RefreshProxyDetails(c));
+               .Subscribe(RefreshProxyDetails);
 
         this.WhenAnyValue(
            x => x.RuleModeSelected,
@@ -77,7 +75,7 @@ public class ClashProxiesViewModel : MyReactiveObject
         this.WhenAnyValue(
            x => x.SortingSelected,
            y => y >= 0)
-              .Subscribe(c => DoSortingSelected(c));
+              .Subscribe(DoSortingSelected);
 
         this.WhenAnyValue(
         x => x.AutoRefresh,
@@ -85,15 +83,6 @@ public class ClashProxiesViewModel : MyReactiveObject
             .Subscribe(c => { _config.ClashUIItem.ProxiesAutoRefresh = AutoRefresh; });
 
         #endregion WhenAnyValue && ReactiveCommand
-
-        #region AppEvents
-
-        AppEvents.ProxiesReloadRequested
-            .AsObservable()
-            .ObserveOn(RxSchedulers.MainThreadScheduler)
-            .Subscribe(async _ => await ProxiesReload());
-
-        #endregion AppEvents
 
         _ = Init();
     }
@@ -187,21 +176,21 @@ public class ClashProxiesViewModel : MyReactiveObject
         var selectedName = SelectedGroup?.Name;
         ProxyGroups.Clear();
 
+        var lstProxyGroups = new List<ClashProxyModel>();
         var proxyGroups = ClashApiManager.Instance.GetClashProxyGroups();
-        if (proxyGroups != null && proxyGroups.Count > 0)
+        if (proxyGroups is { Count: > 0 })
         {
             foreach (var it in proxyGroups)
             {
-                if (it.name.IsNullOrEmpty() || !_proxies.ContainsKey(it.name))
+                if (it.name.IsNullOrEmpty() || !_proxies.TryGetValue(it.name, out var item))
                 {
                     continue;
                 }
-                var item = _proxies[it.name];
                 if (!Global.allowSelectType.Contains(item.type.ToLower()))
                 {
                     continue;
                 }
-                ProxyGroups.Add(new ClashProxyModel()
+                lstProxyGroups.Add(new ClashProxyModel()
                 {
                     Now = item.now,
                     Name = item.name,
@@ -217,12 +206,12 @@ public class ClashProxiesViewModel : MyReactiveObject
             {
                 continue;
             }
-            var item = ProxyGroups.FirstOrDefault(t => t.Name == kv.Key);
+            var item = lstProxyGroups.FirstOrDefault(t => t.Name == kv.Key);
             if (item != null && item.Name.IsNotEmpty())
             {
                 continue;
             }
-            ProxyGroups.Add(new ClashProxyModel()
+            lstProxyGroups.Add(new ClashProxyModel()
             {
                 Now = kv.Value.now,
                 Name = kv.Key,
@@ -230,7 +219,9 @@ public class ClashProxiesViewModel : MyReactiveObject
             });
         }
 
-        if (ProxyGroups != null && ProxyGroups.Count > 0)
+        ProxyGroups.AddRange(lstProxyGroups);
+
+        if (ProxyGroups is { Count: > 0 })
         {
             if (selectedName != null && ProxyGroups.Any(t => t.Name == selectedName))
             {
@@ -387,10 +378,9 @@ public class ClashProxiesViewModel : MyReactiveObject
             }
 
             var model = new SpeedTestResult() { IndexId = item.Name, Delay = result };
-            RxSchedulers.MainThreadScheduler.Schedule(model, (scheduler, model) =>
+            RxSchedulers.MainThreadScheduler.Schedule(() =>
             {
                 _ = ProxiesDelayTestResult(model);
-                return Disposable.Empty;
             });
             await Task.CompletedTask;
         });

@@ -9,21 +9,32 @@ on:
       - 'v2rayN/ServiceLib/Handler/Fmt/**'
       - '.github/workflows/test.yml'
 
+permissions:
+  checks: write
+  pull-requests: write
+
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         submodules: 'recursive'
         fetch-depth: '0'
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v5.2.0
+      uses: actions/setup-dotnet@v6
       with:
-        dotnet-version: '8.0.x'
+        dotnet-version: '10.x'
+        dotnet-quality: 'ga'
 
     - name: Test Code
-      working-directory: ./v2rayN
-      run: dotnet test ./ServiceLib.Tests
+      run: dotnet test --project ./v2rayN/ServiceLib.Tests -c Release --results-directory ./TestResults -- --report-trx
+
+    - name: Comment PR with results
+      if: always()
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      with:
+        files: ./TestResults/*.trx
+        comment_mode: failures
