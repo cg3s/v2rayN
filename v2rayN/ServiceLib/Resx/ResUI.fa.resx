@@ -690,6 +690,9 @@
   <data name="TbSettingsEnableCheckPreReleaseUpdate" xml:space="preserve">
     <value>به روز رسانی های پیش از انتشار را بررسی شود</value>
   </data>
+  <data name="TbSettingsEnableUpdateViaProxy" xml:space="preserve">
+    <value>به‌روزرسانی از طریق پروکسی</value>
+  </data>
   <data name="TbSettingsException" xml:space="preserve">
     <value>استثنا</value>
   </data>
@@ -1212,7 +1215,7 @@
   <data name="menuModeRule" xml:space="preserve">
     <value>قانون</value>
   </data>
-  <data name="menuProxiesDelaytest" xml:space="preserve">
+  <data name="menuDelaytest" xml:space="preserve">
     <value>تست تأخیر</value>
   </data>
   <data name="menuProxiesDelaytestPart" xml:space="preserve">

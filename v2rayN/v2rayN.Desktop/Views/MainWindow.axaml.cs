@@ -46,6 +46,7 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
             this.BindCommand(ViewModel, vm => vm.AddWireguardServerCmd, v => v.menuAddWireguardServer).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.AddAnytlsServerCmd, v => v.menuAddAnytlsServer).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.AddNaiveServerCmd, v => v.menuAddNaiveServer).DisposeWith(disposables);
+            this.BindCommand(ViewModel, vm => vm.AddMasqueServerCmd, v => v.menuAddMasqueServer).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.AddCustomServerCmd, v => v.menuAddCustomServer).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.AddCustomOutboundServerCmd, v => v.menuAddCustomOutboundServer).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.AddPolicyGroupServerCmd, v => v.menuAddPolicyGroupServer).DisposeWith(disposables);
@@ -405,6 +406,8 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
         var currentLayoutDisposables = new MultipleDisposable();
         _layoutBindingsDisposable.Create(currentLayoutDisposables);
 
+        ClearLayoutContent();
+
         gridMain.IsVisible = orientation == EGirdOrientation.Horizontal;
         gridMain1.IsVisible = orientation == EGirdOrientation.Vertical;
         gridMain2.IsVisible = orientation == EGirdOrientation.Tab;
@@ -446,6 +449,24 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
         }
 
         RestoreUI();
+    }
+
+    private void ClearLayoutContent()
+    {
+        tabProfiles.Content = null;
+        tabMsgView.Content = null;
+        tabClashProxies.Content = null;
+        tabClashConnections.Content = null;
+
+        tabProfiles1.Content = null;
+        tabMsgView1.Content = null;
+        tabClashProxies1.Content = null;
+        tabClashConnections1.Content = null;
+
+        tabProfiles2.Content = null;
+        tabMsgView2.Content = null;
+        tabClashProxies2.Content = null;
+        tabClashConnections2.Content = null;
     }
 
     private void AddHelpMenuItem()

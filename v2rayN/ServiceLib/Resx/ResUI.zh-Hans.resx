@@ -690,6 +690,9 @@
   <data name="TbSettingsEnableCheckPreReleaseUpdate" xml:space="preserve">
     <value>检查 Pre-Release</value>
   </data>
+  <data name="TbSettingsEnableUpdateViaProxy" xml:space="preserve">
+    <value>通过代理更新</value>
+  </data>
   <data name="TbSettingsException" xml:space="preserve">
     <value>例外</value>
   </data>
@@ -1215,7 +1218,7 @@
   <data name="menuModeRule" xml:space="preserve">
     <value>规则</value>
   </data>
-  <data name="menuProxiesDelaytest" xml:space="preserve">
+  <data name="menuDelaytest" xml:space="preserve">
     <value>延迟测试</value>
   </data>
   <data name="menuProxiesDelaytestPart" xml:space="preserve">
@@ -1866,5 +1869,26 @@
   </data>
   <data name="TbBlockAAAAQueriesTips" xml:space="preserve">
     <value>开启后将阻止 IPv6 查询</value>
+  </data>
+  <data name="TbDNS" xml:space="preserve">
+    <value>DNS</value>
+  </data>
+  <data name="TbSettingsMux4Ray" xml:space="preserve">
+    <value>Xray Mux 设置</value>
+  </data>
+  <data name="LvRequestHeaders" xml:space="preserve">
+    <value>HTTP 请求头 (JSON)</value>
+  </data>
+  <data name="SubRequestHeadersTips" xml:space="preserve">
+    <value>可选，示例：{"X-hwid": "my_device"}。自定义值覆盖默认请求头，应用于本组所有订阅地址（包括订阅转换服务）。</value>
+  </data>
+  <data name="SubRequestHeadersInvalid" xml:space="preserve">
+    <value>HTTP 请求头无效。请使用 JSON 对象，键名不能重复，值必须为字符串；请求头名称和值不能包含换行符。</value>
+  </data>
+  <data name="TbSortingProcess" xml:space="preserve">
+    <value>进程</value>
+  </data>
+  <data name="menuAddMasqueServer" xml:space="preserve">
+    <value>添加 [MASQUE]</value>
   </data>
 </root>
