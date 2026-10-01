@@ -1872,9 +1872,6 @@
   <data name="LvCustomCoreType" xml:space="preserve">
     <value>Ядро пользовательской конфигурации</value>
   </data>
-<<<<<<< HEAD
-</root>
-=======
   <data name="TbXrayOnly" xml:space="preserve">
     <value>Только Xray</value>
   </data>
@@ -1903,4 +1900,3 @@
     <value>Процесс</value>
   </data>
 </root>
->>>>>>> upstream/master
