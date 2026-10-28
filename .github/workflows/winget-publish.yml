@@ -19,7 +19,9 @@ jobs:
           $wingetPackage = "cg3s.v2rayN"
           $gitToken = "${{ secrets.PT_WINGET }}"
 
-          $github = Invoke-RestMethod -uri "https://api.github.com/repos/cg3s/v2rayN/releases" 
+          $headers = @{ Authorization = "Bearer $gitToken"; Accept = "application/vnd.github+json" }
+
+          $github = Invoke-RestMethod -Uri "https://api.github.com/repos/cg3s/v2rayN/releases" -Headers $headers
 
           $targetRelease = $github | Where-Object -Property prerelease -match 'False' | Select -First 1
           

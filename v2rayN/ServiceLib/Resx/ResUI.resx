@@ -399,6 +399,9 @@
   <data name="MsgServerTitle" xml:space="preserve">
     <value>Filter, press Enter to execute</value>
   </data>
+  <data name="menuCheckAndUpdate" xml:space="preserve">
+    <value>Check and Update</value>
+  </data>
   <data name="menuCheckUpdate" xml:space="preserve">
     <value>Check Update</value>
   </data>
@@ -1789,7 +1792,7 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
     <value>New Update</value>
   </data>
   <data name="MsgAllowInsecureDeprecated" xml:space="preserve">
-    <value>The current node uses an unencrypted connection, meaning your communications could be directly monitored by network intermediaries controlled by authoritarian governments. For security reasons, nodes of this type cannot connect via Xray-core versions 26.2.6 or higher. If this is a self-built node, please enable TLS or other secure encryption, or pin the certificate using pinSHA256. If this is an airport/provider node, please contact your service provider for a technical upgrade. If the provider refuses to cooperate, it is recommended to switch to a service provider that prioritizes user security. For more information, please visit https://github.com/2dust/v2rayN/discussions/9460.</value>
+    <value>The current node uses an unencrypted connection, meaning your communications could be directly monitored by network intermediaries controlled by authoritarian governments. For security reasons, nodes of this type cannot connect via Xray-core versions 26.2.6 or higher. If this is a self-built node, please enable TLS or other secure encryption, or pin the certificate using pinSHA256. If this is an airport/provider node, please contact your service provider for a technical upgrade. If the provider refuses to cooperate, it is recommended to switch to a service provider that prioritizes user security. For more information, please visit https://github.com/cg3s/v2rayN/discussions/9460.</value>
   </data>
   <data name="TbRouteExcludeAddress" xml:space="preserve">
     <value>Route Exclude Address</value>

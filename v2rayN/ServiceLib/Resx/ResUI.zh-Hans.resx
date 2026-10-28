@@ -399,6 +399,9 @@
   <data name="MsgServerTitle" xml:space="preserve">
     <value>过滤器，按回车执行</value>
   </data>
+  <data name="menuCheckAndUpdate" xml:space="preserve">
+    <value>检查并更新</value>
+  </data>
   <data name="menuCheckUpdate" xml:space="preserve">
     <value>检查更新</value>
   </data>
@@ -1778,7 +1781,7 @@
 为了安全，此类节点无法通过 26.2.6+ 版本的Xray核心连接
 如果是自建节点请启用 TLS 等安全加密，或固定证书 pinSHA256
 如果机场节点请联系服务商完成技术升级，如服务商拒绝配合，建议更换更重视用户安全的服务商
-更多的信息，请访问 https://github.com/2dust/v2rayN/discussions/9460</value>
+更多的信息，请访问 https://github.com/cg3s/v2rayN/discussions/9460</value>
   </data>
   <data name="TbVerifyPeerCertByName" xml:space="preserve">
     <value>Verify Peer Cert By Name</value>

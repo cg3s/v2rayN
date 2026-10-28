@@ -5,7 +5,7 @@ OutputPath="$2"
 Version="$3"
 
 FileName="v2rayN-${Arch}.zip"
-wget -nv -O $FileName "https://github.com/cg3s/v2rayN-core-bin/raw/refs/heads/master/$FileName"
+wget -nv -O $FileName "https://github.com/2dust/v2rayN-core-bin/raw/refs/heads/master/$FileName"
 7z x $FileName
 cp -rf v2rayN-${Arch}/* $OutputPath
 

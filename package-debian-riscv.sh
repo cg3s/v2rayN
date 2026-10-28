@@ -171,13 +171,13 @@ choose_channel() {
 }
 
 get_latest_tag_latest() {
-  curl -fsSL "https://api.github.com/repos/2dust/v2rayN/releases/latest" \
+  curl -fsSL "https://api.github.com/repos/cg3s/v2rayN/releases/latest" \
     | jq -re '.tag_name' \
     | sed 's/^v//'
 }
 
 get_latest_tag_prerelease() {
-  curl -fsSL "https://api.github.com/repos/2dust/v2rayN/releases?per_page=20" \
+  curl -fsSL "https://api.github.com/repos/cg3s/v2rayN/releases?per_page=20" \
     | jq -re 'first(.[] | select(.prerelease == true) | .tag_name)' \
     | sed 's/^v//'
 }
