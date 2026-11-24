@@ -29,6 +29,7 @@ public partial class CoreConfigV2rayService
                 continue;
             }
             var outboundTag = outbound.tag;
+            var outboundTargetStrategy = outbound.targetStrategy;
             var outboundDetour = outbound.streamSettings?.sockopt?.dialerProxy ?? string.Empty;
             var outboundBindInterface = outbound.streamSettings?.sockopt?.Interface ?? string.Empty;
             var customOutboundContent = context.CustomOutboundContent[customOutboundIndex];
@@ -38,33 +39,61 @@ public partial class CoreConfigV2rayService
             customOutboundContent = customOutboundContent.Replace("{{tag}}", outboundTag);
             customOutboundContent = customOutboundContent.Replace("{{detour}}", outboundDetour);
             customOutboundContent = customOutboundContent.Replace("{{interface}}", outboundBindInterface);
-            var customOutboundObj = JsonUtils.ParseJson(customOutboundContent) as JsonObject;
+            var customOutboundNode = JsonUtils.ParseJson(customOutboundContent);
+
+            JsonObject customOutboundObj;
+            JsonObject customOutboundDialingObj;
+            if (customOutboundNode is JsonArray jsonArray)
+            {
+                // NOTE: When the custom outbound definition is an array,
+                // treat it as an outbound proxy chain:
+                // apply outbound-level settings (such as the tag) to the first element,
+                // and apply dialing settings (such as the detour) to the last element.
+                if (jsonArray.Count == 0
+                    || jsonArray[0] is not JsonObject firstObj
+                    || jsonArray[^1] is not JsonObject lastObj)
+                {
+                    continue;
+                }
+                customOutboundObj = firstObj;
+                customOutboundDialingObj = lastObj;
+            }
+            else if (customOutboundNode is JsonObject jsonObject)
+            {
+                customOutboundObj = jsonObject;
+                customOutboundDialingObj = jsonObject;
+            }
+            else
+            {
+                continue;
+            }
 
             if (!containTagPlaceholder)
             {
-                customOutboundObj?["tag"] = outboundTag;
+                customOutboundObj["tag"] = outboundTag;
+            }
+            if (customOutboundObj["targetStrategy"] is null
+                && !outboundTargetStrategy.IsNullOrEmpty())
+            {
+                customOutboundObj["targetStrategy"] = outboundTargetStrategy;
             }
             if (!containDetourPlaceholder && !outboundDetour.IsNullOrEmpty())
             {
-                customOutboundObj!["streamSettings"] ??= new JsonObject();
-                customOutboundObj["streamSettings"]["sockopt"] ??= new JsonObject();
-                customOutboundObj["streamSettings"]["sockopt"]["dialerProxy"] = outboundDetour;
-                if (customOutboundObj["streamSettings"]?["xhttpSettings"]?["extra"]?["downloadSettings"] is JsonObject downloadSettings)
+                customOutboundDialingObj["streamSettings"] ??= new JsonObject();
+                customOutboundDialingObj["streamSettings"]["sockopt"] ??= new JsonObject();
+                customOutboundDialingObj["streamSettings"]["sockopt"]["dialerProxy"] = outboundDetour;
+                if (customOutboundDialingObj["streamSettings"]?["xhttpSettings"]?["extra"]?["downloadSettings"] is JsonObject downloadSettings)
                 {
                     downloadSettings["sockopt"] ??= new JsonObject();
                     downloadSettings["sockopt"]["dialerProxy"] = outboundDetour;
                 }
             }
-            else if (outboundDetour.IsNullOrEmpty())
-            {
-                (customOutboundObj?["streamSettings"]?["sockopt"] as JsonObject)?.Remove("dialerProxy");
-            }
             if (!containBindInterfacePlaceholder && !outboundBindInterface.IsNullOrEmpty())
             {
-                customOutboundObj!["streamSettings"] ??= new JsonObject();
-                customOutboundObj["streamSettings"]["sockopt"] ??= new JsonObject();
-                customOutboundObj["streamSettings"]["sockopt"]["interface"] = outboundBindInterface;
-                if (customOutboundObj["streamSettings"]?["xhttpSettings"]?["extra"]?["downloadSettings"] is JsonObject downloadSettings)
+                customOutboundDialingObj["streamSettings"] ??= new JsonObject();
+                customOutboundDialingObj["streamSettings"]["sockopt"] ??= new JsonObject();
+                customOutboundDialingObj["streamSettings"]["sockopt"]["interface"] = outboundBindInterface;
+                if (customOutboundDialingObj["streamSettings"]?["xhttpSettings"]?["extra"]?["downloadSettings"] is JsonObject downloadSettings)
                 {
                     downloadSettings["sockopt"] ??= new JsonObject();
                     downloadSettings["sockopt"]["interface"] = outboundBindInterface;
@@ -74,7 +103,19 @@ public partial class CoreConfigV2rayService
             var index = coreConfigOutboundsNode
                 .Select((node, idx) => new { node, idx })
                 .FirstOrDefault(x => x.node?["tag"]?.ToString() == outboundTag)?.idx ?? -1;
-            if (index != -1)
+            if (index == -1)
+            {
+                continue;
+            }
+            if (customOutboundNode is JsonArray customOutboundArray)
+            {
+                coreConfigOutboundsNode.RemoveAt(index);
+                foreach (var item in customOutboundArray)
+                {
+                    coreConfigOutboundsNode.Insert(index++, item?.DeepClone());
+                }
+            }
+            else
             {
                 coreConfigOutboundsNode[index] = customOutboundObj;
             }
@@ -224,7 +265,7 @@ public partial class CoreConfigV2rayService
 
     private void ApplyOutboundBindInterface()
     {
-        var bindInterface = _config.CoreBasicItem.BindInterface?.TrimEx();
+        var bindInterface = NetworkUtils.GetRealBindInterfaceName(_config.CoreBasicItem.BindInterface);
         if (bindInterface.IsNullOrEmpty())
         {
             return;

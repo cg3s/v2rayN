@@ -41,12 +41,12 @@ public class CoreConfigContextBuilder
             RunCoreType = runCoreType,
             AllProxiesMap = [],
             AppConfig = config,
-            FullConfigTemplate = await AppManager.Instance.GetFullConfigTemplateItem(coreType),
+            FullConfigTemplate = await ConfigDbQuery.GetFullConfigTemplateItem(coreType),
             IsTunEnabled = config.TunModeItem.EnableTun,
             SimpleDnsItem = config.SimpleDNSItem,
             ProtectDomainList = [],
-            RawDnsItem = await AppManager.Instance.GetDNSItem(coreType),
-            RoutingItem = await ConfigHandler.GetDefaultRouting(config),
+            RawDnsItem = await ConfigDbQuery.GetDNSItem(coreType),
+            RoutingItem = await ConfigDbHandler.GetDefaultRouting(),
             IsWindows = Utils.IsWindows(),
             IsMacOS = Utils.IsMacOS(),
             IsLinux = Utils.IsLinux(),
@@ -73,7 +73,7 @@ public class CoreConfigContextBuilder
                     ruleItem.OutboundTag = Global.ProxyTag;
                     continue;
                 }
-                var ruleOutboundNode = await AppManager.Instance.GetProfileItemViaRemarks(ruleItem.OutboundTag);
+                var ruleOutboundNode = await ConfigDbQuery.GetProfileItemViaRemarks(ruleItem.OutboundTag);
                 if (ruleOutboundNode == null)
                 {
                     validatorResult.Warnings.Add(string.Format(ResUI.MsgRoutingRuleOutboundNodeNotFound,
@@ -121,17 +121,28 @@ public class CoreConfigContextBuilder
             && !Utils.IsLocalIP(context.AppConfig.CoreBasicItem.SendThrough))
         {
             validatorResult.Warnings.Add(string.Format(ResUI.MsgInvalidProperty, ResUI.TbSettingsSendThrough));
-            var appConfig = JsonUtils.DeepCopy(config);
+            var appConfig = JsonUtils.DeepCopy(context.AppConfig);
             appConfig.CoreBasicItem.SendThrough = string.Empty;
             context = context with { AppConfig = appConfig };
         }
-        if (!context.AppConfig.CoreBasicItem.BindInterface.IsNullOrEmpty()
-            && (!Utils.ContainsInterfaceName(context.AppConfig.CoreBasicItem.BindInterface)
-            || !(context.IsTunEnabled || context.IsWindows)))
+        var bindInterface = context.AppConfig.CoreBasicItem.BindInterface?.TrimEx();
+        if (bindInterface.IsNotEmpty())
         {
-            validatorResult.Warnings.Add(string.Format(ResUI.MsgInvalidProperty, ResUI.TbSettingsBindInterface));
-            var appConfig = JsonUtils.DeepCopy(config);
-            appConfig.CoreBasicItem.BindInterface = string.Empty;
+            if (NetworkUtils.IsAutoBindInterface(bindInterface))
+            {
+                bindInterface = NetworkUtils.GetDefaultPhysicalInterfaceName()?.TrimEx();
+            }
+
+            if (bindInterface.IsNullOrEmpty()
+                || !Utils.ContainsInterfaceName(bindInterface)
+                || !(context.IsTunEnabled || context.IsWindows))
+            {
+                validatorResult.Warnings.Add(string.Format(ResUI.MsgInvalidProperty, ResUI.TbSettingsBindInterface));
+                bindInterface = string.Empty;
+            }
+
+            var appConfig = JsonUtils.DeepCopy(context.AppConfig);
+            appConfig.CoreBasicItem.BindInterface = bindInterface;
             context = context with { AppConfig = appConfig };
         }
 
@@ -193,7 +204,7 @@ public class CoreConfigContextBuilder
         var node = nodeContext.Node;
         var coreType = AppManager.Instance.GetCoreType(node, node.ConfigType);
 
-        var preSocksItem = ConfigHandler.GetPreSocksItem(config, node, coreType);
+        var preSocksItem = GetPreSocksItem(config, node, coreType);
         if (preSocksItem != null)
         {
             var preSocksResult = await Build(nodeContext.AppConfig, preSocksItem);
@@ -266,7 +277,7 @@ public class CoreConfigContextBuilder
             return (null, result);
         }
 
-        var subItem = await AppManager.Instance.GetSubItem(node.Subid);
+        var subItem = await ConfigDbQuery.GetSubItem(node.Subid);
         if (subItem == null)
         {
             return (null, result);
@@ -277,7 +288,7 @@ public class CoreConfigContextBuilder
 
         if (!subItem.PrevProfile.IsNullOrEmpty())
         {
-            prevNode = await AppManager.Instance.GetProfileItemViaRemarks(subItem.PrevProfile);
+            prevNode = await ConfigDbQuery.GetProfileItemViaRemarks(subItem.PrevProfile);
             if (prevNode == null)
             {
                 result.Warnings.Add(string.Format(ResUI.MsgSubscriptionPrevProfileNotFound, subItem.PrevProfile));
@@ -285,7 +296,7 @@ public class CoreConfigContextBuilder
         }
         if (!subItem.NextProfile.IsNullOrEmpty())
         {
-            nextNode = await AppManager.Instance.GetProfileItemViaRemarks(subItem.NextProfile);
+            nextNode = await ConfigDbQuery.GetProfileItemViaRemarks(subItem.NextProfile);
             if (nextNode == null)
             {
                 result.Warnings.Add(string.Format(ResUI.MsgSubscriptionNextProfileNotFound, subItem.NextProfile));
@@ -506,5 +517,46 @@ public class CoreConfigContextBuilder
         node.SetProtocolExtra(node.GetProtocolExtra() with { ChildItems = Utils.List2String(childIndexIdList) });
         context.AllProxiesMap[node.IndexId] = node;
         return childNodeValidatorResult;
+    }
+
+    /// <summary>
+    /// Get a SOCKS server profile for pre-SOCKS functionality
+    /// Used when TUN mode is enabled or when a custom config has a pre-SOCKS port
+    /// </summary>
+    /// <param name="config">Current configuration</param>
+    /// <param name="node">Server node that might need pre-SOCKS</param>
+    /// <param name="coreType">Core type being used</param>
+    /// <returns>A SOCKS profile item or null if not needed</returns>
+    private static ProfileItem? GetPreSocksItem(Config config, ProfileItem node, ECoreType coreType)
+    {
+        ProfileItem? itemSocks = null;
+        var enableLegacyProtect = config.TunModeItem.EnableLegacyProtect;
+        if (node.ConfigType != EConfigType.Custom
+            && coreType != ECoreType.sing_box
+            && config.TunModeItem.EnableTun
+            && enableLegacyProtect)
+        {
+            itemSocks = new ProfileItem()
+            {
+                CoreType = ECoreType.sing_box,
+                ConfigType = EConfigType.SOCKS,
+                Address = Global.Loopback,
+                Port = AppManager.Instance.GetLocalPort(EInboundProtocol.socks)
+            };
+        }
+        else if (node.ConfigType == EConfigType.Custom
+            && node.PreSocksPort is > 0 and <= 65535)
+        {
+            var customPreCoreType = AppManager.Instance.GetCoreType(null, EConfigType.Custom);
+            var preCoreType = (enableLegacyProtect && config.TunModeItem.EnableTun) ? ECoreType.sing_box : customPreCoreType;
+            itemSocks = new ProfileItem()
+            {
+                CoreType = preCoreType,
+                ConfigType = EConfigType.SOCKS,
+                Address = Global.Loopback,
+                Port = node.PreSocksPort.Value,
+            };
+        }
+        return itemSocks;
     }
 }

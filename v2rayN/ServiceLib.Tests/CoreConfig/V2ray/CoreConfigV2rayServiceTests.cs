@@ -3,6 +3,75 @@ namespace ServiceLib.Tests.CoreConfig.V2ray;
 public class CoreConfigV2rayServiceTests
 {
     [Test]
+    [Arguments("demo-seed", "srtp", 2)]
+    [Arguments(null, "srtp", 2)]
+    [Arguments("demo-seed", "none", 1)]
+    [Arguments(null, "none", 1)]
+    public async Task GenerateClientConfigContent_KcpHeader_ShouldPreserveInnerMask(string? seed, string header, int expectedCount)
+    {
+        var config = CoreConfigTestFactory.CreateConfig(ECoreType.Xray);
+        CoreConfigTestFactory.BindAppManagerConfig(config);
+        var node = CoreConfigTestFactory.CreateVmessNode(ECoreType.Xray);
+        node.Network = nameof(ETransport.kcp);
+        node.SetTransportExtra(new TransportExtraItem { KcpSeed = seed, KcpHeaderType = header });
+        var context = CoreConfigTestFactory.CreateContext(config, node, ECoreType.Xray);
+
+        var result = new CoreConfigV2rayService(context).GenerateClientConfigContent();
+
+        await result.Success.Should().BeTrue();
+        var generatedConfig = JsonNode.Parse(result.Data!.ToString()!)!;
+        var proxy = generatedConfig["outbounds"]!.AsArray()
+            .First(outbound => outbound!["tag"]!.GetValue<string>() == Global.ProxyTag)!;
+        var masks = proxy["streamSettings"]!["finalmask"]!["udp"]!.AsArray();
+        await masks.Count.Should().BeEqualTo(expectedCount);
+        await masks[0]!["type"]!.GetValue<string>().Should().BeEqualTo("mkcp-legacy");
+        await (masks[0]!["settings"]?["value"]?.GetValue<string>()).Should().BeEqualTo(seed);
+        await (masks[0]!["settings"]?["header"]?.GetValue<string>()).Should().BeNull();
+        if (expectedCount == 2)
+        {
+            await masks[1]!["type"]!.GetValue<string>().Should().BeEqualTo("mkcp-legacy");
+            await masks[1]!["settings"]!["header"]!.GetValue<string>().Should().BeEqualTo(header);
+        }
+    }
+
+    [Test]
+    [Arguments(null)]
+    [Arguments("")]
+    [Arguments("AGH+DQBdAAAgACBAi73MnT3WWXWj4M9MUiTygpjSPUfM/Rj3Iasve4uFQAAkAAEAAQABAAIAAQADAAIAAQACAAIAAgADAAMAAQADAAIAAwADAA5vdXRlci5lY2gudGVzdAAA")]
+    [Arguments("https://dns.example.com/dns-query")]
+    [Arguments("udp://127.0.0.1:5353")]
+    [Arguments("ech.example.com+https://dns.example.com/dns-query")]
+    public async Task GenerateClientConfigContent_Tls_ShouldPreserveEchConfigWithoutLegacyQueryOption(string? echConfigList)
+    {
+        var config = CoreConfigTestFactory.CreateConfig(ECoreType.Xray);
+        CoreConfigTestFactory.BindAppManagerConfig(config);
+        var node = CoreConfigTestFactory.CreateVmessNode(ECoreType.Xray);
+        node.StreamSecurity = Global.StreamSecurity;
+        node.Sni = "ech.example.com";
+        node.EchConfigList = echConfigList;
+        var context = CoreConfigTestFactory.CreateContext(config, node, ECoreType.Xray);
+
+        var result = new CoreConfigV2rayService(context).GenerateClientConfigContent();
+
+        await result.Success.Should().BeTrue();
+        var generatedConfig = JsonNode.Parse(result.Data!.ToString()!)!;
+        var proxy = generatedConfig["outbounds"]!.AsArray()
+            .First(outbound => outbound!["tag"]!.GetValue<string>() == Global.ProxyTag)!;
+        var tls = proxy["streamSettings"]!["tlsSettings"]!.AsObject();
+
+        await tls["serverName"]!.GetValue<string>().Should().BeEqualTo("ech.example.com");
+        if (string.IsNullOrEmpty(echConfigList))
+        {
+            await tls.ContainsKey("echConfigList").Should().BeFalse();
+        }
+        else
+        {
+            await tls["echConfigList"]!.GetValue<string>().Should().BeEqualTo(echConfigList);
+        }
+        await tls.ContainsKey("echForceQuery").Should().BeFalse();
+    }
+
+    [Test]
     public async Task GenerateClientConfigContent_ShouldGenerateBasicProxyConfig()
     {
         var config = CoreConfigTestFactory.CreateConfig(ECoreType.Xray);
@@ -19,6 +88,92 @@ public class CoreConfigV2rayServiceTests
         await v2rayConfig.Should().NotBeNull();
         await v2rayConfig!.outbounds.Should().Contain(o => o.tag == Global.ProxyTag && o.protocol == "vmess");
         await v2rayConfig.inbounds.Should().Contain(i => i.protocol == nameof(EInboundProtocol.mixed));
+    }
+
+    [Test]
+    public async Task GenerateClientConfigContent_RawHttpHeader_ShouldEmitRequestWithHostAndPath()
+    {
+        var config = CoreConfigTestFactory.CreateConfig(ECoreType.Xray);
+        CoreConfigTestFactory.BindAppManagerConfig(config);
+        var node = CoreConfigTestFactory.CreateVmessNode(ECoreType.Xray);
+        node.SetTransportExtra(new TransportExtraItem
+        {
+            RawHeaderType = Global.RawHeaderHttp,
+            Host = "a.example.com,b.example.com",
+            Path = "/p1,/p2",
+        });
+        var context = CoreConfigTestFactory.CreateContext(config, node, ECoreType.Xray);
+
+        var result = new CoreConfigV2rayService(context).GenerateClientConfigContent();
+
+        await result.Success.Should().BeTrue();
+        var generatedConfig = JsonNode.Parse(result.Data!.ToString()!)!;
+        var proxy = generatedConfig["outbounds"]!.AsArray()
+            .First(outbound => outbound!["tag"]!.GetValue<string>() == Global.ProxyTag)!;
+        var header = proxy["streamSettings"]!["rawSettings"]!["header"]!;
+        await header["type"]!.GetValue<string>().Should().BeEqualTo(Global.RawHeaderHttp);
+
+        var request = header["request"];
+        await request.Should().NotBeNull();
+        var hosts = request!["headers"]!["Host"]!.AsArray().Select(h => h!.GetValue<string>()).ToList();
+        var paths = request["path"]!.AsArray().Select(p => p!.GetValue<string>()).ToList();
+        await hosts.Order(StringComparer.Ordinal).SequenceEqual(["a.example.com", "b.example.com"], StringComparer.Ordinal).Should().BeTrue();
+        await paths.Order(StringComparer.Ordinal).SequenceEqual(["/p1", "/p2"], StringComparer.Ordinal).Should().BeTrue();
+    }
+
+    [Test]
+    public async Task GenerateClientConfigContent_RealityFragment_ShouldUsePacketRangeOnlyForReality()
+    {
+        static ProfileItem CreateVlessNode(string indexId, string streamSecurity)
+        {
+            var node = new ProfileItem
+            {
+                IndexId = indexId,
+                ConfigType = EConfigType.VLESS,
+                CoreType = ECoreType.Xray,
+                Remarks = indexId,
+                Address = "example.com",
+                Port = 443,
+                Password = "01234567-89ab-cdef-0123-456789abcdef",
+                Network = nameof(ETransport.raw),
+                StreamSecurity = streamSecurity,
+                PublicKey = "test-public-key",
+                Sni = "example.com",
+                Fingerprint = "chrome",
+            };
+            node.SetProtocolExtra(new ProtocolExtraItem { VlessEncryption = Global.None });
+            node.SetTransportExtra(new TransportExtraItem { RawHeaderType = Global.None });
+            return node;
+        }
+
+        static string GetFragmentPackets(Outbounds4Ray outbound)
+        {
+            var finalmask = JsonUtils.ParseJson(JsonUtils.Serialize(outbound.streamSettings!.finalmask));
+            return finalmask!["tcp"]![0]!["settings"]!["packets"]!.GetValue<string>();
+        }
+
+        var config = CoreConfigTestFactory.CreateConfig(ECoreType.Xray);
+        config.CoreBasicItem.EnableFragment = true;
+        CoreConfigTestFactory.BindAppManagerConfig(config);
+
+        var tlsNode = CreateVlessNode("tls-node", Global.StreamSecurity);
+        var realityNode = CreateVlessNode("reality-node", Global.StreamSecurityReality);
+        var group = CoreConfigTestFactory.CreatePolicyGroupNode(ECoreType.Xray, "group", "group",
+            [tlsNode.IndexId, realityNode.IndexId]);
+        var context = CoreConfigTestFactory.CreateContext(config, group, ECoreType.Xray);
+        context.AllProxiesMap[tlsNode.IndexId] = tlsNode;
+        context.AllProxiesMap[realityNode.IndexId] = realityNode;
+        context.AllProxiesMap[group.IndexId] = group;
+
+        var result = new CoreConfigV2rayService(context).GenerateClientConfigContent();
+
+        await result.Success.Should().BeTrue();
+        var cfg = JsonUtils.Deserialize<V2rayConfig>(result.Data!.ToString())!;
+        var tlsOutbound = cfg.outbounds.Single(o => o.streamSettings?.security == Global.StreamSecurity);
+        var realityOutbound = cfg.outbounds.Single(o => o.streamSettings?.security == Global.StreamSecurityReality);
+
+        await GetFragmentPackets(tlsOutbound).Should().BeEqualTo("tlshello");
+        await GetFragmentPackets(realityOutbound).Should().BeEqualTo("1-3");
     }
 
     [Test]
@@ -49,7 +204,8 @@ public class CoreConfigV2rayServiceTests
         await headers["User-Agent"]!.GetValue<string>().Should().BeEqualTo("v2rayN");
         await headers["Set-Cookie"]!.AsArray()
             .Select(item => item!.GetValue<string>())
-            .Should().BeEquivalentTo(["a=1", "b=2"]);
+            .Order(StringComparer.Ordinal).SequenceEqual(["a=1", "b=2"])
+            .Should().BeTrue();
     }
 
     [Test]
@@ -730,5 +886,211 @@ public class CoreConfigV2rayServiceTests
         var proxyOutbound = cfg!.outbounds.FirstOrDefault(o => o.tag == Global.ProxyTag);
         await proxyOutbound.Should().NotBeNull();
         await proxyOutbound!.protocol.Should().BeEqualTo("shadowsocks");
+    }
+
+    [Test]
+    public async Task GenerateClientConfigContent_CustomOutbound_ShouldInheritTargetStrategyFromDnsSettings()
+    {
+        var config = CoreConfigTestFactory.CreateConfig(ECoreType.Xray);
+        config.SimpleDNSItem.Strategy4Proxy = "UseIPv4";
+        CoreConfigTestFactory.BindAppManagerConfig(config);
+
+        var customNode = CoreConfigTestFactory.CreateCustomOutboundNode(ECoreType.Xray, "n-custom", "custom-xray");
+        var customJsonContent = """
+        {
+          "protocol": "shadowsocks",
+          "settings": {
+            "servers": [
+              {
+                "address": "1.2.3.4",
+                "port": 8388,
+                "method": "aes-128-gcm",
+                "password": "custom_password"
+              }
+            ]
+          }
+        }
+        """;
+
+        var context = CoreConfigTestFactory.CreateContext(config, customNode, ECoreType.Xray);
+        context.CustomOutboundContent[customNode.IndexId] = customJsonContent;
+
+        var result = new CoreConfigV2rayService(context).GenerateClientConfigContent();
+
+        await result.Success.Should().BeTrue().Because($"ret msg: {result.Msg}");
+        var generatedConfig = JsonNode.Parse(result.Data!.ToString()!)!;
+        var proxy = generatedConfig["outbounds"]!.AsArray()
+            .First(outbound => outbound!["tag"]!.GetValue<string>() == Global.ProxyTag)!;
+
+        await proxy["targetStrategy"]?.GetValue<string>().Should().BeEqualTo("UseIPv4");
+    }
+
+    [Test]
+    public async Task GenerateClientConfigContent_CustomOutbound_ShouldKeepExplicitTargetStrategy()
+    {
+        var config = CoreConfigTestFactory.CreateConfig(ECoreType.Xray);
+        config.SimpleDNSItem.Strategy4Proxy = "UseIPv4";
+        CoreConfigTestFactory.BindAppManagerConfig(config);
+
+        var customNode = CoreConfigTestFactory.CreateCustomOutboundNode(ECoreType.Xray, "n-custom", "custom-xray");
+        var customJsonContent = """
+        {
+          "protocol": "shadowsocks",
+          "targetStrategy": "AsIs",
+          "settings": {
+            "servers": [
+              {
+                "address": "1.2.3.4",
+                "port": 8388,
+                "method": "aes-128-gcm",
+                "password": "custom_password"
+              }
+            ]
+          }
+        }
+        """;
+
+        var context = CoreConfigTestFactory.CreateContext(config, customNode, ECoreType.Xray);
+        context.CustomOutboundContent[customNode.IndexId] = customJsonContent;
+
+        var result = new CoreConfigV2rayService(context).GenerateClientConfigContent();
+
+        await result.Success.Should().BeTrue().Because($"ret msg: {result.Msg}");
+        var generatedConfig = JsonNode.Parse(result.Data!.ToString()!)!;
+        var proxy = generatedConfig["outbounds"]!.AsArray()
+            .First(outbound => outbound!["tag"]!.GetValue<string>() == Global.ProxyTag)!;
+
+        await proxy["targetStrategy"]?.GetValue<string>().Should().BeEqualTo("AsIs");
+    }
+
+    [Test]
+    public async Task GenerateClientConfigContent_XdriveGoogleDrive_ShouldGenerateValidOutbound()
+    {
+        var config = CoreConfigTestFactory.CreateConfig(ECoreType.Xray);
+        CoreConfigTestFactory.BindAppManagerConfig(config);
+
+        var node = new ProfileItem
+        {
+            IndexId = "node-xdrive-gdrive",
+            ConfigType = EConfigType.VLESS,
+            CoreType = ECoreType.Xray,
+            Remarks = "xdrive-gdrive",
+            Address = "example.com",
+            Port = 443,
+            Password = Guid.NewGuid().ToString(),
+            Network = nameof(ETransport.xdrive),
+            MuxEnabled = false,
+        };
+        node.SetProtocolExtra(new ProtocolExtraItem { VlessEncryption = Global.None });
+        node.SetTransportExtra(new TransportExtraItem
+        {
+            XdriveService = "google-drive",
+            XdriveRemoteFolder = "folder-123",
+            XdriveSecrets = "id,secret,token",
+        });
+
+        var context = CoreConfigTestFactory.CreateContext(config, node, ECoreType.Xray);
+        var result = new CoreConfigV2rayService(context).GenerateClientConfigContent();
+
+        await result.Success.Should().BeTrue();
+        var generatedConfig = JsonNode.Parse(result.Data!.ToString()!)!;
+        var proxy = generatedConfig["outbounds"]!.AsArray()
+            .First(outbound => outbound!["tag"]!.GetValue<string>() == Global.ProxyTag)!;
+
+        var streamSettings = proxy["streamSettings"]!;
+        await streamSettings["network"]!.GetValue<string>().Should().BeEqualTo("xdrive");
+
+        var xdriveSettings = streamSettings["xdriveSettings"]!;
+        await xdriveSettings["service"]!.GetValue<string>().Should().BeEqualTo("google-drive");
+        await xdriveSettings["remoteFolder"]!.GetValue<string>().Should().BeEqualTo("folder-123");
+
+        var secrets = xdriveSettings["secrets"]!.AsArray();
+        await secrets.Count.Should().BeEqualTo(3);
+        await secrets[0]!.GetValue<string>().Should().BeEqualTo("id");
+        await secrets[1]!.GetValue<string>().Should().BeEqualTo("secret");
+        await secrets[2]!.GetValue<string>().Should().BeEqualTo("token");
+
+        await proxy["mux"]!["enabled"]!.GetValue<bool>().Should().BeTrue();
+    }
+
+    [Test]
+    public async Task GenerateClientConfigContent_XdriveS3_ShouldGenerateValidOutbound()
+    {
+        var config = CoreConfigTestFactory.CreateConfig(ECoreType.Xray);
+        CoreConfigTestFactory.BindAppManagerConfig(config);
+
+        var node = new ProfileItem
+        {
+            IndexId = "node-xdrive-s3",
+            ConfigType = EConfigType.VLESS,
+            CoreType = ECoreType.Xray,
+            Remarks = "xdrive-s3",
+            Address = "example.com",
+            Port = 443,
+            Password = Guid.NewGuid().ToString(),
+            Network = nameof(ETransport.xdrive),
+        };
+        node.SetProtocolExtra(new ProtocolExtraItem { VlessEncryption = Global.None });
+        node.SetTransportExtra(new TransportExtraItem
+        {
+            XdriveService = "s3",
+            XdriveS3Endpoint = "https://s3.amazonaws.com",
+            XdriveS3Bucket = "mybucket",
+            XdriveS3PathStyle = false,
+        });
+
+        var context = CoreConfigTestFactory.CreateContext(config, node, ECoreType.Xray);
+        var result = new CoreConfigV2rayService(context).GenerateClientConfigContent();
+
+        await result.Success.Should().BeTrue();
+        var generatedConfig = JsonNode.Parse(result.Data!.ToString()!)!;
+        var proxy = generatedConfig["outbounds"]!.AsArray()
+            .First(outbound => outbound!["tag"]!.GetValue<string>() == Global.ProxyTag)!;
+
+        var s3 = proxy["streamSettings"]!["xdriveSettings"]!["s3"]!;
+        await s3["endpoint"]!.GetValue<string>().Should().BeEqualTo("https://s3.amazonaws.com");
+        await s3["bucket"]!.GetValue<string>().Should().BeEqualTo("mybucket");
+        await s3["pathStyle"]!.GetValue<bool>().Should().BeFalse();
+    }
+
+    [Test]
+    public async Task GenerateClientConfigContent_XdriveExtra_ShouldPopulateParameters()
+    {
+        var config = CoreConfigTestFactory.CreateConfig(ECoreType.Xray);
+        CoreConfigTestFactory.BindAppManagerConfig(config);
+
+        var node = new ProfileItem
+        {
+            IndexId = "node-xdrive-extra",
+            ConfigType = EConfigType.VLESS,
+            CoreType = ECoreType.Xray,
+            Remarks = "xdrive-extra",
+            Address = "example.com",
+            Port = 443,
+            Password = Guid.NewGuid().ToString(),
+            Network = nameof(ETransport.xdrive),
+        };
+        node.SetProtocolExtra(new ProtocolExtraItem { VlessEncryption = Global.None });
+        node.SetTransportExtra(new TransportExtraItem
+        {
+            XdriveService = "onedrive",
+            XdriveExtra = """{"segmentBytes":1048576,"flushIntervalMs":500,"pollIntervalMs":200,"maxPollIntervalMs":2000,"eagerWindowMs":1000,"concurrency":4}""",
+        });
+
+        var context = CoreConfigTestFactory.CreateContext(config, node, ECoreType.Xray);
+        var result = new CoreConfigV2rayService(context).GenerateClientConfigContent();
+
+        await result.Success.Should().BeTrue();
+        var generatedConfig = JsonNode.Parse(result.Data!.ToString()!)!;
+        var proxy = generatedConfig["outbounds"]!.AsArray()
+            .First(outbound => outbound!["tag"]!.GetValue<string>() == Global.ProxyTag)!;
+
+        var xdriveSettings = proxy["streamSettings"]!["xdriveSettings"]!;
+        await xdriveSettings["segmentBytes"]!.GetValue<int>().Should().BeEqualTo(1048576);
+        await xdriveSettings["flushIntervalMs"]!.GetValue<int>().Should().BeEqualTo(500);
+        await xdriveSettings["pollIntervalMs"]!.GetValue<int>().Should().BeEqualTo(200);
+        await xdriveSettings["maxPollIntervalMs"]!.GetValue<int>().Should().BeEqualTo(2000);
+        await xdriveSettings["eagerWindowMs"]!.GetValue<int>().Should().BeEqualTo(1000);
+        await xdriveSettings["concurrency"]!.GetValue<int>().Should().BeEqualTo(4);
     }
 }

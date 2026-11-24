@@ -7,7 +7,7 @@ public partial class ClashProxiesViewModel : MyReactiveObject
 
     public ClashProxiesViewModel()
     {
-        _config = AppManager.Instance.Config;
+        _config = ConfigTextHandler.Config;
 
         ProxiesReloadCmd = ReactiveCommand.CreateFromTask(async () =>
         {
@@ -359,7 +359,7 @@ public partial class ClashProxiesViewModel : MyReactiveObject
     private async Task TestGroupProxiesDelay()
     {
         var groupProxy = TryGetProxy(SelectedGroup.Name);
-        if (!Global.allowSelectType.Contains(groupProxy?.type))
+        if (!Global.allowSelectType.Contains(groupProxy?.type, StringComparer.OrdinalIgnoreCase))
         {
             return;
         }

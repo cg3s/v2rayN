@@ -36,7 +36,7 @@ public partial class RoutingRuleSettingViewModel : MyReactiveObject, ICloseable
 
     public RoutingRuleSettingViewModel(RoutingItem routingItem)
     {
-        _config = AppManager.Instance.Config;
+        _config = ConfigTextHandler.Config;
 
         var canEditRemove = this.WhenAnyValue(
             x => x.SelectedSource,
@@ -191,13 +191,7 @@ public partial class RoutingRuleSettingViewModel : MyReactiveObject, ICloseable
         }
         if (lst.Count > 0)
         {
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            };
-            await SetClipboardDataInteraction.HandleSafe(JsonUtils.Serialize(lst, options));
+            await SetClipboardDataInteraction.HandleSafe(JsonUtils.SerializeCamelCase(lst));
         }
     }
 
@@ -215,7 +209,7 @@ public partial class RoutingRuleSettingViewModel : MyReactiveObject, ICloseable
             return;
         }
         var index = _rules.IndexOf(item);
-        if (await ConfigHandler.MoveRoutingRule(_rules, index, eMove) == 0)
+        if (await ConfigDbHandler.MoveRoutingRule(_rules, index, eMove) == 0)
         {
             RefreshRulesItems();
         }
@@ -237,7 +231,7 @@ public partial class RoutingRuleSettingViewModel : MyReactiveObject, ICloseable
         item.RuleNum = _rules.Count;
         item.RuleSet = JsonUtils.Serialize(_rules, false);
 
-        if (await ConfigHandler.SaveRoutingItem(_config, item) == 0)
+        if (await ConfigDbHandler.SaveRoutingItem(item) == 0)
         {
             NoticeManager.Instance.Enqueue(ResUI.OperationSuccess);
             RequestClose?.Invoke(this, EventArgs.Empty);
@@ -300,8 +294,8 @@ public partial class RoutingRuleSettingViewModel : MyReactiveObject, ICloseable
             return;
         }
 
-        var downloadHandle = new DownloadService();
-        var result = await downloadHandle.TryDownloadString(url, true, "");
+        using var downloadHandle = await DownloadService.CreateDownloadServiceWithCheck();
+        var result = await downloadHandle.TryDownloadString(url);
         var ret = await AddBatchRoutingRulesAsync(SelectedRouting, result);
         if (ret == 0)
         {

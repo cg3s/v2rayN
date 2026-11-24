@@ -42,11 +42,13 @@ public class Global
     public const string SingboxFakeIPFilterFileName = NamespaceSample + "singbox_fakeip_filter";
     public const string ChromeRootCertFileName = NamespaceSample + "chrome_roots_pem";
     public const string MozillaRootCertFileName = NamespaceSample + "mozilla_roots_pem";
+    public const string TaskXmlTemplateFileName = NamespaceSample + "TaskXmlTemplate";
 
     public const string ChromeRootProvider = "chrome";
     public const string MozillaRootProvider = "mozilla";
 
     public const string DefaultSecurity = "auto";
+    public const string BindInterfaceAuto = "AUTO";
     public const string DefaultNetwork = "raw";
     public const string RawHeaderHttp = "http";
     public const string None = "none";
@@ -335,7 +337,8 @@ public class Global
         "kcp",
         "grpc",
         "ws",
-        "httpupgrade"
+        "httpupgrade",
+        "xdrive"
     ];
 
     public static readonly List<string> KcpHeaderTypes =
@@ -453,6 +456,18 @@ public class Global
         "stream-one"
     ];
 
+    public static readonly List<string> XdriveServices = ["google-drive", "s3", "local"];
+
+    public static readonly List<string> XdriveProviders =
+    [
+        "Cloudflare R2",
+        "Google Drive",
+        "AWS S3 (Global)",
+        "Yandex Cloud S3",
+        "ArvanCloud S3",
+        "Custom S3"
+    ];
+
     public static readonly List<string> DomainStrategy =
     [
         "AsIs",
@@ -484,6 +499,9 @@ public class Global
         "https://doh.dns.sb/dns-query",
         "https://doh.opendns.com/dns-query",
         "https://common.dot.dns.yandex.net/dns-query",
+        "https://1.1.1.1/dns-query",
+        "https://8.8.8.8/dns-query",
+        "https://1.1.1.1/dns-query,https://8.8.8.8/dns-query",
         "8.8.8.8",
         "1.1.1.1",
         "185.222.222.222",
@@ -496,6 +514,20 @@ public class Global
         "119.29.29.29",
         "223.5.5.5",
         "localhost"
+    ];
+
+    public static readonly List<string> DomainDNS4PreResolveAddress =
+    [
+        "",
+        "https://doh.pub/dns-query",
+        "https://dns.alidns.com/dns-query",
+        "119.29.29.29",
+        "223.5.5.5",
+        "localhost",
+        "https://cloudflare-dns.com/dns-query",
+        "https://dns.google/dns-query",
+        "8.8.8.8",
+        "1.1.1.1",
     ];
 
     public static readonly List<LanguageOption> LanguageOptions =
@@ -549,7 +581,8 @@ public class Global
         "tun",
         "socks",
         "socks2",
-        "socks3"
+        "socks3",
+        "dns-module"
     ];
 
     public static readonly List<string> RuleProtocols =
@@ -590,6 +623,16 @@ public class Global
         "gvisor",
         "system",
         "mixed"
+    ];
+
+    public const string TunDnsModeDefault = "Default";
+
+    public static readonly List<string> TunDnsModes =
+    [
+        TunDnsModeDefault,
+        "disabled",
+        "native",
+        "hijack"
     ];
 
     public static readonly List<string> PresetMsgFilters =
@@ -681,6 +724,7 @@ public class Global
         @"https://api-ipv4.ip.sb/geoip",
         @"https://api-ipv6.ip.sb/geoip",
         @"https://api.ipapi.is",
+        @"https://api.internetdata.io/myip",
         @""
     ];
 
@@ -756,6 +800,12 @@ public class Global
     [
         "198.18.0.0/15",
         "11.0.0.0/8",
+    ];
+
+    public static readonly List<string> FakeIPv6Ranges =
+    [
+        "fc00::/18",
+        "2001:2::/48",
     ];
 
     public static readonly List<string> RootCertProviders =

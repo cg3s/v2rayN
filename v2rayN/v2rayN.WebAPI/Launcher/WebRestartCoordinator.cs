@@ -1,6 +1,5 @@
-using System.Diagnostics;
 using System.ComponentModel;
-using System.IO;
+using System.Diagnostics;
 
 namespace v2rayN.WebAPI.Launcher;
 
@@ -140,6 +139,7 @@ public interface IWebReplacementProcess : IDisposable
 {
     int Id { get; }
     bool HasExited { get; }
+
     void KillTree();
 }
 
@@ -151,6 +151,7 @@ public interface IWebReplacementProcessStarter
 public interface IWebInstanceOwnershipProbe
 {
     bool IsLockHeld(string lockPath);
+
     int? ReadOwnerProcessId(string lockPath);
 }
 
@@ -186,7 +187,8 @@ public sealed class NativeReplacementProcessStarter : IWebReplacementProcessStar
         {
             get
             {
-                try { return process.HasExited; }
+                try
+                { return process.HasExited; }
                 catch (InvalidOperationException) { return true; }
             }
         }
@@ -223,6 +225,7 @@ public sealed class NativeWebRestartCoordinator
     private readonly TimeSpan _timeout;
     private readonly TimeSpan _pollInterval;
     private readonly Func<TimeSpan, CancellationToken, Task> _delay;
+    private readonly TimeProvider _timeProvider;
 
     public NativeWebRestartCoordinator(
         IWebHealthProbe healthProbe,
@@ -230,16 +233,25 @@ public sealed class NativeWebRestartCoordinator
         IWebInstanceOwnershipProbe ownershipProbe,
         TimeSpan? timeout = null,
         TimeSpan? pollInterval = null,
-        Func<TimeSpan, CancellationToken, Task>? delay = null)
+        Func<TimeSpan, CancellationToken, Task>? delay = null,
+        TimeProvider? timeProvider = null)
     {
         _healthProbe = healthProbe;
         _processStarter = processStarter;
         _ownershipProbe = ownershipProbe;
         _timeout = timeout ?? DefaultTimeout;
         _pollInterval = pollInterval ?? DefaultPollInterval;
-        _delay = delay ?? Task.Delay;
-        if (_timeout <= TimeSpan.Zero) throw new ArgumentOutOfRangeException(nameof(timeout));
-        if (_pollInterval <= TimeSpan.Zero) throw new ArgumentOutOfRangeException(nameof(pollInterval));
+        _timeProvider = timeProvider ?? TimeProvider.System;
+        _delay = delay ?? ((duration, token) => Task.Delay(duration, _timeProvider, token));
+        if (_timeout <= TimeSpan.Zero)
+        {
+            throw new ArgumentOutOfRangeException(nameof(timeout));
+        }
+
+        if (_pollInterval <= TimeSpan.Zero)
+        {
+            throw new ArgumentOutOfRangeException(nameof(pollInterval));
+        }
     }
 
     public async Task<WebRestartHandoffResult> StartReplacementAfterOwnerReleaseAsync(
@@ -249,14 +261,15 @@ public sealed class NativeWebRestartCoordinator
         CancellationToken cancellationToken = default,
         bool? expectedCoreRunning = null)
     {
-        var timeout = Stopwatch.StartNew();
+        var started = _timeProvider.GetTimestamp();
         while (_ownershipProbe.IsLockHeld(lockPath))
         {
-            if (timeout.Elapsed >= _timeout)
+            var remaining = _timeout - _timeProvider.GetElapsedTime(started);
+            if (remaining <= TimeSpan.Zero)
             {
                 return new(false, "The previous Web owner did not release the current data-scope instance lock.");
             }
-            await _delay(Min(_pollInterval, _timeout - timeout.Elapsed), cancellationToken);
+            await _delay(Min(_pollInterval, remaining), cancellationToken);
         }
 
         IWebReplacementProcess? replacement;
@@ -275,7 +288,7 @@ public sealed class NativeWebRestartCoordinator
 
         using (replacement)
         {
-            while (timeout.Elapsed < _timeout)
+            while (_timeProvider.GetElapsedTime(started) < _timeout)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 if (_ownershipProbe.IsLockHeld(lockPath))
@@ -302,7 +315,12 @@ public sealed class NativeWebRestartCoordinator
                     return new(false, "The native replacement process exited before its Web health endpoint became ready.", replacement.Id);
                 }
 
-                await _delay(Min(_pollInterval, _timeout - timeout.Elapsed), cancellationToken);
+                var remaining = _timeout - _timeProvider.GetElapsedTime(started);
+                if (remaining <= TimeSpan.Zero)
+                {
+                    break;
+                }
+                await _delay(Min(_pollInterval, remaining), cancellationToken);
             }
 
             var currentOwner = _ownershipProbe.IsLockHeld(lockPath)

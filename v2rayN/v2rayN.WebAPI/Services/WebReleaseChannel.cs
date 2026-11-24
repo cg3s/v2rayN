@@ -9,7 +9,7 @@ namespace v2rayN.WebAPI.Services;
 /// </summary>
 internal static partial class WebReleaseChannel
 {
-    public const string DefaultRepository = "2dust/v2rayN";
+    public const string DefaultRepository = "cg3s/v2rayN";
     public const string ManifestAssetName = "WebAPI-update.json";
     private const string ApiBase = "https://api.github.com/repos";
 
@@ -19,14 +19,21 @@ internal static partial class WebReleaseChannel
     public static string BuildReleaseIndexUrl(string repository)
     {
         if (!IsValidRepository(repository))
+        {
             throw new ArgumentException("The release repository identifier is invalid.", nameof(repository));
+        }
+
         return $"{ApiBase}/{repository}/releases?per_page=100";
     }
 
     public static bool TryParseReleaseTag(string? tag, out string version)
     {
         version = string.Empty;
-        if (string.IsNullOrWhiteSpace(tag) || !ReleaseTagPattern().IsMatch(tag)) return false;
+        if (string.IsNullOrWhiteSpace(tag) || !ReleaseTagPattern().IsMatch(tag))
+        {
+            return false;
+        }
+
         version = tag;
         return true;
     }

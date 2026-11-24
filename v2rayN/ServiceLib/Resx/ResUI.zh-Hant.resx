@@ -744,9 +744,6 @@
   <data name="TbSettingsSystemproxy" xml:space="preserve">
     <value>系統代理設定</value>
   </data>
-  <data name="TbSettingsTrayMenuServersLimit" xml:space="preserve">
-    <value>工具列右鍵選單設定展示數量限制</value>
-  </data>
   <data name="TbSettingsUdpEnabled" xml:space="preserve">
     <value>開啟 UDP</value>
   </data>
@@ -1076,6 +1073,9 @@
   </data>
   <data name="TbSettingsTunStack" xml:space="preserve">
     <value>協定堆疊</value>
+  </data>
+  <data name="TbSettingsTunDnsMode" xml:space="preserve">
+    <value>DNS 模式</value>
   </data>
   <data name="TbMtu" xml:space="preserve">
     <value>MTU</value>
@@ -1899,5 +1899,92 @@
   </data>
   <data name="TbSortingProcess" xml:space="preserve">
     <value>行程</value>
+  </data>
+  <data name="menuAddMasqueServer" xml:space="preserve">
+    <value>新增 [MASQUE] 節點</value>
+  </data>
+  <data name="menuShowColumns" xml:space="preserve">
+    <value>顯示欄位</value>
+  </data>
+  <data name="TbWarp" xml:space="preserve">
+    <value>Warp</value>
+  </data>
+  <data name="LvPreResolve" xml:space="preserve">
+    <value>預解析節點網域名稱</value>
+  </data>
+  <data name="menuFreezeToThisColumn" xml:space="preserve">
+    <value>凍結至此欄</value>
+  </data>
+  <data name="menuUnfreezeAllColumns" xml:space="preserve">
+    <value>取消所有凍結</value>
+  </data>
+  <data name="menuCurrentlyFrozenColumns" xml:space="preserve">
+    <value>當前已凍結前 {0} 欄</value>
+  </data>
+  <data name="menuHideThisColumn" xml:space="preserve">
+    <value>隱藏此欄</value>
+  </data>
+  <data name="TbFakeIPv6" xml:space="preserve">
+    <value>IPv6 FakeIP</value>
+  </data>
+  <data name="TbFakeIPv6Tips" xml:space="preserve">
+    <value>同時傳回 IPv6 假位址，需啟用 FakeIP 且未封鎖 AAAA 查詢。</value>
+  </data>
+  <data name="FillCorrectFakeIPv6Range" xml:space="preserve">
+    <value>請輸入至少包含兩個位址的有效 IPv6 網段，例如 fc00::/18。</value>
+  </data>
+  <data name="XdriveProvider" xml:space="preserve">
+    <value>預設服務商</value>
+  </data>
+  <data name="XdriveService" xml:space="preserve">
+    <value>存儲服務 (service)</value>
+  </data>
+  <data name="XdriveRemoteFolder" xml:space="preserve">
+    <value>遠端目錄 (remoteFolder)</value>
+  </data>
+  <data name="XdriveSecrets" xml:space="preserve">
+    <value>存取憑證 Secrets (AK,SK / OAuth)</value>
+  </data>
+  <data name="XdriveS3Endpoint" xml:space="preserve">
+    <value>S3 終端節點</value>
+  </data>
+  <data name="XdriveS3Region" xml:space="preserve">
+    <value>S3 區域</value>
+  </data>
+  <data name="XdriveS3Bucket" xml:space="preserve">
+    <value>S3 儲存桶</value>
+  </data>
+  <data name="XdriveS3PathStyle" xml:space="preserve">
+    <value>S3 強制路徑樣式 (PathStyle)</value>
+  </data>
+  <data name="XdriveExtra" xml:space="preserve">
+    <value>XDRIVE 額外配置</value>
+  </data>
+  <data name="XdriveExtraTip" xml:space="preserve">
+    <value>原始 JSON，格式： { XdriveObject }</value>
+  </data>
+  <data name="TransportHeaderType6" xml:space="preserve">
+    <value>XDRIVE 服務</value>
+  </data>
+  <data name="TransportPathTip6" xml:space="preserve">
+    <value>XDRIVE 遠端目錄</value>
+  </data>
+  <data name="TbSpeedtestSettings" xml:space="preserve">
+    <value>測速設定</value>
+  </data>
+  <data name="MsgCheckUpdateViaLatest" xml:space="preserve">
+    <value>正在透過發佈重新導向檢查 {0} 更新...</value>
+  </data>
+  <data name="MsgCheckUpdateViaApi" xml:space="preserve">
+    <value>正在透過 GitHub API 檢查 {0} 更新...</value>
+  </data>
+  <data name="MsgCheckUpdateViaApiFailed" xml:space="preserve">
+    <value>{0} 的 GitHub API 無法使用</value>
+  </data>
+  <data name="MsgCheckUpdateViaGitRefs" xml:space="preserve">
+    <value>正在透過 git 參照檢查 {0} 更新...</value>
+  </data>
+  <data name="MsgCheckUpdateViaGitRefsFailed" xml:space="preserve">
+    <value>{0} 的 git 參照無法使用</value>
   </data>
 </root>

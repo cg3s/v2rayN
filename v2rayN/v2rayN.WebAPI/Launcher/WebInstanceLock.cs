@@ -31,7 +31,7 @@ public sealed class WebInstanceLock : IDisposable
             {
                 throw new IOException("Unable to open the v2rayN.WebAPI instance lock.", new Win32Exception(Marshal.GetLastPInvokeError()));
             }
-            stream = new FileStream(new SafeFileHandle((IntPtr)descriptor, ownsHandle: true), FileAccess.ReadWrite);
+            stream = new FileStream(new SafeFileHandle(descriptor, ownsHandle: true), FileAccess.ReadWrite);
         }
         else
         {
@@ -88,14 +88,16 @@ public sealed class WebInstanceLock : IDisposable
         try
         {
             string ownerText;
-            if (OperatingSystem.IsLinux())
+            if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
             {
-                var descriptor = Open(Path.GetFullPath(path), OpenReadOnly | OpenCloseOnExec, 0);
+                // A path-based FileStream read requests a shared flock that conflicts with the owner's lock.
+                var closeOnExec = OperatingSystem.IsMacOS() ? OpenCloseOnExecMacOS : OpenCloseOnExec;
+                var descriptor = Open(Path.GetFullPath(path), OpenReadOnly | closeOnExec, 0);
                 if (descriptor < 0)
                 {
                     return null;
                 }
-                using var stream = new FileStream(new SafeFileHandle((IntPtr)descriptor, ownsHandle: true), FileAccess.Read);
+                using var stream = new FileStream(new SafeFileHandle(descriptor, ownsHandle: true), FileAccess.Read);
                 using var reader = new StreamReader(stream, Encoding.ASCII);
                 ownerText = reader.ReadToEnd().Trim();
             }
@@ -150,7 +152,8 @@ public sealed class WebInstanceLock : IDisposable
         }
         else if (OperatingSystem.IsWindows())
         {
-            try { _stream.Unlock(WindowsLockOffset, WindowsLockLength); }
+            try
+            { _stream.Unlock(WindowsLockOffset, WindowsLockLength); }
             catch (IOException) { }
         }
         _stream.Dispose();
@@ -163,6 +166,7 @@ public sealed class WebInstanceLock : IDisposable
     private const int OpenReadWrite = 2;
     private const int OpenCreate = 64;
     private const int OpenCloseOnExec = 524288;
+    private const int OpenCloseOnExecMacOS = 0x01000000;
     private const uint UserReadWriteMode = 0x180;
     private const long WindowsLockOffset = 1024 * 1024;
     private const long WindowsLockLength = 1;

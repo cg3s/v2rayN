@@ -744,9 +744,6 @@
   <data name="TbSettingsSystemproxy" xml:space="preserve">
     <value>System proxy settings</value>
   </data>
-  <data name="TbSettingsTrayMenuServersLimit" xml:space="preserve">
-    <value>Tray right-click menu display limit</value>
-  </data>
   <data name="TbSettingsUdpEnabled" xml:space="preserve">
     <value>Enable UDP</value>
   </data>
@@ -1079,6 +1076,9 @@
   </data>
   <data name="TbSettingsTunStack" xml:space="preserve">
     <value>Stack</value>
+  </data>
+  <data name="TbSettingsTunDnsMode" xml:space="preserve">
+    <value>DNS mode</value>
   </data>
   <data name="TbMtu" xml:space="preserve">
     <value>MTU</value>
@@ -1901,5 +1901,89 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
   </data>
   <data name="menuAddMasqueServer" xml:space="preserve">
     <value>Add [MASQUE]</value>
+  </data>
+  <data name="TbFakeIPv6" xml:space="preserve">
+    <value>IPv6 FakeIP</value>
+  </data>
+  <data name="TbFakeIPv6Tips" xml:space="preserve">
+    <value>Return fake IPv6 addresses as well. Requires FakeIP to be enabled and AAAA queries to be allowed.</value>
+  </data>
+  <data name="FillCorrectFakeIPv6Range" xml:space="preserve">
+    <value>Enter a valid IPv6 CIDR range with at least two addresses, for example fc00::/18.</value>
+  </data>
+  <data name="menuShowColumns" xml:space="preserve">
+    <value>Show columns</value>
+  </data>
+  <data name="TbWarp" xml:space="preserve">
+    <value>Warp</value>
+  </data>
+  <data name="LvPreResolve" xml:space="preserve">
+    <value>Pre-resolve server domains</value>
+  </data>
+  <data name="menuFreezeToThisColumn" xml:space="preserve">
+    <value>Freeze up to this column</value>
+  </data>
+  <data name="menuUnfreezeAllColumns" xml:space="preserve">
+    <value>Unfreeze all columns</value>
+  </data>
+  <data name="menuCurrentlyFrozenColumns" xml:space="preserve">
+    <value>Currently frozen first {0} column(s)</value>
+  </data>
+  <data name="menuHideThisColumn" xml:space="preserve">
+    <value>Hide this column</value>
+  </data>
+  <data name="XdriveProvider" xml:space="preserve">
+    <value>Preset Provider</value>
+  </data>
+  <data name="XdriveService" xml:space="preserve">
+    <value>Storage service (service)</value>
+  </data>
+  <data name="XdriveRemoteFolder" xml:space="preserve">
+    <value>Remote folder (remoteFolder)</value>
+  </data>
+  <data name="XdriveSecrets" xml:space="preserve">
+    <value>Secrets (AK,SK / OAuth)</value>
+  </data>
+  <data name="XdriveS3Endpoint" xml:space="preserve">
+    <value>S3 Endpoint</value>
+  </data>
+  <data name="XdriveS3Region" xml:space="preserve">
+    <value>S3 Region</value>
+  </data>
+  <data name="XdriveS3Bucket" xml:space="preserve">
+    <value>S3 Bucket</value>
+  </data>
+  <data name="XdriveS3PathStyle" xml:space="preserve">
+    <value>S3 Force Path Style</value>
+  </data>
+  <data name="XdriveExtra" xml:space="preserve">
+    <value>XDRIVE Extra</value>
+  </data>
+  <data name="XdriveExtraTip" xml:space="preserve">
+    <value>Raw JSON, format: { XdriveObject }</value>
+  </data>
+  <data name="TransportHeaderType6" xml:space="preserve">
+    <value>XDRIVE service</value>
+  </data>
+  <data name="TransportPathTip6" xml:space="preserve">
+    <value>XDRIVE remote folder</value>
+  </data>
+  <data name="TbSpeedtestSettings" xml:space="preserve">
+    <value>Speedtest Settings</value>
+  </data>
+  <data name="MsgCheckUpdateViaLatest" xml:space="preserve">
+    <value>Checking {0} updates via release redirect...</value>
+  </data>
+  <data name="MsgCheckUpdateViaApi" xml:space="preserve">
+    <value>Checking {0} updates via GitHub API...</value>
+  </data>
+  <data name="MsgCheckUpdateViaApiFailed" xml:space="preserve">
+    <value>GitHub API for {0} is unavailable</value>
+  </data>
+  <data name="MsgCheckUpdateViaGitRefs" xml:space="preserve">
+    <value>Checking {0} updates via git references...</value>
+  </data>
+  <data name="MsgCheckUpdateViaGitRefsFailed" xml:space="preserve">
+    <value>Git references for {0} are unavailable</value>
   </data>
 </root>

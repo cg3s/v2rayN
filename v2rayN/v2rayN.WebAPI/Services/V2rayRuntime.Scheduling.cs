@@ -1,7 +1,3 @@
-using ServiceLib.Common;
-using ServiceLib.Handler;
-using ServiceLib.Manager;
-using ServiceLib.Models.Entities;
 using ServiceLib.Services;
 using v2rayN.WebAPI.Contracts;
 
@@ -65,7 +61,7 @@ public sealed partial class V2rayRuntime
                     await using var operation = await _operations.EnterOperationAsync(token);
                     await _mutations.RunAsync(async () =>
                     {
-                        await EnsureConfigSaveSucceededAsync(() => ConfigHandler.SaveConfig(Config));
+                        await EnsureConfigSaveSucceededAsync(() => ConfigTextHandler.SaveConfig());
                         await ProfileExManager.Instance.SaveTo();
                     }, operation.Token);
                 }, cancellationToken);
@@ -118,7 +114,7 @@ public sealed partial class V2rayRuntime
         IReadOnlyList<SubItem> subscriptions;
         await using (var operation = await _operations.EnterOperationAsync(cancellationToken))
         {
-            subscriptions = (await AppManager.Instance.SubItems() ?? [])
+            subscriptions = (await ConfigDbQuery.SubItems() ?? [])
                 .Where(item => item.AutoUpdateInterval > 0
                                && now - item.UpdateTime >= item.AutoUpdateInterval * 60L)
                 .ToArray();
@@ -141,7 +137,8 @@ public sealed partial class V2rayRuntime
         await using var operation = await _operations.EnterExclusiveAsync(
             cancellationToken,
             allowReadOnlyObservations: true);
-        await new UpdateService(Config, (success, message) =>
+        using var downloadService = await DownloadService.CreateDownloadServiceWithCheck(Config.CheckUpdateItem.UpdateViaProxy);
+        await new UpdateService(downloadService, Config, (success, message) =>
         {
             AddLog("update", message);
             _events.Publish("geo-update-progress", new
@@ -156,16 +153,15 @@ public sealed partial class V2rayRuntime
                 _events.Publish("geo-update-completed", OperationView.Ok(ApiMessageKeys.CommonCompleted));
             }
             return Task.CompletedTask;
-        }).UpdateGeoFileAll(blProxy: true, cancellationToken: operation.Token);
+        }).UpdateGeoFileAll(operation.Token);
     }
 
     private async Task RunScheduledCoreUpdateCheckAsync(CancellationToken cancellationToken)
     {
         await using var operation = await _operations.EnterOperationAsync(cancellationToken);
-        var updateService = new UpdateService(Config, (_, _) => Task.CompletedTask);
-        var messages = await updateService.CheckHasUpdateOnlyAll(
-            Config.CheckUpdateItem.UpdateViaProxy,
-            operation.Token);
+        using var downloadService = await DownloadService.CreateDownloadServiceWithCheck(Config.CheckUpdateItem.UpdateViaProxy);
+        var updateService = new UpdateService(downloadService, Config, (_, _) => Task.CompletedTask);
+        var messages = await updateService.CheckHasUpdateOnlyAll(operation.Token);
         foreach (var message in messages)
         {
             AddLog("update", message);

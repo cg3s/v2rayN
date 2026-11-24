@@ -1,15 +1,6 @@
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-using ServiceLib;
-using ServiceLib.Common;
-using ServiceLib.Enums;
-using ServiceLib.Handler;
-using ServiceLib.Manager;
-using ServiceLib.Models.CoreConfigs;
-using ServiceLib.Models.Dto;
-using ServiceLib.Models.Entities;
-using ServiceLib.Resx;
 using ServiceLib.Services;
 using v2rayN.WebAPI.Contracts;
 
@@ -19,11 +10,13 @@ public sealed partial class V2rayRuntime
 {
     private const string GeoFilesUpdateTarget = "GeoFiles";
     private const string WebUpdateTarget = "v2rayN.WebAPI";
+
     internal static string NormalizeWebUpdateTarget(string target) => target == "v2rayN.Web" ? WebUpdateTarget : target;
 
     internal static List<string>? NormalizeWebUpdateTargets(IEnumerable<string>? targets) =>
         targets?.Select(NormalizeWebUpdateTarget).Distinct(StringComparer.Ordinal).ToList();
-    private readonly object _updateTaskGate = new();
+
+    private readonly Lock _updateTaskGate = new();
     private readonly GeoFilesUpdateGate _geoUpdateGate = new();
     private readonly ConcurrentDictionary<ECoreType, Task> _coreUpdateTasks = new();
     private readonly ConcurrentDictionary<string, CoreUpdateProgressView> _updateProgress = new(StringComparer.Ordinal);
@@ -31,7 +24,7 @@ public sealed partial class V2rayRuntime
     private Task? _coreUpdateBatchTask;
 
     internal bool GetUpdatePreRelease(string target, bool? preRelease = null) =>
-        preRelease ?? (Config.CheckUpdateItem.CheckPreReleaseCoreTypes?.Contains(target, StringComparer.Ordinal) ?? false);
+        preRelease ?? Config.CheckUpdateItem.CheckPreReleaseCoreTypes?.Contains(target, StringComparer.Ordinal) ?? false;
 
     public CoreUpdateSettingsView GetCoreUpdateSettings()
     {
@@ -120,7 +113,7 @@ public sealed partial class V2rayRuntime
                 .Distinct(StringComparer.Ordinal)
                 .ToList();
             Config.CheckUpdateItem.UpdateViaProxy = input.UseProxy;
-            await EnsureConfigSaveSucceededAsync(() => ConfigHandler.SaveConfig(Config));
+            await EnsureConfigSaveSucceededAsync(() => ConfigTextHandler.SaveConfig());
         });
 
         return OperationView.Ok(ApiMessageKeys.CoreUpdateSettingsSaved);
@@ -236,8 +229,16 @@ public sealed partial class V2rayRuntime
         }
 
         var targetNames = targets.Select(coreType => coreType.ToString()).ToList();
-        if (includeGeoFiles) targetNames.Add(GeoFilesUpdateTarget);
-        if (includeWeb) targetNames.Add(WebUpdateTarget);
+        if (includeGeoFiles)
+        {
+            targetNames.Add(GeoFilesUpdateTarget);
+        }
+
+        if (includeWeb)
+        {
+            targetNames.Add(WebUpdateTarget);
+        }
+
         return OperationView.Ok(ApiMessageKeys.CoreUpdateBatchStarted, new { apply, targets = targetNames });
     }
 
@@ -549,7 +550,11 @@ public sealed partial class V2rayRuntime
         finally
         {
             CleanupWebUpdateStage(webStage);
-            foreach (var stage in staged) CleanupCoreUpdateStage(stage);
+            foreach (var stage in staged)
+            {
+                CleanupCoreUpdateStage(stage);
+            }
+
             lock (_updateTaskGate)
             {
                 _coreUpdateBatchTask = null;
@@ -596,11 +601,12 @@ public sealed partial class V2rayRuntime
         bool? useProxy,
         CancellationToken cancellationToken)
     {
-        var updateService = new UpdateService(Config, (_, _) => Task.CompletedTask);
+        using var downloadService = await DownloadService.CreateDownloadServiceWithCheck(useProxy ??
+            Config.CheckUpdateItem.UpdateViaProxy);
+        var updateService = new UpdateService(downloadService, Config, (_, _) => Task.CompletedTask);
         var result = await updateService.CheckHasUpdateOnly(
             coreType,
             GetUpdatePreRelease(coreType.ToString(), preRelease),
-            useProxy ?? Config.CheckUpdateItem.UpdateViaProxy,
             cancellationToken);
         return new CoreUpdateCheckResult(result, IsUpToDateResult(coreType, result.Msg));
     }
@@ -692,7 +698,7 @@ public sealed partial class V2rayRuntime
         try
         {
             PublishCoreUpdateProgress(coreType, "downloading", isComplete: false, success: false, IsCoreTypeRunning(coreType), check.Version?.ToString(), check.Url, batch);
-            var download = new DownloadService();
+            using var download = await DownloadService.CreateDownloadServiceWithCheck(useProxy);
             var downloadFailure = new TaskCompletionSource<Exception>(TaskCreationOptions.RunContinuationsAsynchronously);
             download.Error += (_, args) => downloadFailure.TrySetResult(args.GetException());
             download.UpdateCompleted += (_, progress) =>
@@ -705,7 +711,6 @@ public sealed partial class V2rayRuntime
                 FilePath = archivePath,
                 DisplayFileName = Path.GetFileName(archivePath),
             },
-            useProxy,
             cancellationToken);
 
             if (downloadFailure.Task.IsCompletedSuccessfully)
@@ -753,7 +758,7 @@ public sealed partial class V2rayRuntime
         {
             if (originalCoreWasRunning)
             {
-                runningProfile = await AppManager.Instance.GetProfileItem(CurrentCoreRuntime.ProfileId ?? string.Empty);
+                runningProfile = await ConfigDbQuery.GetProfileItem(CurrentCoreRuntime.ProfileId ?? string.Empty);
                 if (runningProfile is null)
                 {
                     return new CoreUpdateApplyResult(false, false, true, "The active profile could not be loaded; the running Core was left unchanged.");
@@ -1166,7 +1171,8 @@ public sealed partial class V2rayRuntime
         await _geoUpdateGate.RunAsync(async () =>
         {
             var completion = new GeoFilesUpdateCompletion();
-            var updater = new UpdateService(Config, (success, message) =>
+            using var downloadService = await DownloadService.CreateDownloadServiceWithCheck(useProxy);
+            var updater = new UpdateService(downloadService, Config, (success, message) =>
             {
                 AddLog("update", message);
                 completion.Report(success, message, IsGeoDownloadProgressMessage(message));
@@ -1193,7 +1199,7 @@ public sealed partial class V2rayRuntime
                     // Keep download selection, URLs, and installation behavior in the upstream
                     // public API. Its legacy callback reports progress/errors separately from its
                     // final success notification, so reject non-progress failures before commit.
-                    await updater.UpdateGeoFileAll(useProxy, token);
+                    await updater.UpdateGeoFileAll(token);
                     completion.EnsureSuccessful();
                 },
                 cancellationToken,
@@ -1207,7 +1213,7 @@ public sealed partial class V2rayRuntime
         var geoipRules = new List<string>();
         var geositeRules = new List<string>();
 
-        var routingItems = await AppManager.Instance.RoutingItems();
+        var routingItems = await ConfigDbQuery.RoutingItems();
         foreach (var routing in routingItems ?? [])
         {
             var rules = JsonUtils.Deserialize<List<RulesItem>>(routing.RuleSet);
@@ -1218,7 +1224,7 @@ public sealed partial class V2rayRuntime
             }
         }
 
-        var dnsItem = await AppManager.Instance.GetDNSItem(ECoreType.sing_box);
+        var dnsItem = await ConfigDbQuery.GetDNSItem(ECoreType.sing_box);
         if (dnsItem is not null)
         {
             ExtractDnsRuleSets(dnsItem.NormalDNS, geoipRules, geositeRules);
@@ -1267,7 +1273,11 @@ public sealed partial class V2rayRuntime
 
     private static void AddPrefixedItems(IEnumerable<string>? items, string prefix, ICollection<string> output)
     {
-        if (items is null) return;
+        if (items is null)
+        {
+            return;
+        }
+
         foreach (var item in items)
         {
             if (item.StartsWith(prefix, StringComparison.Ordinal))
@@ -1279,7 +1289,11 @@ public sealed partial class V2rayRuntime
 
     private static void ExtractDnsRuleSets(string? dnsJson, ICollection<string> geoipRules, ICollection<string> geositeRules)
     {
-        if (string.IsNullOrEmpty(dnsJson)) return;
+        if (string.IsNullOrEmpty(dnsJson))
+        {
+            return;
+        }
+
         try
         {
             var dns = JsonUtils.Deserialize<Dns4Sbox>(dnsJson);
@@ -1296,7 +1310,11 @@ public sealed partial class V2rayRuntime
 
     private static void ExtractSrsRuleSets(Rule4Sbox? rule, ICollection<string> geoipRules, ICollection<string> geositeRules)
     {
-        if (rule is null) return;
+        if (rule is null)
+        {
+            return;
+        }
+
         AddPrefixedItems(rule.rule_set, "geosite-", geositeRules);
         AddPrefixedItems(rule.rule_set, "geoip-", geoipRules);
         foreach (var nestedRule in rule.rules ?? [])
