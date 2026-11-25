@@ -53,7 +53,7 @@
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
-    
+
     <ItemGroup>
         <TrimmerRootDescriptor Include="TrimmerRoots.xml" />
     </ItemGroup>
